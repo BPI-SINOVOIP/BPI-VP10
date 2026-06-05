@@ -1,0 +1,28 @@
+# FortiorTech IDE Solution File, Format Version 1.0.0
+# Warning: do not edit or delete this solution file!
+
+# ////////////////////////////////////////////////////
+# Begin Solution
+<Solution>
+	NAME : ServoControl
+	GUID : {DF9172D4-84C0-4549-94BF-3A46EF60D417}
+	STARTUP : {C6A2B30B-9DE9-46B7-898A-1203DFFB91D6}
+	ACTIVECONFIGURATION : Debug
+</Solution>
+# End Solution
+
+# ////////////////////////////////////////////////////
+# Begin Project
+<Projects>
+	COUNT : 1
+	<Project1>
+		NAME : ServoControl
+		GUID : {C6A2B30B-9DE9-46B7-898A-1203DFFB91D6}
+		CLSID : {6A43467F-EE90-4326-8743-4E894C88384A}
+		PATH : .\ServoControl.ftproj
+		Dependencies : 
+	</Project1>
+</Projects>
+
+# End Project
+# ////////////////////////////////////////////////////
