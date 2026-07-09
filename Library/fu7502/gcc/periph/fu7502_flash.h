@@ -18,49 +18,49 @@
 /******************************************************************************/// Including Header Files
 #include "fu7502.h"
 /******************************************************************************/// Define Macro
-#define SEC_LEN					(512)		// 扇区
+#define SEC_LEN					(512)		// Sector
 #define PAGE_SEC_SIZE			(8)		// sectors
-#define FLASH_LEN				(65536UL)	// flash长度
+#define FLASH_LEN				(65536UL)	// flash length
 
-#define PAGE_LEN		(PAGE_SEC_SIZE * SEC_LEN)	// 页长度
+#define PAGE_LEN		(PAGE_SEC_SIZE * SEC_LEN)	// Page length
 
 
 /******************************************************************************/// Define Type
 /**
- * @enum 编程命令
- * @brief 列举出Flash的可用模式及命令构成
+ * @enum Programming commands
+ * @brief Lists the available modes and command composition of the Flash
  */
 typedef enum
 {
-	FLASH_PRG8E = FLAEN,                                 /**< 8字节数据+ECC字节编程 */
-	FLASH_PRG1 = FLAEN | FLASIZE | FLAECC,              /**< 1字节数据编程 */
-	FLASH_PRGE = FLAEN | FLASIZE,						/**< ECC字节编程 */
-	FLASH_SEC_ERS = FLAEN | FLAERS,                        /**< 扇区擦除 */
-	FLASH_SEC_PP = FLAEN | FLAPRE,                        /**< 扇区预擦除 */
-	FLASH_SEC_M1 = FLAEN | FLAPRE | FLAMARGIN1,           /**< 扇区检查模式1 */
-	FLASH_PAGE_ERS = FLAEN | FLAERS | FLAPAGE,              /**< 页擦除 */
-	FLASH_PAGE_PP = FLAEN | FLAPRE | FLAPAGE,              /**< 页预擦除 */
-	FLASH_PAGE_M1 = FLAEN | FLAPRE | FLAPAGE | FLAMARGIN1, /**< 页检查模式1 */
-	FLASH_CHIP_ERS = FLAEN | FLAERS | FLACHIP,              /**< 全片擦除 */
-	FLASH_CHIP_PP = FLAEN | FLAPRE | FLACHIP,              /**< 全片预擦除 */
-	FLASH_CHIP_M1 = FLAEN | FLAPRE | FLACHIP | FLAMARGIN1, /**< 全片检查模式1 */
-	FLASH_PRG8 = FLAEN | FLAECC,                  /**< 8字节数据编程 */  /* factory */
-//    FLASH_PRGEM    = FLAEN | FLAECC | FLAECCMANUAL,         /**< ECC字节编程, ECC手动模式 */  /* factory */
+	FLASH_PRG8E = FLAEN,                                 /**< 8-byte data + ECC byte programming */
+	FLASH_PRG1 = FLAEN | FLASIZE | FLAECC,              /**< 1-byte data programming */
+	FLASH_PRGE = FLAEN | FLASIZE,						/**< ECC byte programming */
+	FLASH_SEC_ERS = FLAEN | FLAERS,                        /**< Sector erase */
+	FLASH_SEC_PP = FLAEN | FLAPRE,                        /**< Sector pre-erase */
+	FLASH_SEC_M1 = FLAEN | FLAPRE | FLAMARGIN1,           /**< Sector check mode 1 */
+	FLASH_PAGE_ERS = FLAEN | FLAERS | FLAPAGE,              /**< Page erase */
+	FLASH_PAGE_PP = FLAEN | FLAPRE | FLAPAGE,              /**< Page pre-erase */
+	FLASH_PAGE_M1 = FLAEN | FLAPRE | FLAPAGE | FLAMARGIN1, /**< Page check mode 1 */
+	FLASH_CHIP_ERS = FLAEN | FLAERS | FLACHIP,              /**< Chip erase */
+	FLASH_CHIP_PP = FLAEN | FLAPRE | FLACHIP,              /**< Chip pre-erase */
+	FLASH_CHIP_M1 = FLAEN | FLAPRE | FLACHIP | FLAMARGIN1, /**< Chip check mode 1 */
+	FLASH_PRG8 = FLAEN | FLAECC,                  /**< 8-byte data programming */  /* factory */
+//    FLASH_PRGEM    = FLAEN | FLAECC | FLAECCMANUAL,         /**< ECC byte programming, ECC manual mode */  /* factory */
 } ETypeFlashCmd;
 
 /**
- * @enum 编程结果
- * @brief 列举出Flash操作过程中会出现的各种错误
+ * @enum Programming results
+ * @brief Lists various errors that may occur during Flash operations
  */
 typedef enum
 {
-	FLASH_IDLE,       /**< 初始化 */
-	FLASH_SUCCESS,    /**< 编程成功 */
-	FLASH_ERR_ADDR,   /**< 由于尝试编程非法地址导致的编程错误 */
-	FLASH_ERR_CMD,    /**< 由于编程命令错误导致的编程错误 */
-	FLASH_ERR_UNLOCK, /**< 由于编程解锁过程中出现的错误 */
-	FLASH_FORZEN,     /**< 编程锁被冻结 */
-	FLASH_ERROR       /**< 其他问题导致的编程失败 */
+	FLASH_IDLE,       /**< Initialization */
+	FLASH_SUCCESS,    /**< Programming successful */
+	FLASH_ERR_ADDR,   /**< Programming error due to attempt to program an illegal address */
+	FLASH_ERR_CMD,    /**< Programming error caused by incorrect programming command */
+	FLASH_ERR_UNLOCK, /**< Error occurred during programming unlock process */
+	FLASH_FORZEN,     /**< Programming lock is frozen */
+	FLASH_ERROR       /**< Programming failed due to other issues */
 } ETypeFlashStatu;
 
 /******************************************************************************/// External Symbols

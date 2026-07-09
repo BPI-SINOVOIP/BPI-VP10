@@ -3,14 +3,14 @@
 	<Properties>
 		BodyPath=".\\Body\\Riscv\\FTM32\\FU7502"
 		CLSID="{6A43467F-EE90-4326-8743-4E894C88384A}"
-		DowloadMode="2"
 		LanguageName="RISCV C"
-		BodyName="FU7502"
-		ProjectSettingChanged="0"
+		DowloadMode="2"
 		ActiveCfgName="Debug"
+		ProjectSettingChanged="0"
+		BodyName="FU7502"
 		DebugInfoOnDeviceOpened="1"
 		BodySeries="FTM32"
-		Name="ServoControl"
+		Name="ServoControl_App"
 		EnableBLKMDOnce=""
 		Version="1.0.0.0"
 		GUID="{C6A2B30B-9DE9-46B7-898A-1203DFFB91D6}"
@@ -21,17 +21,16 @@
 			Name="Debug"
 			OutputDirectory="./Debug"
 			IntermediateDirectory="./Obj"
-			OutputFileName="./Debug/ServoControl.elf"
+			OutputFileName="./Debug_App/ServoControl_App.elf"
 			ExcludedFromBuild="FALSE"
 			MakefileOption="0"
 			ExternalMakefile="Makefile"
 			OptionsFile=".\\Options\\SettingsOptions_riscv.xml"
 			<DebuggerProperties>
-				StopAt="0"
+				StopAt="1"
 				MemoryFeatureCLSID="{B9F22F90-354A-42a6-B2C2-7D4C9E774FBE}"
-				MemoryCache="-1"
+				MemoryCache="0"
 				MemoryCacheBound="512"
-				EnableDebugDS="0"
 			</DebuggerProperties>
 			<Option>
 				<Target>
@@ -52,15 +51,13 @@
 					</Warnings>
 				</Compiler>
 				<Linker>
-					Options="-Wl,--gc-sections -static -T \"..\\Library\\fu7502\\gcc\\core\\fu7502_link.ld\" -L\"..\\User\" -l\"libServoControl_Lib.a\""
+					Options="-Wl,--gc-sections -static -T \"..\\Library\\fu7502\\gcc\\core\\fu7502_link_bootloader.ld\" -L\"..\\User\" -l\"libServoControl_Lib.a\""
 				</Linker>
 				<PreLink>
 					Descriptions=""
 				</PreLink>
 				<PostBuild>
 					Descriptions=""
-					<Commands>
-					</Commands>
 				</PostBuild>
 				<RegisterConfig>
 					CheckCacheData="TRUE"
@@ -1026,23 +1023,6 @@
 		<Folder>
 			<Properties>
 			</Properties>
-			Name="Linker Script"
-			Filter="ld;c;s;"
-			<File>
-				FilePath="..\\Library\\fu7502\\gcc\\core\\fu7502_boot.s"
-				Flags="0x000004CF"
-				<Properties>
-				</Properties>
-			</File>
-			<File>
-				FilePath="..\\Library\\fu7502\\gcc\\core\\fu7502_link.ld"
-				<Properties>
-				</Properties>
-			</File>
-		</Folder>
-		<Folder>
-			<Properties>
-			</Properties>
 			Name="Document"
 			Filter="txt;md;doc;docx"
 			<File>
@@ -1056,7 +1036,23 @@
 			<Properties>
 			</Properties>
 		</File>
-	</FilesTab>
+	<Folder>
+			<Properties>
+			</Properties>
+			Name="Linker Script"
+			Filter="ld;c;s;"
+			<File>
+				FilePath="..\\Library\\fu7502\\gcc\\core\\fu7502_boot.s"
+				Flags="0x000004CF"
+				<Properties>
+				</Properties>
+			</File>
+			<File>
+				FilePath="..\\Library\\fu7502\\gcc\\core\\fu7502_link_bootloader.ld"
+				<Properties>
+				</Properties>
+			</File>
+		</Folder></FilesTab>
 	<FileConfigurationStructure>
 		<File>
 			ExtensionName="*"

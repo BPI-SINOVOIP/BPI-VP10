@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-2"?>
+<UserOptions>
+	<RealWatchItems>
+		ItemList=""
+	</RealWatchItems>
+	<OpenState>
+		<OpenFiles>
+			Path="..\\User\\03_Source\\00main.c"
+			Path="..\\User\\03_Source\\PROTECT.c"
+			Path="..\\Library\\fu7502\\gcc\\core\\fu7502_mcu.h"
+			Path="..\\User\\03_Source\\FocControlFunction.c"
+			Path="..\\User\\03_Source\\AddFunction.c"
+			Path="..\\User\\03_Source\\Interrupt.c"
+			Path="..\\Library\\fu7502\\gcc\\core\\fu7502_link_bootloader.ld"
+			Path="..\\User\\03_Source\\FocControl.c"
+			State="319,9739,9739"
+		</OpenFiles>
+		<OpenFolders>
+			<{C6A2B30B-9DE9-46B7-898A-1203DFFB91D6}>
+				Expanded="TRUE"
+				Name="Linker Script"
+			</{C6A2B30B-9DE9-46B7-898A-1203DFFB91D6}>
+		</OpenFolders>
+	</OpenState>
+	<UI_dockbar_disassembler>
+		AddressList=""
+	</UI_dockbar_disassembler>
+	<UI_dockbar_memory1>
+		ViewAddress="$pc"
+		AddressList=""
+	</UI_dockbar_memory1>
+	<UI_dockbar_memory2>
+		ViewAddress="$pc"
+		AddressList=""
+	</UI_dockbar_memory2>
+	<UI_dockbar_memory3>
+		ViewAddress="$pc"
+		AddressList=""
+	</UI_dockbar_memory3>
+	<UI_dockbar_memory4>
+		ViewAddress="$pc"
+		AddressList=""
+	</UI_dockbar_memory4>
+	<UI_dockbar_registers>
+		ActiveRegGroup="General Register"
+	</UI_dockbar_registers>
+	<Breakpoints>
+		<Breakpoint>
+			ClassID="{B7A4F9BD-528B-421C-8F51-84D06700A130}"
+			Data="A225535742503130313B3078313B46696C653B2E2E5C4C6962726172795C6675373530325C6763635C636F72655C6675373530325F626F6F742E733B34373B46414C53453B3B303B46414C53453B307830303030303030303B46414C53453B3B00"
+		</Breakpoint>
+	</Breakpoints>
+	IDEVersion="v1.0.1.260309"
+	<WatchVariables>
+		<dockbar_watch1>
+		</dockbar_watch1>
+	</WatchVariables>
+</UserOptions>

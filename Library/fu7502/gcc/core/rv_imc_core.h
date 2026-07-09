@@ -17,54 +17,54 @@
 
 #include <stdbool.h>
 
-/******************************************************************************/
+/******************************************************************************/ 
 /*                                                                            */
 /*                          Variable type definition                          */
 /*                                                                            */
-/******************************************************************************/
+/******************************************************************************/ 
 
-typedef unsigned char                   uint8;                                  // 无符号字符型变量
-typedef unsigned short                  uint16;                                 // 无符号整型变量
-typedef unsigned long                   uint32;                                 // 无符号长整型变量
-typedef unsigned long long              uint64;                                 // 无符号64位整型变量
-typedef char                            int8;                                   // 有符号字符型变量
-typedef short                           int16;                                  // 有符号整型变量
-typedef long                            int32;                                  // 有符号长整型变量
-typedef long long                       int64;                                  // 有符号64位整型变量
+typedef unsigned char                   uint8;                                  // Unsigned character-type variable
+typedef unsigned short                  uint16;                                 // Unsigned integer-type variable
+typedef unsigned long                   uint32;                                 // Unsigned long integer-type variable
+typedef unsigned long long              uint64;                                 // Unsigned 64-bit integer-type variable
+typedef char                            int8;                                   // Signed character-type variable
+typedef short                           int16;                                  // Signed integer-type variable
+typedef long                            int32;                                  // Signed long integer-type variable
+typedef long long                       int64;                                  // Signed 64-bit integer-type variable
 typedef enum{DISABLE = 0, ENABLE}       ebool;
 //typedef _Bool                           bool;
 
-/******************************************************************************/
+/******************************************************************************/ 
 /*                                                                            */
 /*                        Function Property Definition                        */
 /*                                                                            */
-/******************************************************************************/
+/******************************************************************************/ 
 #define minterrupt                      __attribute__((interrupt ("machine")))
 
-/******************************************************************************/
+/******************************************************************************/ 
 /*                                                                            */
 /*                     CSR operating function definition                      */
 /*                                                                            */
-/******************************************************************************/
+/******************************************************************************/ 
 /**
- * 空指令
+ * NOP instruction
  */
 #define nop()                           ({                            \
                                             __asm__ volatile ("nop"); \
                                         })
 
 /**
- * 待机指令
+ * Wait-for-interrupt instruction
  */
 #define wfi()                           ({                            \
                                             __asm__ volatile ("wfi"); \
                                         })
 
 /**
- * 读取CSR寄存器
+ * Read CSR register
  *
- * @param  reg csr寄存器地址
- * @return     csr当前值
+ * @param  reg CSR register address
+ * @return     current CSR value
  */
 #define read_csr(reg)                   ({                                                             \
                                             unsigned long __tmp;                                       \
@@ -73,10 +73,10 @@ typedef enum{DISABLE = 0, ENABLE}       ebool;
                                         })
 
 /**
- * 写入数据到csr寄存器
+ * Write data to CSR register
  *
- * @param reg csr寄存器地址
- * @param val 写入的数据
+ * @param reg CSR register address
+ * @param val data to write
  */
 #define write_csr(reg, val)             do                                                            \
                                         {                                                             \
@@ -84,10 +84,10 @@ typedef enum{DISABLE = 0, ENABLE}       ebool;
                                         } while (0)
 
 /**
- * csr寄存器指定位置1
+ * Set specified bit(s) in CSR register
  *
- * @param reg csr寄存器地址
- * @param bit 要操作的位
+ * @param reg CSR register address
+ * @param bit bit(s) to operate
  */
 #define set_csr(reg, bit)               do                                                                   \
                                         {                                                                    \
@@ -95,10 +95,10 @@ typedef enum{DISABLE = 0, ENABLE}       ebool;
                                         } while (0)
 
 /**
- * csr寄存器指定位置0
+ * Clear specified bit(s) in CSR register
  *
- * @param reg csr寄存器地址
- * @param bit 要操作的位
+ * @param reg CSR register address
+ * @param bit bit(s) to operate
  */
 #define clr_csr(reg, bit)               do                                                                   \
                                         {                                                                    \
@@ -106,20 +106,20 @@ typedef enum{DISABLE = 0, ENABLE}       ebool;
                                         } while (0)
 
 /**
- * 读取CSR寄存器位状态
+ * Read status of bit(s) in CSR register
  *
- * @param  reg csr寄存器地址
- * @return     csr当前值
+ * @param  reg CSR register address
+ * @return     whether the specified bit(s) are set
  */
 #define readbit_csr(reg, bit)           ({                                  \
                                             ((read_csr(reg) & (bit)) != 0); \
                                         })
 
 /**
- * csr寄存器指定位取反
+ * Toggle specified bit(s) in CSR register
  *
- * @param reg csr寄存器地址
- * @param bit 要操作的位
+ * @param reg CSR register address
+ * @param bit bit(s) to operate
  */
 #define xor_csr(reg, bit)               do                                         \
                                         {                                          \
@@ -127,11 +127,11 @@ typedef enum{DISABLE = 0, ENABLE}       ebool;
                                         } while (0)
 
 /**
- * csr寄存器同时清除和设置一些位
+ * Clear and set specified bits in CSR register simultaneously
  *
- * @param[in]  reg      csr寄存器地址
- * @param[in]  cbit  要置0的寄存器位
- * @param[in]  sbit  要置1的寄存器位
+ * @param[in]  reg      CSR register address
+ * @param[in]  cbit     register bits to clear (set to 0)
+ * @param[in]  sbit     register bits to set (set to 1)
  */
 #define reset_csr(reg, cbit, sbit)      do                                                      \
                                         {                                                       \

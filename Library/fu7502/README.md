@@ -1,42 +1,40 @@
-# FU7502系列操作库
+# FU7502 Series Operation Library
 
+This is the low-level operation library for the FU7502 series chips, providing hardware abstraction layer interfaces for some on-chip peripherals.
 
-
-这是FU7502系列芯片底层操作库, 以及提供部分片内外设的硬件抽象层接口
-
-## 适用编译器
+## Supported Compilers
 
 - [ ] FTCC
 
-## 适用芯片
+## Supported Chips
 - FU7512
 
-## 发布记录
+## Release Notes
 
-## 版权说明
-> 版权所有©峰岹科技（深圳）股份有限公司（以下简称：峰岹科技）。<br>
+## Copyright Notice
+> Copyright © Fortior Tech (Shenzhen) Co., Ltd. (hereinafter referred to as "Fortior Tech").<br>
 
-> 为改进设计和/或性能，峰岹科技保留对本文档所描述或包含的产品（包括电路、标准元件和/><br>或软件）进行更改的权利。本文档中包含的信息供峰岹科技的客户进行一般性使用。峰岹科技的客户应确保采取适当行动，以使其对峰岹科技产品的使用不侵犯任何专利。峰岹科技尊重第三方的有效专利权，不侵犯或协助他人侵犯该等权利。<br>
-> 本文档版权归峰岹科技所有，未经峰岹科技明确书面许可，任何单位及个人不得以任何形式或方式（如电子、机械、磁性、光学、化学、手工操作或其他任何方式），对本文档任何内容进行复制、传播、抄录、存储于检索系统或翻译为任何语种，亦不得更改或删除> 本内容副本中的任何版权或其他声明信息。<br>
+> Fortior Tech reserves the right to make changes to the products (including circuits, standard cells, and/or software) described or contained in this document in order to improve design and/or performance. The information contained in this document is provided for general use by Fortior Tech's customers. Fortior Tech's customers should ensure that they take appropriate actions so that their use of Fortior Tech products does not infringe any patents. Fortior Tech respects the valid patent rights of third parties and does not infringe or assist others in infringing such rights.<br>
+> The copyright of this document belongs to Fortior Tech. Without the express written permission of Fortior Tech, no entity or individual may copy, disseminate, transcribe, store in a retrieval system, or translate into any language any content of this document in any form or by any means (such as electronic, mechanical, magnetic, optical, chemical, manual, or any other means), nor may they alter or delete any copyright or other notice information in any copy of this content.<br>
 
-> 峰岹科技（深圳）股份有限公司<br>
-> 深圳市南山区科技中二路深圳软件园二期11栋2楼203<br>
-> 邮编：518057<br>
-> 电话：0755-26867710<br>
-> 传真：0755-26867715<br>
-> 网址：[www.fortiortech.com](https://www.fortiortech.com)
+> Fortior Tech (Shenzhen) Co., Ltd.<br>
+> Room 203, 2/F, Building 11, Phase II, Shenzhen Software Park, Keji Zhong 2nd Road, Nanshan District, Shenzhen<br>
+> Postal Code: 518057<br>
+> Tel: 0755-26867710<br>
+> Fax: 0755-26867715<br>
+> Website: [www.fortiortech.com](https://www.fortiortech.com)
 
-## 免责声明
-> 本标准库为峰岹科技（深圳）股份有限公司及其子公司（以下简称“峰岹科技”）的财产。<br>
+## Disclaimer
+> This standard library is the property of Fortior Tech (Shenzhen) Co., Ltd. and its subsidiaries (hereinafter referred to as "Fortior Tech").<br>
 
-> 本标准库系以“原样”提供，峰岹科技对本标准库不作任何明示或暗示的保证，包括但不限于对适销性、特定用途适用性或不侵犯任何第三方知识产权的暗示保证。<br>
+> This standard library is provided "as is". Fortior Tech makes no express or implied warranties regarding this standard library, including but not limited to implied warranties of merchantability, fitness for a particular purpose, or non-infringement of any third-party intellectual property rights.<br>
 
-> 本标准库中提供的任何信息仅供参考，峰岹科技不承担因应用或使用本标准库而产生的任何责任。<br>
+> Any information provided in this standard library is for reference only, and Fortior Tech assumes no liability arising from the application or use of this standard library.<br>
 
-> 本标准库的使用者有责任正确地设计、编程和测试由本标准库构成的任何应用程序和任何最终产品的功能和安全性，自行承担全部风险，并同意为此类使用所导致的任何损害自行承担赔偿责任，为由此导致的索赔、诉讼及费用为峰岹科技进行辩护并使其免受损害。<br>
+> Users of this standard library are responsible for correctly designing, programming, and testing the functionality and safety of any applications and any end products built with this standard library, assume all risks at their own responsibility, and agree to indemnify Fortior Tech for any damages caused by such use, and to defend and hold Fortior Tech harmless from any resulting claims, lawsuits, and expenses.<br>
 
->本标准库未对峰岹科技的任何知识产权作出明示或暗示的许可。<br>
+> This standard library does not grant any express or implied license to any intellectual property of Fortior Tech.<br>
 
->峰岹科技保留随时更改、更正或改进本文档的权利，恕不另行通知。<br>
+> Fortior Tech reserves the right to change, correct, or improve this document at any time without prior notice.<br>
 
->对本免责声明如有理解歧义，最终解释权归峰岹科技（深圳）股份有限公司<br>
+> In case of any ambiguity in the interpretation of this disclaimer, the final interpretation right belongs to Fortior Tech (Shenzhen) Co., Ltd.<br>

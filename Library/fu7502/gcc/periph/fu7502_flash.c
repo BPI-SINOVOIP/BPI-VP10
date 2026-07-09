@@ -24,13 +24,13 @@
 /******************************************************************************///Function Subject
 
 /**
- * @brief      Flash操作
- *			   该函数为Flash操作的硬件抽象函数, 用户仅需向该函数传入编程操作命令, 编程地址,
- *			   编程内容即可, Flash编程的传入参数检查和完整操作过程都由该函数完成
- * @param[in]  eCmd     操作命令
- * @param[in]  ulAddr   编程地址
- * @param[in]  vpDat    编程内容地址
- * @return     Flash操作结果
+ * @brief      Flash operation
+ *			   This function is the hardware abstraction for Flash operations, users only need to pass the programming command, programming address,
+ *			   and programming data to this function. Parameter validation for Flash programming and the complete operation process are handled by this function
+ * @param[in]  eCmd     operation command
+ * @param[in]  ulAddr   programming address
+ * @param[in]  vpDat    address of programming data
+ * @return     Flash operation result
  */
 ETypeFlashStatu Flash_Ctrl(ETypeFlashCmd eCmd, uint32 ulAddr, uint64 ullDat)
 {
@@ -40,7 +40,7 @@ ETypeFlashStatu Flash_Ctrl(ETypeFlashCmd eCmd, uint32 ulAddr, uint64 ullDat)
 	uint32* ulpAddr;
 
 
-	// 编程命令检查
+	// Programming command check
 	switch (eCmd)
 	{
 	case FLASH_PRG8E:
@@ -61,23 +61,23 @@ ETypeFlashStatu Flash_Ctrl(ETypeFlashCmd eCmd, uint32 ulAddr, uint64 ullDat)
 	default: return FLASH_ERR_CMD;
 	}
 
-	// 编程地址检查
+	// Programming address check
 	// if ((ulAddr & 0x00ffffff) >= SEC_LADDR) return FLASH_ERR_ADDR;
 	// if (!(eCmd & FLASIZE)) ulAddr &= 0xfffffff8;
 	ulpAddr = (uint32*) ulAddr;
 	//
-	// 编程锁冻结检查
+	// Check if programming lock is frozen
 	if (read_csr(FLA_KEY) == 0x06) return FLASH_FORZEN;
 
-	// 编程命令写入
+	// Write programming command
 	write_csr(FLA_CR, eCmd);
 
-	// 编程锁解除
+	// Unlock programming lock
 	write_csr(FLA_KEY, ucKey1);
 	write_csr(FLA_KEY, ucKey2);
 	if (read_csr(FLA_KEY) != 0x03) return FLASH_ERR_UNLOCK;
 
-	// 触发编程执行
+	// Trigger programming execution
 	if (eCmd & FLASIZE)
 	{
 		*(uint8*) ulpAddr = (uint8)ullDat;
@@ -88,13 +88,12 @@ ETypeFlashStatu Flash_Ctrl(ETypeFlashCmd eCmd, uint32 ulAddr, uint64 ullDat)
 		*(ulpAddr + 1) = ullDat >> 32;
 	}
 
-	// 编程命令写入
+	// Write programming command
 	write_csr(FLA_CR, eCmd);
 
-	// 编程结果检查
+	// Check programming result
 	if ((eCmd & FLAMARGIN1) && readbit_csr(FLA_CR, FLAM0ERR)) return FLASH_ERROR;
 	if (readbit_csr(FLA_CR, FLAERR)) return FLASH_ERROR;
 
 	return FLASH_SUCCESS;
 }
-
