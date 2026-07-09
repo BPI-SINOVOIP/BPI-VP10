@@ -97,35 +97,35 @@ uint8_t MT68_WriteRegToMTP(EncMTTypedef* p)
 }
 
 
-
-/*=================================================================================
-Function Name	:	MT68_Calibration(void)
-Description		:	Do Encoder_Calibration
-Parameter		:	SPISel - SPI or SPI2.
-					EncCalStart - Start/Stop calibration.
-					EncCalSave - Save parameter to encoder chip MTP.
-					EncRegWrite - Write encoder register.
-					EncRegRead - Read encoder register.
-					EncRegAddr - Register Address
-					pEncRegValue - Register Value
-=================================================================================*/
+/*---------------------------------------------------------------------------
+ * Name		:	MT68_Calibration
+ * Input	:	*p - pointer to EncMTTypedef instance.
+				EncCalStart - Start/Stop calibration.
+				EncCalSave - Save parameter to encoder chip MTP.
+				EncRegWrite - Write encoder register.
+				EncRegRead - Read encoder register.
+				EncRegAddr - Register Address
+				pEncRegValue - Register Value
+ * Output	:	No
+ * Description:	Do Encoder_Calibration
+ *---------------------------------------------------------------------------*/
 uint8 MT68_Calibration(EncMTTypedef* p, uint16 EncCalStart, uint16 EncSave, uint16 EncRegWrite,
 	uint16 EncRegRead, uint16 EncRegAddr, uint16* pEncRegValue)
 {
 	uint8 calStatus;
 
 #ifdef ENCCAL_PIN
-	if (!p->EncCalStart && EncCalStart) // 开始校准
+	if (!p->EncCalStart && EncCalStart) // start calibration
 	{
-		clr_csr(ENCCAL_GPIO, ENCCAL_PIN); // 启动非线性校准
+		clr_csr(ENCCAL_GPIO, ENCCAL_PIN); // start nonlinear calibration
 		set_csr(ENCCAL_GPIO, ENCCAL_PIN);
 
 		p->EncCalCounter = 0;
 		p->EncCalState = ENCCALSTA_DOING;
 	}
-	else if (p->EncCalState != ENCCALSTA_IDLE && !EncCalStart) // 结束校准
+	else if (p->EncCalState != ENCCALSTA_IDLE && !EncCalStart) // end calibration
 	{
-		clr_csr(ENCCAL_GPIO, ENCCAL_PIN); // 重置非线性校准
+		clr_csr(ENCCAL_GPIO, ENCCAL_PIN); // reset nonlinear calibration
 		p->EncCalState = ENCCALSTA_IDLE;
 	}
 	else if (p->EncCalState == ENCCALSTA_DOING)
@@ -133,12 +133,12 @@ uint8 MT68_Calibration(EncMTTypedef* p, uint16 EncCalStart, uint16 EncSave, uint
 		p->EncCalCounter++;
 		if (p->EncCalCounter > 19200000) // 20 minute
 		{
-			clr_csr(ENCCAL_GPIO, ENCCAL_PIN); // 重置非线性校准
+			clr_csr(ENCCAL_GPIO, ENCCAL_PIN); // reset nonlinear calibration
 			p->EncCalState = ENCCALSTA_FAIL;
 		}
-		else if (p->EncCalCounter > 160) // 检查校准状态
+		else if (p->EncCalCounter > 160) // check calibration status
 		{
-			// 读校准状态
+			// read calibration status
 			MT68_ReadReg(p, 0x113, &calStatus);
 
 			calStatus = (calStatus >> 6) & 0x03;
@@ -152,19 +152,19 @@ uint8 MT68_Calibration(EncMTTypedef* p, uint16 EncCalStart, uint16 EncSave, uint
 	else 
 #endif
 
-	// 保存到MTP
+	// save to MTP
 	if (!p->EncSave && EncSave)
 	{
 		MT68_WriteRegToMTP(p);
 	}
 	
-	// 写寄存器
+	// write register
 	else if (!p->EncRegWrite && EncRegWrite)
 	{
 		MT68_WriteReg(p, EncRegAddr, *pEncRegValue);
 	}
 
-	// 读寄存器
+	// read register
 	else if (!p->EncRegRead && EncRegRead)
 	{
 		MT68_ReadReg(p, EncRegAddr, pEncRegValue);

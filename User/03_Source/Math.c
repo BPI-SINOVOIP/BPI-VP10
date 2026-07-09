@@ -6,7 +6,7 @@
  * File Name     : Math.c
  * Author        : wynn.wang
  * Date          : 2023-08-11
- * Description   : 数学库
+ * Description   : Math library
  *
  * Record        :
  * V1.0, 2023-08-11, wynn.wang: Created file
@@ -29,13 +29,13 @@ int16 SinCalc(int16 Theta, uint16 Vs);
 int16 CosCalc(int16 Theta, uint16 Vs);
 int32 TanCalc(int16 Theta);
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   SinCalc
-/* Input    :   Theta: 输入角度-32768~32767，对应的-pi～pi
-/*				Vs: 输入幅值0-32767
-/* Output   :   Value * 32768
-/* Description: 正弦计算
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	SinCalc
+ * Input	:	Theta - input angle -32768~32767, corresponds to -pi~pi
+ *				Vs -  input amplitude 0-32767
+ * Output	:	Vs * sin(Theta)
+ * Description:	Sine calculation
+ *---------------------------------------------------------------------------*/
 int16 SinCalc(int16 Theta, uint16 Vs)
 {
 	int16 SinValue = 0;
@@ -52,13 +52,14 @@ int16 SinCalc(int16 Theta, uint16 Vs)
 	return SinValue;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   CosCalc
-/* Input    :   Theta: 输入角度-32768~32767，对应的-pi～pi
-/*				Vs: 32767
-/* Output   :   Value * 32768
-/* Description: 余弦计算
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	CosCalc
+ * Input	:	Theta - input angle -32768~32767, corresponds to -pi~pi
+ *				Vs -  input amplitude 0-32767
+ * Output	:	Vs * cos(Theta)
+ * Description:	Cosine calculation
+ *---------------------------------------------------------------------------*/
 int16 CosCalc(int16 Theta, uint16 Vs)
 {
 	int16 CosValue = 0;
@@ -75,12 +76,13 @@ int16 CosCalc(int16 Theta, uint16 Vs)
 	return CosValue;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   TanCalc
-/* Input    :   Theta: 输入角度-32768~32767，对应的-pi～pi
-/* Output   :   Value * 32768
-/* Description: tan计算
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	CosCalc
+ * Input	:	Theta - input angle -32768~32767, corresponds to -pi~pi
+ * Output	:	tan(Theta) * 32768
+ * Description:	Tangent calculation
+ *---------------------------------------------------------------------------*/
 int32 TanCalc(int16 Theta)
 {
 	int16 SinValue = 0;
@@ -95,12 +97,12 @@ int32 TanCalc(int16 Theta)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   uint16 Abs_F16(int16 value)
-/* Input    :   value
-/* Output   :   uint16
-/* Description: 对16位的变量取绝对值
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Abs_F16
+ * Input	:	value - input value, -32768~32767
+ * Output	:	|value|
+ * Description:	Take absolute value of 16-bit variable
+ *---------------------------------------------------------------------------*/
 int16 Abs_F16(int16 value)
 {
 	if (value < 0) return (-value);
@@ -108,12 +110,12 @@ int16 Abs_F16(int16 value)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   int32 Abs_F32(int32 value)
-/* Input    :   value
-/* Output   :   int32
-/* Description: 对32位的变量取绝对值
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Abs_F32
+ * Input	:	value - input value
+ * Output	:	|value|
+ * Description:	Take absolute value of 32-bit variable
+ *---------------------------------------------------------------------------*/
 int32 Abs_F32(int32 value)
 {
 	if (value < 0) return (-value);
@@ -121,12 +123,13 @@ int32 Abs_F32(int32 value)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Log2_32(int32 x)
-/* Input	:	x
-/* Output	:	log2(x)
-/* Description:	对32位的变量求对数, work faster and use less .text and .data than system log2.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Log2_32
+ * Input	:	x - input 32-bit integer
+ * Output	:	log2(x)
+ * Description:	Compute logarithm of 32-bit variable, works faster and uses less .text and .data 
+ *				than system log2.
+ *---------------------------------------------------------------------------*/
 int32 Log2_32(int32 x)
 {
 	int32 rst = 0;
@@ -138,12 +141,14 @@ int32 Log2_32(int32 x)
 	return rst;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Log2_64(uint64 x)
-/* Input	:	x
-/* Output	:	log2(x)
-/* Description:	对32位的变量求对数, work faster and use less .text and .data than system log2.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Log2_64
+ * Input	:	x - input 64-bit integer
+ * Output	:	log2(x)
+ * Description:	Compute logarithm of 64-bit variable, works faster and uses less .text and .data 
+ *				than system log2.
+ *---------------------------------------------------------------------------*/
+
 int32 Log2_64(uint64 x)
 {
 	int32 rst = 0;
@@ -156,13 +161,13 @@ int32 Log2_64(uint64 x)
 	return rst;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void InvSqrt(void)
-/* Input	:	x - float
-/* Output	:	float
-/* Description:	求开方，work faster and use less .text and .data than system sqrt.
-/*				但是该函数调用了浮点数，会引入一些较大的库，一般不建议使用。
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	InvSqrt
+ * Input	:	x - float
+ * Output	:	sqrt(x)
+ * Description:	Calculate square root; works faster and uses less .text and .data than system sqrt.
+ *				However this function uses floating-point operations which may pull in larger libraries and is generally not recommended.
+ *---------------------------------------------------------------------------*/
 float InvSqrt(float x)
 {
 	float xhalf = 0.5f *x;
@@ -176,12 +181,13 @@ float InvSqrt(float x)
 	return 1 / x;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	uint32 Sqrt_32(uint32 M)
-/* Input	:	uint32
-/* Output	:	uint32
-/* Description:	对32位的变量求开方, work faster and use less .text and .data than system sqrt and InvSqrt.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Sqrt_32
+ * Input	:	M - uint32
+ * Output	:	uint32
+ * Description:	Calculate the square root of a 32-bit variable, work faster and use less .text and .data than 
+ *				InvSqrt and system sqrt.
+ *---------------------------------------------------------------------------*/
 uint32 Sqrt_32(uint32 M)
 {
 	uint32 N, i;
@@ -222,19 +228,20 @@ uint32 Sqrt_32(uint32 M)
 	return N;
 }
 
-//
-/*---------------------------------------------------------------------------*/
-/* Name		:	uint32 Sqrt_64(uint64 M)
-/* Input	:	H是64位整数的高32位，L是64位整数的低32位
-/* Output	:	uint32
-/* Description:	对64位的变量求开方, InvSqrt里面浮点数运算调用的库太大.
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Sqrt_64
+ * Input	:	M - uint64
+ * Output	:	uint32
+ * Description:	Calculate the square root of a 64-bit variable, work faster and use less .text and .data than 
+ *				InvSqrt and system sqrt.
+ *---------------------------------------------------------------------------*/
 uint32 Sqrt_64(uint64 M)
 {
 	uint32 N, i;
 	uint32 tmp, ttp;
-	uint32 h = M >> 32;
-	uint32 l = M & 0xFFFFFFFF;
+	uint32 h = M >> 32; // High 32 bits of 64-bit integer
+	uint32 l = M & 0xFFFFFFFF; // Low 32 bits of 64-bit integer
 
 	if (h == 0)
 	{
@@ -290,13 +297,14 @@ uint32 Sqrt_64(uint64 M)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void MagicCubeRoot(void)
-/* Input	:	x - float
-/* Output	:	float
-/* Description:	求立方，work faster and use less .text and .data than system pow.
-/*				但是该函数调用了浮点数，会引入一些较大的库，一般不建议使用。
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	MagicCubeRoot
+
+* Input	:	x - float
+ * Output	:	float
+ * Description:	Compute cube root, work faster and use less .text and .data than system pow.
+ *				However this function uses floating point operations, which will pull in some relatively large libraries; generally not recommended for use.
+ *---------------------------------------------------------------------------*/
 float MagicCubeRoot(float x)
 {
 	if (x < 0)
@@ -325,12 +333,14 @@ float MagicCubeRoot(float x)
 	return x;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	uint32 Sqrt_32(uint32 M)
-/* Input	:	uint32
-/* Output	:	uint32
-/* Description:	对32位的变量求立方.
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	CubeRoot_U32
+ * Input	:	x - uint32
+ * Output	:	uint32
+ * Description:	Compute the cube root of a 32-bit integer, works faster and uses less .text and .data 
+ *				than system pow.
+ *---------------------------------------------------------------------------*/
 uint32 CubeRoot_U32(uint32 x)
 {
 	if (x == 0 || x == 1)
@@ -338,7 +348,7 @@ uint32 CubeRoot_U32(uint32 x)
 	else
 	{
 		uint32 min = 0;
-		uint32 max = 1625; // 32位无符号整型输入数据开立方的最大解
+		uint32 max = 1625; // maximum solution for cube root of 32-bit unsigned integer input
 		uint32 mid = 0;
 		uint32 product = 0;
 		
@@ -349,7 +359,7 @@ uint32 CubeRoot_U32(uint32 x)
 		{
 			mid = (max + min) >> 1;
 
-			if (mid > 1625) mid = 1625; // 32位无符号整型输入数据开立方的最大解
+			if (mid > 1625) mid = 1625; // maximum solution for cube root of 32-bit unsigned integer input
 
 			product = mid * mid * mid;
 			if (product > x)
@@ -363,12 +373,14 @@ uint32 CubeRoot_U32(uint32 x)
 	}
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	uint32 CubeRoot_U64(uint64 x)
-/* Input	:	uint64
-/* Output	:	uint32
-/* Description:	对64位的变量求立方.
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	CubeRoot_U64
+ * Input	:	x - uint64
+ * Output	:	uint32
+ * Description:	Compute the cube root of a 64-bit integer, works faster and uses less .text and .data 
+ *				than system pow.
+ *---------------------------------------------------------------------------*/
 uint32 CubeRoot_U64(uint64 x)
 {
 	if (x == 0 || x == 1)
@@ -376,11 +388,11 @@ uint32 CubeRoot_U64(uint64 x)
 	else
 	{
 		uint32 min = 0;
-		uint32 max = 2642245; // 64位无符号整型输入数据开立方的最大解
+		uint32 max = 2642245; // maximum solution for cube root of 64-bit unsigned integer input
 		uint32 mid = 0;
 		uint64 product = 0;
 		
-		if (x < 4294967295) // 32 位
+		if (x < 4294967295) // 32-bit
 			max = 1625;
 		if (max > (x >> 1))
 			max = (x >> 1);
@@ -403,26 +415,26 @@ uint32 CubeRoot_U64(uint64 x)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	int64 Mul_64_32(int64 x, int32 y)
-/* Input	:	uint32
-/* Output	:	uint64
-/* Description:	把 64 位被乘数拆成高 32 位和低 32 位，分别乘以 32 位乘数，再合并.
-/*				为了避免引入较大的库moddi3(868 byte)
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Mul_64_32
+ * Input	:	x - 64-bit input value, y - 32-bit input value
+ * Output	:	x * y
+ * Description:	Split the 64-bit multiplicand into high 32 bits and low 32 bits, multiply each by the 32-bit multiplier, then combine.
+ *				To avoid bringing in the relatively large moddi3 library (868 bytes)
+ *---------------------------------------------------------------------------*/
 int64 Mul_64_32(int64 x, int32 y)
 {
-	/* 拆分 x 为高32位和低32位 */
-	int32 x_hi = (int32)(x >> 32);          /* 有符号高32位 */
-	uint32 x_lo = (uint32)(x & 0xFFFFFFFF);  /* 无符号低32位 */
+	/* Split x into high 32 bits and low 32 bits */
+	int32 x_hi = (int32)(x >> 32);          /* signed high 32 bits */
+	uint32 x_lo = (uint32)(x & 0xFFFFFFFF);  /* unsigned low 32 bits */
 
 	/*
 	 * x * y = (x_hi * 2^32 + x_lo) * y
 	 *       = x_hi * y * 2^32  +  x_lo * y
 	 *
-	 * 注意：
-	 *   x_hi * y  用有符号32×32，结果放入64位（保留符号）
-	 *   x_lo * y  低32位乘有符号32，结果用64位接收（防溢出）
+	 * Note:
+	 *   x_hi * y  uses signed 32×32, result stored in 64 bits (preserve sign)
+	 *   x_lo * y  low 32 bits multiplied by signed 32, result received into 64 bits (to avoid overflow)
 	 */
 	int64 hi_part = (int64)x_hi * (int64)y;   /* 32×32 -> 64 */
 	int64 lo_part = (int64)x_lo * (int64)y;   /* 32×32 -> 64 */
@@ -431,4 +443,3 @@ int64 Mul_64_32(int64 x, int32 y)
 }
 
 /********************************* END OF FILE *********************************/
-

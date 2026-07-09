@@ -29,7 +29,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * File: $Id: mbfuncholding.c,v 1.12 2007/02/18 23:48:22 wolti Exp $
- *		 $Id: mbfuncholding.c,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: mbfuncholding.c,v 2.01 2022/05/13 11:09:05 Summer.li: modified for Fortior MCU chip $
  */
 
 /* ----------------------- System includes ----------------------------------*/
@@ -136,7 +136,7 @@ eMBFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
 /* Name     :   void UpdateRegHoldBuf(USHORT usData, USHORT iIndex)
 /* Input    :   usData
 /* Output   :   void
-/* Description: 个别参数需要先缓存到影子寄存器，然后再更新到参数表
+/* Description: Some parameters need to be buffered to shadow register first, then updated to parameter table
 /*---------------------------------------------------------------------------*/
 void UpdateRegHoldBuf(USHORT usData, USHORT iIndex)
 {

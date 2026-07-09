@@ -38,8 +38,8 @@
 
 
 // Definition of register ENCCALSTATUS
-#define	ENCSEL_MOTOR					( 0 )			// 电机侧编码器
-#define	ENCSEL_LOAD						( 1 )			// 输出侧编码器
+#define	ENCSEL_MOTOR					( 0 )			// Motor-side encoder
+#define	ENCSEL_LOAD						( 1 )			// Load-side encoder
 
 
 /* ------ TMG ENCODER ------ */
@@ -60,23 +60,23 @@
 #define	ID_C							(0x0C<<3)	// Reset of multi-turn data and all error
 
 /* Encoder Err code */
-#define	FAULT_ENC_OS					(0x0001)			// 0 编码器故障 -	    Over Speed (OS)
-#define	FAULT_ENC_FS					(0x0002)			// 1 编码器故障 -       Full Absolute Status (FS)
-#define	FAULT_ENC_CE					(0x0004)			// 2 编码器故障 - (ea0) Counting Error (CE)
-#define	FAULT_ENC_OF					(0x0008)			// 3 编码器故障 -       Counter Overflow (OF)
-#define	FAULT_ENC_OH					(0x0010)			// 4 编码器故障 - (ea1) Overheat (OH)
-#define	FAULT_ENC_ME					(0x0020)			// 5 编码器故障 - (ea1) Multiturn Error (ME)
-#define	FAULT_ENC_BE					(0x0040)			// 6 编码器故障 - (ea1) Battery Error (BE)
-#define	FAULT_ENC_BA					(0x0080)			// 7 编码器故障 - (ea1) Battery Alarm (BA)
+#define	FAULT_ENC_OS					(0x0001)			// 0 Encoder fault - Over Speed (OS)
+#define	FAULT_ENC_FS					(0x0002)			// 1 Encoder fault - Full Absolute Status (FS)
+#define	FAULT_ENC_CE					(0x0004)			// 2 Encoder fault - (ea0) Counting Error (CE)
+#define	FAULT_ENC_OF					(0x0008)			// 3 Encoder fault - Counter Overflow (OF)
+#define	FAULT_ENC_OH					(0x0010)			// 4 Encoder fault - (ea1) Overheat (OH)
+#define	FAULT_ENC_ME					(0x0020)			// 5 Encoder fault - (ea1) Multiturn Error (ME)
+#define	FAULT_ENC_BE					(0x0040)			// 6 Encoder fault - (ea1) Battery Error (BE)
+#define	FAULT_ENC_BA					(0x0080)			// 7 Encoder fault - (ea1) Battery Alarm (BA)
 
-#define	FAULT_ENC_PARERR				(0x0100)			// 8 编码器故障 - (ca0) Parity error in Request frame
-#define	FAULT_ENC_DELERR				(0x0200)			// 9 编码器故障 - (ca1) Delimiter error in Request frame
+#define	FAULT_ENC_PARERR				(0x0100)			// 8 Encoder fault - (ca0) Parity error in Request frame
+#define	FAULT_ENC_DELERR				(0x0200)			// 9 Encoder fault - (ca1) Delimiter error in Request frame
 
-#define	FAULT_REG_CRCERR				(0x0400)			// 10 通讯故障  - CRC校验错误
-#define	FAULT_REG_SYNERR				(0x0800)			// 11 通讯故障  - 帧同步错误 (如未检查到控制字(CF)的(Sink Code))
-#define	FAULT_REG_REQERR				(0x1000)			// 12 通讯故障  - 请求命令错误 (发送和返回的ID不一样)
-#define	FAULT_REG_ROTERR				(0x2000)			// 13 通讯故障  - 请求超时错误 (发送请求指令后无返回)
-#define	FAULT_REG_INTERR				(0x4000)			// 14 编码器内部故障 - (ea1)
+#define	FAULT_REG_CRCERR				(0x0400)			// 10 Communication fault - CRC check error
+#define	FAULT_REG_SYNERR				(0x0800)			// 11 Communication fault - Frame sync error (Sink Code of CF not detected)
+#define	FAULT_REG_REQERR				(0x1000)			// 12 Communication fault - Request command error (sent and returned ID mismatch)
+#define	FAULT_REG_ROTERR				(0x2000)			// 13 Communication fault - Request timeout error (no response after sending request)
+#define	FAULT_REG_INTERR				(0x4000)			// 14 Encoder internal fault - (ea1)
 
 #define TMG_OVER_NOCOMERR				(SF_SUC + SF_DONE)		// transmit finish and no com error in TAAWA_SR
 #define TMG_ERRMASK						(0x3C00)		// Error Mask of TAAWA_SR in mcEncoder.ErrCode
@@ -86,10 +86,10 @@
 
 
 /* ------ BISS ENCODER ------ */
-#define	FAULT_ENC_OT					(0x0001)			// 0 编码器故障 - 超时
-#define	FAULT_ENC_CRC					(0x0002)			// 1 编码器故障 - CRC校验错误
-#define	FAULT_BISS_ERR					(0x0004)			// 2 编码器故障 - BiSS帧的报错
-#define	FAULT_BISS_WARN					(0x0008)			// 3 编码器故障 - BiSS帧的警告
+#define	FAULT_ENC_OT					(0x0001)			// 0 Encoder fault - Timeout
+#define	FAULT_ENC_CRC					(0x0002)			// 1 Encoder fault - CRC check error
+#define	FAULT_BISS_ERR					(0x0004)			// 2 Encoder fault - BiSS frame error
+#define	FAULT_BISS_WARN					(0x0008)			// 3 Encoder fault - BiSS frame warning
 
 #define BISS_ERRSIZE					(2)			// BISS Error Size
 #define BISS_ERRMASK					(0x78)		// Error Mask in BISS_STATE
@@ -137,21 +137,21 @@
 
 
 // Definition of register ENCCALCTRL
-#define	ENCCAL_START					(0x0001)			// 上升沿：电机侧编码器开始标定
-#define	ENCCAL_SAVE						(0x0002)			// 上升沿：电机侧编码器保存标定结果到编码器芯片MTP
-#define	ENCREG_WRITE					(0x0004)			// 上升沿：电机侧编码器写寄存器
-#define	ENCREG_READ						(0x0008)			// 上升沿：电机侧编码器读寄存器
-#define	SFBENCCAL_START					(0x0100)			// 上升沿：输出侧编码器开始标定
-#define	SFBENCCAL_SAVE					(0x0200)			// 上升沿：输出侧编码器保存标定结果到编码器芯片MTP
-#define	SFBENCREG_WRITE					(0x0400)			// 上升沿：输出侧编码器写寄存器
-#define	SFBENCREG_READ					(0x0800)			// 上升沿：输出侧编码器读寄存器
+#define	ENCCAL_START					(0x0001)			// Rising edge: Start motor-side encoder calibration
+#define	ENCCAL_SAVE						(0x0002)			// Rising edge: Save motor-side encoder calibration result to encoder chip MTP
+#define	ENCREG_WRITE					(0x0004)			// Rising edge: Write motor-side encoder register
+#define	ENCREG_READ						(0x0008)			// Rising edge: Read motor-side encoder register
+#define	SFBENCCAL_START					(0x0100)			// Rising edge: Start load-side encoder calibration
+#define	SFBENCCAL_SAVE					(0x0200)			// Rising edge: Save load-side encoder calibration result to encoder chip MTP
+#define	SFBENCREG_WRITE					(0x0400)			// Rising edge: Write load-side encoder register
+#define	SFBENCREG_READ					(0x0800)			// Rising edge: Read load-side encoder register
 
 
 // Definition of register ENCCALSTATUS
-#define	ENCCALSTA_IDLE					( 0 )			// 未开始标定
-#define	ENCCALSTA_DOING					( 1 )			// 标定进行中
-#define	ENCCALSTA_FAIL					( 2 )			// 标定失败
-#define	ENCCALSTA_FINISH				( 3 )			// 标定完成/成功
+#define	ENCCALSTA_IDLE					( 0 )			// Calibration not started
+#define	ENCCALSTA_DOING					( 1 )			// Calibration in progress
+#define	ENCCALSTA_FAIL					( 2 )			// Calibration failed
+#define	ENCCALSTA_FINISH				( 3 )			// Calibration complete/success
 
 
 /*==================================================================================================*/
@@ -162,16 +162,16 @@
 #if ENCODER_SEL_TMG_ENABLED > 0
 typedef struct
 {
-	uint32 TxRx_XRAM_Buf[3];								// TMG协议用于收发的XRAM缓存（12byte的地址空间）
+	uint32 TxRx_XRAM_Buf[3];								// XRAM buffer for TMG protocol TX/RX (12-byte address space)
 	uint8 ClearMultiFlag;									// Clear Multiturn flag
 	uint8 ClearMultiCounter;								// Clear Multiturn Counter
 	uint16 TmgTimeOutFlag;
 	
-	uint32 EncData;											// 编码器位置值(累加成32位)
-	uint32 Single;											// 编码器位置值(一般<32位)
-	uint32 SingleLatch;										// 编码器位置值上一拍
-	int32  Multi;											// 编码器位置值高位
-	uint32 SingleHalf;										// 编码器值有效数据位分辨率的一半
+	uint32 EncData;											// Encoder position value (accumulated to 32-bit)
+	uint32 Single;											// Encoder position value (typically <32-bit)
+	uint32 SingleLatch;										// Encoder position value from previous cycle
+	int32  Multi;											// Encoder position value high bits
+	uint32 SingleHalf;										// Half of valid data bit resolution of encoder value
 	uint32 DataMask;										// Data mask of valid bits
 	uint16 ValidBits;										// valid data bits
 	uint16 ZeroBits;										// zero bits length
@@ -184,11 +184,11 @@ typedef struct
 {
 	uint16 ClockFreq;										// BiSS Clock frequency
 	
-	uint32 EncData;											// 编码器位置值(累加成32位)
-	uint32 Single;											// 编码器位置值(一般<32位)
-	uint32 SingleLatch;										// 编码器位置值上一拍
-	int32 Multi;											// 编码器位置值高位
-	uint32 SingleHalf;										// 编码器值有效数据位分辨率的一半
+	uint32 EncData;											// Encoder position value (accumulated to 32-bit)
+	uint32 Single;											// Encoder position value (typically <32-bit)
+	uint32 SingleLatch;										// Encoder position value from previous cycle
+	int32 Multi;											// Encoder position value high bits
+	uint32 SingleHalf;										// Half of valid data bit resolution of encoder value
 	uint32 DataMask;										// Data mask of valid bits
 	uint16 DataBits;										// BiSS SCD data bits (error not included)
 	uint16 ValidBits;										// BiSS valid data bits
@@ -204,11 +204,11 @@ typedef struct
 	uint16 DataBits;										// SPI SCD data bits (error not included)
 	uint16 ValidBits;										// SPI valid data bits
 	uint16 ZeroBits;										// SPI zero bits length
-	uint32 EncData;											// 编码器位置值(累加成32位)
-	uint32 Single;											// 编码器位置值(一般<32位)
-	uint32 SingleLatch;										// 编码器位置值上一拍
-	int32  Multi;											// 编码器位置值高位
-	uint32 SingleHalf;										// 编码器值有效数据位分辨率的一半
+	uint32 EncData;											// Encoder position value (accumulated to 32-bit)
+	uint32 Single;											// Encoder position value (typically <32-bit)
+	uint32 SingleLatch;										// Encoder position value from previous cycle
+	int32  Multi;											// Encoder position value high bits
+	uint32 SingleHalf;										// Half of valid data bit resolution of encoder value
 	uint32 DataMask;										// Data mask of valid bits
 	uint8 FirstFlag;										// 
 } Enc_SPI_TypeDef;
@@ -218,11 +218,11 @@ typedef struct
 #if ENCODER_SEL_PWM_ENABLED > 0
 typedef struct
 {
-	uint32 EncData;											// 编码器位置值(累加成32位)
-	uint32 Single;											// 编码器位置值(一般<32位)
-	uint32 SingleLatch;										// 编码器位置值上一拍
-	int32 Multi;											// 编码器位置值高位
-	uint32 SingleHalf;										// 编码器值有效数据位分辨率的一半
+	uint32 EncData;											// Encoder position value (accumulated to 32-bit)
+	uint32 Single;											// Encoder position value (typically <32-bit)
+	uint32 SingleLatch;										// Encoder position value from previous cycle
+	int32 Multi;											// Encoder position value high bits
+	uint32 SingleHalf;										// Half of valid data bit resolution of encoder value
 	uint32 DataMask;										// Data mask of valid bits
 	uint16 ValidBits;										// PWM valid data bits
 } Enc_PWM_TypeDef;
@@ -233,23 +233,23 @@ typedef struct
 {
 	uint8 EncLoopTime;
 	uint8 SpdRank;
-	uint16 ErrCode;											// 编码器总故障码
-	uint16 TypeSelect;										// 编码器类型选择
-	uint16 LoadTypeSelect;								    // 输出侧编码器类型选择
+	uint16 ErrCode;											// Encoder total error code
+	uint16 TypeSelect;										// Encoder type selection
+	uint16 LoadTypeSelect;								    // Load-side encoder type selection
 	
-	uint32 EncPos;											// 编码器位置值(低32位)
-	uint32 LoadEncPos;                                      // 外部编码器位置值(低32位)
-	uint32 LoadQepPos;										// 输出侧编码器位置值
-	uint32 EncPosLatch;										// 编码器位置值上一拍
+	uint32 EncPos;											// Encoder position value (low 32-bit)
+	uint32 LoadEncPos;                                      // External encoder position value (low 32-bit)
+	uint32 LoadQepPos;										// Load-side encoder position value
+	uint32 EncPosLatch;										// Encoder position value from previous cycle
 
-	int32 MultiHigh;										// 编码器位置值(高32位)
+	int32 MultiHigh;										// Encoder position value (high 32-bit)
 	
-	uint64 DelayComCoef;                                    // 编码器延迟补偿系数
+	uint64 DelayComCoef;                                    // Encoder delay compensation coefficient
 	uint32 ValueMax;
-	int16 EleAngComp;                                       // 编码器补偿值,Q10格式
+	int16 EleAngComp;                                       // Encoder compensation value, Q10 format
 
 #if ENCODER_SEL_ABZ_ENABLED > 0
-	uint8 AqbFilt;											// AQB编码器滤波系数
+	uint8 AqbFilt;											// AQB encoder filter coefficient
 #endif
 	
 #if ENCODER_SEL_TMG_ENABLED > 0
@@ -291,14 +291,14 @@ extern void TMG_Encoder_Init(void);
 extern void TMG_Encoder_Enable(void);
 extern void TMG_Encoder_Disable(void);
 extern void TMG_Encoder_Update(void);
-extern uint16 TMG_Encoder_GetMultiAbsPos(uint32 *pEncPos);									// ID 3		读多圈位置
-extern uint16 TMG_Encoder_GetSingleAbsPos(uint32* pEncPos);									// ID 0		读单圈位置
-extern uint16 TMG_Encoder_GetMultiTurns(uint32* pEncMulti);									// ID 1		读多圈圈数值
+extern uint16 TMG_Encoder_GetMultiAbsPos(uint32 *pEncPos);									// ID 3		Read multi-turn position
+extern uint16 TMG_Encoder_GetSingleAbsPos(uint32* pEncPos);									// ID 0		Read single-turn position
+extern uint16 TMG_Encoder_GetMultiTurns(uint32* pEncMulti);									// ID 1		Read multi-turn count
 
-extern uint16 TMG_Encoder_Reset(uint8 Reset_ID);									// ID 7 8 C	复位操作(3种)
+extern uint16 TMG_Encoder_Reset(uint8 Reset_ID);									// ID 7 8 C	Reset operation (3 types)
 
-extern uint16 TMG_Encoder_ReadEEPROM(uint8 AddressField);						// ID D		读EEPROM
-extern uint16 TMG_Encoder_WriteEEPROM(uint8 AddressField, uint8 EepromField);	// ID 6		写EEPROM
+extern uint16 TMG_Encoder_ReadEEPROM(uint8 AddressField);						// ID D		Read EEPROM
+extern uint16 TMG_Encoder_WriteEEPROM(uint8 AddressField, uint8 EepromField);	// ID 6		Write EEPROM
 #endif
 
 /* ------ BISS ENCODER ------ */

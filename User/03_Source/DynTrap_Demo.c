@@ -32,12 +32,14 @@ SetTrapTypeDef mcSetTrap;
 * Internal Routine Prototypes
 ********************************************************************************/
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   DynTrap_Demo_Init
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 初始化变量及当前位置
-/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	DynTrap_Demo_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	Initialize variables and the current position
+ *---------------------------------------------------------------------------*/
 void DynTrap_Demo_Init()
 {
 	int32 actPos;
@@ -61,15 +63,15 @@ void DynTrap_Demo_Init()
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   DynTrap_Demo_Update
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 更新目标位置、最大速度(mm/s、rpm)、最大加速度(mm/s^2、rps^2)
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	DynTrap_Demo_Update
+ * Input	:	No
+ * Output	:	No
+ * Description:	Update target position, maximum velocity (mm/s, rpm), maximum acceleration (mm/s^2, rps^2)
+ *---------------------------------------------------------------------------*/
 void DynTrap_Demo_Update(int32 targetPos, uint32 maxVel, uint32 maxAcc)
 {
-	if (mcSetTrap.maxVelLatch != maxVel)  // 最大速度发生变化
+	if (mcSetTrap.maxVelLatch != maxVel)  // Maximum velocity changed
 	{
 		mcSetTrap.maxVelLatch = maxVel;
 		int64 maxvel = ((int64) mcSetTrap.maxVelLatch << DYNTRAP_VEL_SCALE) * (mcSetTrap.encRes) / PROFILE_FREQUENCY; // mm/s -> count/cycle; rps -> count/cycle
@@ -86,7 +88,7 @@ void DynTrap_Demo_Update(int32 targetPos, uint32 maxVel, uint32 maxAcc)
 			mcSetTrap.velocity = 1;
 	}
 
-	if(mcSetTrap.maxAccLatch != maxAcc) // 最大加速度发生变化
+	if(mcSetTrap.maxAccLatch != maxAcc) // Maximum acceleration changed
 	{
 		mcSetTrap.maxAccLatch = maxAcc;
 		// mm/s^2 -> count/cycle^2; rps^2 -> count/cycle^2
@@ -99,12 +101,12 @@ void DynTrap_Demo_Update(int32 targetPos, uint32 maxVel, uint32 maxAcc)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   DynTrap_Demo_Next
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 计算下一个规划位置next position set point
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	DynTrap_Demo_Next
+ * Input	:	No
+ * Output	:	Position command at the current time
+ * Description:	Calculate the next planned position; executed in interrupt
+ *---------------------------------------------------------------------------*/
 int32 DynTrap_Demo_Next()
 {
 	return DynTrap_Next(mcTrap);

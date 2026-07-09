@@ -17,21 +17,24 @@
 
 
 #if ENCODER_SEL_PWM_ENABLED > 0
-/*=================================================================================
-    Function Name	:	PWM_Encoder_Init(void)
-    Description		:	PWM Encoder initial function
-	Parameter		:	None.
-=================================================================================*/
+/*---------------------------------------------------------------------------
+ * Name		:	PWM_Encoder_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	PWM encoder initialize
+ *---------------------------------------------------------------------------*/
 void PWM_Encoder_Init(void)
 {
 	Timer4_PWM_Init();
 }
 
-/*=================================================================================
-	Function Name	:	PWM_Encoder_Enable(void)
-	Description		:	PWM enable function
-	Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	PWM_Encoder_Enable
+ * Input	:	No
+ * Output	:	No
+ * Description:	PWM encoder enable
+ *---------------------------------------------------------------------------*/
 void PWM_Encoder_Enable(void)
 {
 	mcEncoder.PWM.Multi = 0;
@@ -39,21 +42,25 @@ void PWM_Encoder_Enable(void)
 	set_csr(TIM4_CR1, T4EN);
 }
 
-/*=================================================================================
-	Function Name	:	PWM_Encoder_Disable(void)
-	Description		:	PWM disable function
-	Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	PWM_Encoder_Disable
+ * Input	:	No
+ * Output	:	No
+ * Description:	PWM encoder disable
+ *---------------------------------------------------------------------------*/
 void PWM_Encoder_Disable(void)
 {
 	clr_csr(TIM4_CR1, T4EN);
 }
 
-/*=================================================================================
-Function Name	:	PWM_Encoder_Update(void)
-Description		:	PWM update data length
-Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	PWM_Encoder_Update
+ * Input	:	No
+ * Output	:	No
+ * Description:	PWM encoder parameter update
+ *---------------------------------------------------------------------------*/
 void PWM_Encoder_Update(void)
 {
 //	if (mcEncoder.PWM.ValidBits != usSRegHoldBuf[ENCVALIDBITS])
@@ -64,12 +71,14 @@ void PWM_Encoder_Update(void)
 	}
 }
 
-/*=================================================================================
-	Function Name	:	PWM_Encoder_GetPos(void)
-	Description		:	get PWM data.
-	Parameter		:	None.
-=================================================================================*/
-uint16 PWM_Encoder_GetPos(uint32* pEncPos)    //获取绝对值编码器位置的函数
+
+/*---------------------------------------------------------------------------
+ * Name		:	PWM_Encoder_GetPos
+ * Input	:	*pEncPos - encoder value
+ * Output	:	encoder error status
+ * Description:	Get PWM encoder value
+ *---------------------------------------------------------------------------*/
+uint16 PWM_Encoder_GetPos(uint32* pEncPos)    //Function to get absolute encoder position
 {
 	uint16 tOn = read_csr(TIM4_DR);
 	uint16 tAll = read_csr(TIM4_ARR);

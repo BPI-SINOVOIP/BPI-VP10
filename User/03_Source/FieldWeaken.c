@@ -6,7 +6,7 @@
  * File Name     : FieldWeaken.c
  * Author        : wynn.wang
  * Date          : 2025-03-18
- * Description   : 弱磁控制
+ * Description   : Field-weakening control
  *
  * Record        :
  * V1.0, 2025-03-18, wynn.wang: Created file
@@ -31,15 +31,15 @@ FieldWeakenParameter mcFieldWeakenControl;
 /* Name     :
 /* Input    :   NO
 /* Output   :   NO
-/* Description: 弱磁控制初始化
+/* Description: Field weakening control initialization
 /*---------------------------------------------------------------------------*/
 void FieldWeakenControlInit(void)
 {
-	set_csr(DRV1_FCR2, FWEAK_EN); // 弱磁使能位有效
+	set_csr(DRV1_FCR2, FWEAK_EN); // Field-weakening enable bit set
 	
 	FieldWeakenUsPIInit();
 
-//	/****   硬件弱磁初始化   ****/// 还需要使能位使能
+//	/****   Hardware field-weakening initialization   ****///  Enable bit still needs to be set
 	NFOC_FWREF = mcFieldWeakenControl.Weaken_FocUsRef; //(Weaken_UsRef_Q15 * (NFOC1->UDCFLT >> 16)) >> 15;
 	NFOC_FWKP = (Weaken_KP_Q12 | 0x4000);
 	NFOC_FWKI = Weaken_KI_Q15;
@@ -53,7 +53,7 @@ void FieldWeakenControlInit(void)
 	NFOC_KUSF = mcFieldWeakenControl.UsLpfk;
 	NFOC_FWIDR = 0x0000;	
 	
-	set_csr(DRV1_FCR2, FWEAK_MD); // 弱磁模式1使能位有效
+	set_csr(DRV1_FCR2, FWEAK_MD); // Field-weakening mode 1 enable bit set
 }
 /*---------------------------------------------------------------------------*/
 /* Name     :
@@ -80,7 +80,7 @@ void FieldWeakenUsPIInit(void)
 /* Name     :
 /* Input    :   NO
 /* Output   :   NO
-/* Description: drv载波中断执行2
+/* Description: DRV carrier interrupt execution 2
 /*---------------------------------------------------------------------------*/
 void FieldWeakenIqRefAdjust(void)
 {
@@ -121,7 +121,7 @@ void FieldWeakenIqRefAdjust(void)
 /* Name     :
 /* Input    :   NO
 /* Output   :   NO
-/* Description: drv载波中断执行2
+/* Description: DRV carrier interrupt execution 2
 /*---------------------------------------------------------------------------*/
 void FieldWeakenGetIdRefAndIqRef(void)			
 {	

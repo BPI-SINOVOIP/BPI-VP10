@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2026 Fortior Technology Co., Ltd.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -6,28 +6,38 @@
  * File Name     : PhaseFind.c
  * Author        : Summer
  * Date          : 2021-11-13
- * Description   : define some function for phasefind.
+ * Description   :	Initialize phase finding
  *
  * Record        :
  * V1.0, 2021-11-13, Summer: Created file
  */
 
 
-/* Includes -------------------------------------------------------------------------------------*/
+/********************************************************************************
+* Header Definition
+********************************************************************************/
 #include <Myproject.h>
 #include "PhaseFind.h"
 
+
+/********************************************************************************
+* Macro & Structure Definition
+*******************************************************************************/
 PhaseFindTypeDef mcDoPhaseFind;
 ElecAngTypeDef mcElecAng;
 pvMotorPhaseFindStart pvMotor_PhaseFind_Start;
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_PhaseFind_Init(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Initial Phase Find
-/*---------------------------------------------------------------------------*/
+/********************************************************************************
+* Internal Routine Prototypes
+********************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_PhaseFind_Init
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Initialize phase finding
+ *---------------------------------------------------------------------------*/
 void Motor_PhaseFind_Init(void)
 {
 	if (McStaSet.SetFlag.PhaseFindSetFlag == 0)
@@ -57,7 +67,7 @@ void Motor_PhaseFind_Init(void)
 		}
 #endif // #if ENCODER_SEL_HALL_ENABLED
 		
-		FOC_Init();   /*FOC Initialize*/
+		FOC_Init(); 
 
 		NFOC_IDREF = 0;
 		NFOC_IQREF = 0;
@@ -126,7 +136,8 @@ void Motor_PhaseFind_Init(void)
 #endif
 		else // if (usSRegHoldBuf[PHASEFINDMODE] == PHASEFIND_AUTOPHASE)
 		{
-			mcDoPhaseFind.FOCThetaTarget = ((int32)usSRegHoldBuf[PHASEFINDMOVEANG_H] << 16) + (uint32)usSRegHoldBuf[PHASEFINDMOVEANG_L];
+			mcDoPhaseFind.FOCThetaTarget = ((int32)usSRegHoldBuf[PHASEFINDMOVEANG_H] << 16) 
+				+ (uint32)usSRegHoldBuf[PHASEFINDMOVEANG_L];
 			if (mcDoPhaseFind.FOCThetaTarget > 0)
 			{
 				mcDoPhaseFind.FOCThetaSign = 1;
@@ -136,8 +147,8 @@ void Motor_PhaseFind_Init(void)
 				mcDoPhaseFind.FOCThetaSign = -1;
 				mcDoPhaseFind.FOCThetaTarget = -mcDoPhaseFind.FOCThetaTarget;
 			}
-				
-			if (mcDoPhaseFind.FOCThetaTarget < 7281) // 40 degree
+
+if (mcDoPhaseFind.FOCThetaTarget < 7281) // 40 degree
 			{
 				mcDoPhaseFind.Error = PFERR_TARANG;
 			}
@@ -151,7 +162,8 @@ void Motor_PhaseFind_Init(void)
 				else
 					mcDoPhaseFind.FOCThetaInit = mcDoPhaseFind.QepAngleComp;
 
-				mcDoPhaseFind.QepAngleComp = (mcDoPhaseFind.FOCThetaTarget - mcDoPhaseFind.FOCThetaInit) * mcDoPhaseFind.FOCThetaSign;  // 360 elec degree
+				mcDoPhaseFind.QepAngleComp = (mcDoPhaseFind.FOCThetaTarget - mcDoPhaseFind.FOCThetaInit) 
+					* mcDoPhaseFind.FOCThetaSign;  // 360 elec degree
 				usSRegInBuf[HALLTHETA4] = mcDoPhaseFind.QepAngleComp;
 				usSRegInBuf[HALLTHETA5] = mcDoPhaseFind.QepAngleComp >> 16;
 			}
@@ -164,7 +176,7 @@ void Motor_PhaseFind_Init(void)
 		write_csr(DRV1_CMR, 0x057F);
 #endif
 		set_csr(DRV1_OUT, MOE);
-		set_csr(DRV1_CR, DRVOE);			// Driver输出使能	0-->Disable		1-->Enable
+		set_csr(DRV1_CR, DRVOE);			// Driver output enable	0-->Disable		1-->Enable
 
 		SetReg(usSRegInBuf[DRIVESTATUS], STATUS_PHASEFINDSUCCEED, 0);
 		SetReg(usSRegInBuf[DRIVESTATUS], STATUS_ENABLE, STATUS_ENABLE);
@@ -174,12 +186,12 @@ void Motor_PhaseFind_Init(void)
 	}
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_PhaseFind_Update(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Update Phase Find success Flag.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_PhaseFind_Update
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Phase find flag update, usually the phase-find-complete flag is reset after importing new parameter tables
+ *---------------------------------------------------------------------------*/
 void Motor_PhaseFind_Update(void)
 {
 	if (!GetReg(mcRegParam.DriveCtrl, CTRL_CLEARPHASEFIND) &&
@@ -191,16 +203,16 @@ void Motor_PhaseFind_Update(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_PhaseFind(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Do Phase Find, call this function every cycle.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_PhaseFind_Update
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Perform phase finding; this function is called at fixed intervals
+ *---------------------------------------------------------------------------*/
 void Motor_PhaseFind(void)
 {
-	if (mcFocCtrl.State_Count <= 2 || mcDoPhaseFind.Error != 0)  // TimeOut / Phase find parameter error / No Encoder Signal
-	{
+	if (mcFocCtrl.State_Count <= 2 || mcDoPhaseFind.Error != 0)  
+	{ // TimeOut / Phase find parameter error / No Encoder Signal
 		if (mcFocCtrl.State_Count <= 2)
 			mcDoPhaseFind.Error = PFERR_TIMEOUT;
 		
@@ -218,7 +230,7 @@ void Motor_PhaseFind(void)
 	}
 #endif
 
-	if (mcDoPhaseFind.StartFlag == 0) // 启动加个延时
+	if (mcDoPhaseFind.StartFlag == 0) // Start-up delay
 	{
 		mcDoPhaseFind.TimeCounter++;
 		if (mcDoPhaseFind.TimeCounter > 20)
@@ -241,16 +253,17 @@ void Motor_PhaseFind(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_AutoPhase(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	move motor 360 degree electric angle.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_AutoPhase
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Automatic commutation: move motor to a certain electric angle and then move backward.
+ *				Can obtain the electrical angle direction and electrical angle offset; travel is relatively long
+ *---------------------------------------------------------------------------*/
 void Motor_AutoPhase(void)
 {
 	// State Machine
-	if (mcDoPhaseFind.State < APSM_SETID)  // Increase mcDoPhaseFind.IdRef
+	if (mcDoPhaseFind.State < APSM_SETID)
 	{
 		mcDoPhaseFind.State = APSM_SETID;
 		mcDoPhaseFind.FOCThetaValue = 0;
@@ -285,7 +298,8 @@ void Motor_AutoPhase(void)
 			else if (mcDoPhaseFind.NextState == APSM_GOBACK)
 			{
 				if (*mcDoPhaseFind.pQepAngle == mcDoPhaseFind.QepAngleComp)
-					mcDoPhaseFind.Error = PFERR_NOMOVE;
+
+mcDoPhaseFind.Error = PFERR_NOMOVE;
 				mcDoPhaseFind.QepAngleEnd = *mcDoPhaseFind.pQepAngle;
 				usSRegInBuf[HALLTHETA2] = usSRegInBuf[QEPPOS_L];
 				usSRegInBuf[HALLTHETA3] = usSRegInBuf[QEPPOS_H];
@@ -345,7 +359,7 @@ void Motor_AutoPhase(void)
 		mcDoPhaseFind.FOCThetaTarget = mcDoPhaseFind.FOCThetaTarget * mcDoPhaseFind.FOCThetaSign;
 		mcDoPhaseFind.FOCThetaInit = mcDoPhaseFind.FOCThetaInit * mcDoPhaseFind.FOCThetaSign;
 
-		// 计算电角度偏置
+		// Calculate electrical angle offset
 		if ((mcElecAng.ElecAngDir == 0 && mcDoPhaseFind.QepAngleComp < 0) ||
 			(mcElecAng.ElecAngDir == 1 && mcDoPhaseFind.QepAngleComp > 0))
 		{
@@ -359,11 +373,11 @@ void Motor_AutoPhase(void)
 		if (ABS((int32)mcElecAng.FOCThetaPos - (int32)mcElecAng.FOCThetaNeg) > 32768)
 			mcElecAng.ElecAngOffset += 32768;
 		
-		// 确定方向
+		// Determine direction
 		if(mcDoPhaseFind.QepAngleComp < 0)
-			SetBit(usSRegHoldBuf[DRIVEMODE], MODE_ELECANGDIR); // 方向相反
+			SetBit(usSRegHoldBuf[DRIVEMODE], MODE_ELECANGDIR); // Opposite direction
 		else
-			ClrBit(usSRegHoldBuf[DRIVEMODE], MODE_ELECANGDIR); // 方向相同
+			ClrBit(usSRegHoldBuf[DRIVEMODE], MODE_ELECANGDIR); // Same direction
 		
 		mcDoPhaseFind.State = APSM_RESET;
 	}
@@ -386,12 +400,14 @@ void Motor_AutoPhase(void)
 	}
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_PhaseFind_NormalStart(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	move motor 90 degree electric angle and go back.
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_PhaseFind_NormalStart
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Phase finding, move motor 90 electrical degrees and return.
+ *				Can obtain electrical angle direction and electrical angle offset, range +-90°
+ *---------------------------------------------------------------------------*/
 void Motor_PhaseFind_NormalStart(void)
 {
 	// State Machine
@@ -431,8 +447,10 @@ void Motor_PhaseFind_NormalStart(void)
 				usSRegInBuf[HALLTHETA0] = usSRegInBuf[QEPPOS_L]; // 0 degree
 				usSRegInBuf[HALLTHETA1] = usSRegInBuf[QEPPOS_H];
 			}
-			else if (mcDoPhaseFind.NextState == 4 || mcDoPhaseFind.NextState == 5 || mcDoPhaseFind.NextState == 6 || mcDoPhaseFind.NextState == 7)
-			{
+			else if (mcDoPhaseFind.NextState == 4 || mcDoPhaseFind.NextState == 5 || 
+				mcDoPhaseFind.NextState == 6 || mcDoPhaseFind.NextState == 7)
+
+{
 				if (*mcDoPhaseFind.pQepAngle == mcDoPhaseFind.QepAngleComp)
 					mcDoPhaseFind.Error = PFERR_NOMOVE;
 				mcDoPhaseFind.QepAngleComp = *mcDoPhaseFind.pQepAngle;
@@ -509,7 +527,6 @@ void Motor_PhaseFind_NormalStart(void)
 			{
 				mcDoPhaseFind.State = 2;
 				mcDoPhaseFind.NextState = 5;
-//			    mcElecAng.FOCThetaPos = mcElecAng.FOCTheta;
 				mcDoPhaseFind.Cnt = 0;
 			}
 			
@@ -566,7 +583,6 @@ void Motor_PhaseFind_NormalStart(void)
 			{
 				mcDoPhaseFind.State = 2;
 				mcDoPhaseFind.NextState = 7;
-//				mcElecAng.FOCThetaNeg = mcElecAng.FOCTheta;
 				mcDoPhaseFind.Cnt = 0;
 			}
 			
@@ -577,18 +593,19 @@ void Motor_PhaseFind_NormalStart(void)
 	}
 	else if (mcDoPhaseFind.State == 7)
 	{
-		// 计算电角度偏置
+		// Calculate electrical angle offset
 		mcElecAng.ElecAngOffset = (mcElecAng.FOCThetaPos + mcElecAng.FOCThetaNeg) / 2;
 		if (ABS((int32)mcElecAng.FOCThetaPos - (int32)mcElecAng.FOCThetaNeg) > 32768)
 			mcElecAng.ElecAngOffset += 32768;
 		
-		// 确定方向
+		// Determine direction
 		mcDoPhaseFind.QepAngleStart = mcDoPhaseFind.QepAngleMid - mcDoPhaseFind.QepAngleStart;
-		mcDoPhaseFind.QepAngleEnd = mcDoPhaseFind.QepAngleMid - mcDoPhaseFind.QepAngleEnd;
+
+mcDoPhaseFind.QepAngleEnd = mcDoPhaseFind.QepAngleMid - mcDoPhaseFind.QepAngleEnd;
 		if (mcDoPhaseFind.QepAngleStart < 0 && mcDoPhaseFind.QepAngleEnd < 0)
-			SetBit(usSRegHoldBuf[DRIVEMODE], MODE_ELECANGDIR); // 方向相反
+			SetBit(usSRegHoldBuf[DRIVEMODE], MODE_ELECANGDIR); // Opposite direction
 		else if (mcDoPhaseFind.QepAngleEnd > 0 && mcDoPhaseFind.QepAngleEnd > 0)
-			ClrBit(usSRegHoldBuf[DRIVEMODE], MODE_ELECANGDIR); // 方向相同
+			ClrBit(usSRegHoldBuf[DRIVEMODE], MODE_ELECANGDIR); // Same direction
 		else
 			mcDoPhaseFind.Error = PFERR_DIRERR;
 		

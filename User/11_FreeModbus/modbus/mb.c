@@ -29,7 +29,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * File: $Id: mb.c,v 1.27 2007/02/18 23:45:41 wolti Exp $
- *		 $Id: mb.c,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: mb.c,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for Fengyan MCU chip $
  */
 #include <Myproject.h>
 /* ----------------------- System includes ----------------------------------*/

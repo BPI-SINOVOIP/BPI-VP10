@@ -72,13 +72,13 @@ const uint8 EncErrFlagArray[ENCERRARRAYSIZE] = {
 * Internal Routine Prototypes
 ********************************************************************************/
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Fault_Detection(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	保护函数，因保护的时间响应不会很高，采用分段处理，每5个定时器中断执行一次对应的保护
-常见保护有过欠压、过温、堵转、启动、缺相等保护，调试时，可根据需求，一个个的调试加入。
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_Detection
+ * Input	:	No
+ * Output	:	No
+ * Description:	Protection function, query motor fault status
+ *---------------------------------------------------------------------------*/
 void Fault_Detection(void)
 {
 
@@ -87,53 +87,53 @@ void Fault_Detection(void)
 #endif
 
 #if ((HardwareCurrent_Protect == Hardware_FO_Protect) || (HardwareCurrent_Protect == Hardware_FO_CMP_Protect))
-	Fault_HardOvercurrent(&mcFaultDect);	// 硬件峰值电流过流
+	Fault_HardOvercurrent(&mcFaultDect);	// Hardware peak overcurrent
 #endif
 
-	Fault_PeakOvercurrent(&mcCurVarible);	// 软件峰值电流过流
+	Fault_PeakOvercurrent(&mcCurVarible);	// Software peak overcurrent
 
 #if FUNC_CURRENTBACK_ENABLED
-	Fault_FoldBackCurrent(&mcFaultDect);    // 电流折返：过载保护
+	Fault_FoldBackCurrent(&mcFaultDect);    // Current foldback: overload protection
 #else
-	Fault_RMSOvercurrent(&mcCurVarible);	// RMS过流
+	Fault_RMSOvercurrent(&mcCurVarible);	// RMS overcurrent
 #endif
 
-	Fault_OverPosErr(&mcFaultDect);		// 位置超差错误
+	Fault_OverPosErr(&mcFaultDect);		// Position following error fault
 
-	Fault_OverVelErr(&mcFaultDect);		// 速度超差错误
+	Fault_OverVelErr(&mcFaultDect);		// Velocity following error fault
 
-	Fault_OverSpeed(&mcFaultDect);			// 速度过超错误
+	Fault_OverSpeed(&mcFaultDect);			// Overspeed fault
 
-	Fault_OverUnderVoltage(&mcFaultDect);	// 过欠压保护
+	Fault_OverUnderVoltage(&mcFaultDect);	// Overvoltage/Undervoltage protection
 
-	Fault_OverTemperature(&mcFaultDect);	// 过温
+	Fault_OverTemperature(&mcFaultDect);	// Over-temperature
 
-	Fault_PhaseLoss(&mcFaultDect);			// 缺相
+	Fault_PhaseLoss(&mcFaultDect);			// Phase loss
 
-	Fault_Stall(&mcFaultDect);				// 堵转
+	Fault_Stall(&mcFaultDect);				// Motor stall
 
-	Fault_ParamError(&mcFaultDect);			//参数错误
+	Fault_ParamError(&mcFaultDect);			//Parameter error
 
-	Fault_Encoder(&mcFaultDect);			// 编码器错误
+	Fault_Encoder(&mcFaultDect);			// Encoder error
 
 #if FUNC_FEEDBACKONLOAD_ENABLED
-	Fault_MixErrOver(&mcFaultDect);         // 混合偏差过大报警
+	Fault_MixErrOver(&mcFaultDect);         // Hybrid deviation too large alarm
 #endif
 
 #if ENCODER_SEL_HALL_ENABLED
-	Fault_Hall(&mcFaultDect);				// Hall错误
+	Fault_Hall(&mcFaultDect);				// Hall error
 #endif
 
 #if EXCTRL_ENCOUT_ENABLED
-	Fault_EncOutFreqTooHigh(&mcFaultDect); // 分频输出频率过高错误
+	Fault_EncOutFreqTooHigh(&mcFaultDect); // Frequency divider output frequency too high error
 #endif
 
-	Fault_MainIntPeriodTimeOut(&mcFaultDect); // 载波中断周期过长错误
+	Fault_MainIntPeriodTimeOut(&mcFaultDect); // Carrier interrupt period too long error
 
-	Fault_ExceedPositionLimit(&mcFaultDect); // 超出位置限位
+	Fault_ExceedPositionLimit(&mcFaultDect); // Exceeded position limit
 
 
-	// 设置报错标志位
+	// Set fault flag bits
 	if (mcFaultSource != FaultNoSource)
 	{
 		FaultProcess();
@@ -144,7 +144,7 @@ void Fault_Detection(void)
 		SetReg(usSRegInBuf[DRIVESTATUS], STATUS_FAULT, 0);
 	}
 
-	// 如果只有warning，没有error，个别警告如FLAG_ECAT、FLAG_CUROFF会清不掉
+	// Clear warnings: avoid cases where some warnings cannot be cleared when there is only a warning without an error
 	if (GetReg(usSRegHoldBuf[DRIVECTRL], CTRL_CLEARERR) || GetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_CLEARFAULT))
 	{
 		usSRegInBuf[WARNSTATUS0] = 0;
@@ -163,12 +163,12 @@ void Fault_Detection(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void FaultProcess(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	保护处理函数，关闭FOC输出，同时将状态变为mcFault
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	FaultProcess
+ * Input	:	No
+ * Output	:	No
+ * Description:	Protection handler: disable FOC output, change state to mcDisable, and save fault history
+ *---------------------------------------------------------------------------*/
 void FaultProcess(void)
 {
 	uint8 i = 0;
@@ -179,15 +179,15 @@ void FaultProcess(void)
 		if (mcFaultSource == FaultHardOVCurrent || mcFaultSource == FaultPeakOVCurrent \
 			|| mcFaultSource == FaultRMSOVCurrent || mcFaultSource == FaultOverVoltage)
 		{
-			clr_csr(DRV1_CR, DRVOE);			// Driver输出使能	0-->Disable		1-->Enable
-			clr_csr(DRV1_OUT, MOE);		//主输出使能，用于选择三相上下桥信号来源
-			clr_csr(DRV1_FCR0, NCALEN);	// 关FOC计算使能
+			clr_csr(DRV1_CR, DRVOE);			// Driver output enable	0-->Disable		1-->Enable
+			clr_csr(DRV1_OUT, MOE);		//Main output enable, used to select three-phase upper/lower bridge signal source
+			clr_csr(DRV1_FCR0, NCALEN);	// disable FOC calculation enable
 			McStaSet.SetFlag.BrakeFlag = 0;
 			mcState = mcDisable;
 		}
 		else
 		{
-			if (mcState != mcDisable && mcState != mcFault) // 避免重复请求停车
+			if (mcState != mcDisable && mcState != mcFault) // Avoid repeated stop requests
 			{
 				McStaSet.SetFlag.BrakeFlag = 0;
 				mcState = mcDisable;
@@ -195,6 +195,7 @@ void FaultProcess(void)
 		}
 	}
 	
+	// Save fault history
 	if (mcFaultSource != FaultNoSource)
 	{
 		for (i = 0; i < 3; i++)
@@ -215,13 +216,12 @@ void FaultProcess(void)
 }
 
 
-
-/*---------------------------------------------------------------------------*/
-/* Name		:	void FaultClear(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	清除报错
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	FaultClear
+ * Input	:	No
+ * Output	:	No
+ * Description:	Clear fault
+ *---------------------------------------------------------------------------*/
 void FaultClear(void)
 {
 	mcFaultSource = FaultNoSource;
@@ -235,12 +235,12 @@ void FaultClear(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Fault_AddErrorHistory(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	将报错加载到报错历史列表里。
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_AddErrorHistory
+ * Input	:	FaultSrc - new fault code
+ * Output	:	No
+ * Description:	Save fault history
+ *---------------------------------------------------------------------------*/
 void Fault_AddErrorHistory(uint16 FaultSrc)
 {
 	uint16 currentTime = 0, currentPointer = 0;
@@ -265,19 +265,19 @@ void Fault_AddErrorHistory(uint16 FaultSrc)
 #endif //#if FUNC_EEPROM_ENABLED
 }
 
-/*****************************************************************************
- * Function:	void	Fault_OverVoltage(mcFaultVarible *h_Fault)
- * Description:	更新下一个报错的ErrorHistPointer和ErrorHistFlag
- * Parameter:		 mcFaultVarible *h_Fault
- * Return:			 no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_UploadErrCode
+ * Input	:	No
+ * Output	:	No
+ * Description:	Load fault history on power-up
+ *---------------------------------------------------------------------------*/
 void Fault_UploadErrCode()
 {
 	uint8 counter = 0;
 	uint16 faultFlag, faultFlagPre, faultSrc, faultSrcPre;
 	uint16* pFaultHist = &usSRegInBuf[ERRORTIME0];
 	
-	if (!mcFaultDect.ErrorHistFirstFlag) // 程序运行后第一次加载
+	if (!mcFaultDect.ErrorHistFirstFlag) // First load after program starts
 	{
 #if FUNC_EEPROM_ENABLED
 		if (!EEPROM_ReadBytes(EEPROM_ERR_ADDR_START, (uint8*) pFaultHist, EEPROM_ERR_ADDR_SIZE))
@@ -334,33 +334,33 @@ void Fault_UploadErrCode()
 	}
 }
 
-/*****************************************************************************
- * Function:	void	Fault_OverUnderVoltage(mcFaultVarible *h_Fault)
- * Description:	 过欠压保护函数：母线电压大于过压保护值时，
- * 计数器加一，计数器值超过20次，判断为过压保护，关闭输出;反之，计数器慢慢减
- * Parameter:		 mcFaultVarible *h_Fault
- * Return:			 no
- *****************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_OverUnderVoltage
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Overvoltage/Undervoltage protection function
+ *---------------------------------------------------------------------------*/
 void Fault_OverUnderVoltage(FaultVarible* h_Fault)
 {
 #if PROT_OUVP_HARDWARE_ENABLED
-	NFOC_OVP = usSRegHoldBuf[OVERVOLTAGE];    // 过压保护阈值
+	NFOC_OVP = usSRegHoldBuf[OVERVOLTAGE];    // Overvoltage protection threshold
 	if (usSRegHoldBuf[OVERVOLTIME] > 255)
 		NFOC_OVPARR = 255;
 	else
-		NFOC_OVPARR = usSRegHoldBuf[OVERVOLTIME]; // 过压保护计数目标值
+		NFOC_OVPARR = usSRegHoldBuf[OVERVOLTIME]; // Overvoltage protection counter target value
 
-	NFOC_UVP = usSRegHoldBuf[UNDERVOLTAGE];    // 欠压保护阈值
+	NFOC_UVP = usSRegHoldBuf[UNDERVOLTAGE];    // Undervoltage protection threshold
 	if (usSRegHoldBuf[UNDERVOLTIME] > 255)
 		NFOC_UVPARR = 255;
 	else
-		NFOC_UVPARR = usSRegHoldBuf[UNDERVOLTIME]; // 欠压保护计数目标值
+		NFOC_UVPARR = usSRegHoldBuf[UNDERVOLTIME]; // Undervoltage protection counter target value
 
 	set_csr(DRV1_PTR, OUVP_TRG);
 	
 #else	
-	//过压保护
-	//母线电压大于过压保护值时，计数，超过50次，判断为过压保护，关闭输出;反之，计数器慢慢减
+	//Overvoltage protection
+	//bus voltage greater than Overvoltage protection value, count, exceed Over 50 times, determined as Overvoltage protection, disable output; otherwise, counter decrements slowly
 	if (usSRegInBuf[BUSVOLTAGE] > usSRegHoldBuf[OVERVOLTAGE])
 	{
 		h_Fault->OverVoltDetecCnt++;
@@ -379,13 +379,13 @@ void Fault_OverUnderVoltage(FaultVarible* h_Fault)
 		}
 	}
 	
-	//欠压保护
-	//母线电压大于欠压保护值时，计数，超过50次，判断为欠压保护，关闭输出;反之，计数器慢慢减
+	//Undervoltage protection
+	//bus voltage greater than Undervoltage protection value, count, exceed Over 50 times, determined as Undervoltage protection, disable output; otherwise, counter decrements slowly
 	if (usSRegInBuf[BUSVOLTAGE] < usSRegHoldBuf[UNDERVOLTAGE])
 	{
 		h_Fault->UnderVoltDetecCnt++;
 
-		if (h_Fault->UnderVoltDetecCnt > usSRegHoldBuf[UNDERVOLTIME])//检测50ms
+		if (h_Fault->UnderVoltDetecCnt > usSRegHoldBuf[UNDERVOLTIME])//detect 50ms
 		{
 			h_Fault->UnderVoltDetecCnt = 0;
 			mcFaultSource = FaultUnderVoltage;
@@ -403,14 +403,13 @@ void Fault_OverUnderVoltage(FaultVarible* h_Fault)
 }
 
 
-
-/*****************************************************************************
- * Function:		 void Fault_PeakOvercurrent(CurrentVarible *h_Cur)
- * Description:	 电机运行或者启动时，当三相中某一相最大值大于OverCurrentValue，则OverCurCnt加1。
- 连续累加3次，判断为软件过流保护。执行时间约30.4us。
- * Parameter:		 mcFaultVarible *h_Fault
- * Return:			 no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_PeakOvercurrent
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Software overcurrent protection: when any of the three phases exceeds PEAKCURRENT, count increments by 1.
+ 				When count exceeds PEAKCURTIME, it is determined as software overcurrent fault
+ *---------------------------------------------------------------------------*/
 void Fault_PeakOvercurrent(CurrentVarible* h_Cur)
 {
 	uint32 Cnt;
@@ -444,7 +443,7 @@ void Fault_PeakOvercurrent(CurrentVarible* h_Cur)
 	
 #if PROT_SOCP_HARDWARE_ENABLED
 	Abs_peak = ABS(MIN(usSRegHoldBuf[DRIVERPEAKCUR], usSRegHoldBuf[HARDCURRENT]));
-	NFOC_SOCP = Abs_peak;// 过流保护阈值
+	NFOC_SOCP = Abs_peak;// Overcurrent protection threshold
 	NFOC_SOCPARR = 5;
 	
 //	if (h_Cur->PeakCurLatch != usSRegHoldBuf[PEAKCURTIME])
@@ -453,12 +452,12 @@ void Fault_PeakOvercurrent(CurrentVarible* h_Cur)
 //		Cnt = (uint32)usSRegHoldBuf[PEAKCURTIME] * DRIVERINT_FREQUENCY;
 //		if (Cnt > 255)
 //		{
-//			NFOC_SOCPARR = 255;// 过流保护计数目标值
+//			NFOC_SOCPARR = 255;// Overcurrent protection counter target value
 //			h_Cur->PeakCurArr = (Cnt >> 8) & 0xFFFFFF;
 //		}
 //		else
 //		{
-//			NFOC_SOCPARR = Cnt & 0xFF;// 过流保护计数目标值
+//			NFOC_SOCPARR = Cnt & 0xFF;// Overcurrent protection counter target value
 //			h_Cur->PeakCurArr = 0;
 //		}
 //		mcCurVarible.PeakCurCnt = 0;
@@ -468,28 +467,35 @@ void Fault_PeakOvercurrent(CurrentVarible* h_Cur)
 }
 
 
-/*****************************************************************************
- * Function:		 void Fault_RMSOvercurrent(CurrentVarible *h_Cur)
- * Description:	 电机运行或者启动时，当三相中某一相累加和大于RMSSoftCurrentValue，则
- *               判断为软件RMS过流保护。累加次数为RMSCURTIME。
- * Parameter:		 mcFaultVarible *h_Fault
- * Return:			 no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_RMSOvercurrent
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	RMS overcurrent protection: when the accumulated sum of any phase exceeds RMSSumThreshold,
+ *               it is determined as software RMS overcurrent fault. Accumulation count is RMSCURTIME
+ *---------------------------------------------------------------------------*/
 void Fault_RMSOvercurrent(CurrentVarible* h_Cur)
 {
 	if (mcFocCtrl.CurLoopEnable == 1)						// check over current in rum and open mode
 	{
 		h_Cur->RMSSumThreshold = ((uint32)usSRegHoldBuf[RMSCURRENT] * 10) >> 3;
 		h_Cur->RMSSumThreshold = h_Cur->RMSSumThreshold * usSRegHoldBuf[RMSCURTIME];
+		
 		// RMS over current error detection
+		if ((h_Cur->Sum_ia > h_Cur->RMSSumThreshold) || (h_Cur->Sum_ib > h_Cur->RMSSumThreshold)
+			|| (h_Cur->Sum_ic > h_Cur->RMSSumThreshold))
+		{
+			mcFaultSource = FaultRMSOVCurrent;
+			FaultProcess();
+			
+			h_Cur->RMSCurCnt = 0;
+			h_Cur->Sum_ia = 0;
+			h_Cur->Sum_ib = 0;
+			h_Cur->Sum_ic = 0;
+		}
+		
 		if (h_Cur->RMSCurCnt > usSRegHoldBuf[RMSCURTIME])
 		{
-			if ((h_Cur->Sum_ia > h_Cur->RMSSumThreshold) || (h_Cur->Sum_ib > h_Cur->RMSSumThreshold)
-				|| (h_Cur->Sum_ic > h_Cur->RMSSumThreshold))
-			{
-				mcFaultSource = FaultRMSOVCurrent;
-				FaultProcess();
-			}
 			h_Cur->RMSCurCnt = 0;
 			h_Cur->Sum_ia = 0;
 			h_Cur->Sum_ib = 0;
@@ -507,12 +513,12 @@ void Fault_RMSOvercurrent(CurrentVarible* h_Cur)
 
 
 #if FUNC_CURRENTBACK_ENABLED
-/*****************************************************************************
- * Function:
- * Description:
- * Parameter:
- * Return:			 no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_FoldBackCurrent
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Current foldback protection, i.e. overload protection
+ *---------------------------------------------------------------------------*/
 void Fault_FoldBackCurrent(FaultVarible* h_Fault)
 {
 	uint8 faultFlag = CurrBackProtect_Fault(&MotorCurrBack);
@@ -532,12 +538,12 @@ void Fault_FoldBackCurrent(FaultVarible* h_Fault)
 #endif
 
 #if FUNC_FEEDBACKONLOAD_ENABLED
-/*****************************************************************************
- * Function:
- * Description:
- * Parameter:
- * Return:			 no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_MixErrOver
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Dual encoder hybrid deviation too large
+ *---------------------------------------------------------------------------*/
 void Fault_MixErrOver(FaultVarible* h_Fault)
 {
 	*((int32*) &usSRegInBuf[MIXPOSERR_L]) = FeedBackMixErrCheck();
@@ -550,20 +556,21 @@ void Fault_MixErrOver(FaultVarible* h_Fault)
 }
 #endif
 
-/*****************************************************************************
- * Function:		 void Fault_OverSpeed()
- * Description:	 Checks over-speed error
- * Parameter:
- * Return:			 no
- *****************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_OverSpeed
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Overspeed
+ *---------------------------------------------------------------------------*/
 void Fault_OverSpeed(FaultVarible* h_Fault)
 {
 #if PROT_OSPD_HARDWARE_ENABLED
-	NFOC_OSPD = usSRegHoldBuf[OVERSPEED];    // 速度超差保护阈值
+	NFOC_OSPD = usSRegHoldBuf[OVERSPEED];    // Velocity error protection threshold
 	if (usSRegHoldBuf[OVERSPEEDTIME] > 255)
 		NFOC_OSPDARR = 255;
 	else
-		NFOC_OSPDARR = usSRegHoldBuf[OVERSPEEDTIME]; // 速度超差目标值
+		NFOC_OSPDARR = usSRegHoldBuf[OVERSPEEDTIME]; // Velocity error target value
 	
 #else
 
@@ -571,12 +578,12 @@ void Fault_OverSpeed(FaultVarible* h_Fault)
 }
 
 
-/*****************************************************************************
- * Function:		 void Fault_OverPosErr()
- * Description:	 Checks Position Following error
- * Parameter:
- * Return:			 no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_OverPosErr
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Position error exceeded
+ *---------------------------------------------------------------------------*/
 void Fault_OverPosErr(FaultVarible* h_Fault)
 {
 	if (mcFocCtrl.PosLoopEnable == 1)     // check in position loop
@@ -604,12 +611,13 @@ void Fault_OverPosErr(FaultVarible* h_Fault)
 	}
 }
 
-/*****************************************************************************
- * Function:	 void Fault_OverVelErr()
- * Description:	 Checks Velocity Following error
- * Parameter:
- * Return:		 no
- *****************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_OverVelErr
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Velocity error exceeded
+ *---------------------------------------------------------------------------*/
 void Fault_OverVelErr(FaultVarible* h_Fault)
 {
 #if PROT_OVEL_HARDWARE_ENABLED
@@ -617,13 +625,13 @@ void Fault_OverVelErr(FaultVarible* h_Fault)
 	if (mcDoHome.SkipFaultOverPosErr == 0)
 #endif //#if FUNC_HOME_ENABLED
 	{
-		set_csr(DRV1_PER, OVEL_AUTO); // 每个载波周期自动使能一次速度超差计算
+		set_csr(DRV1_PER, OVEL_AUTO); // Automatically enable velocity error calculation once per carrier period
 		
-		NFOC_OVEL = usSRegHoldBuf[VEMAX];    // 速度超差保护阈值
+		NFOC_OVEL = usSRegHoldBuf[VEMAX];    // Velocity error protection threshold
 		if (usSRegHoldBuf[VEMAXTIME] > 255)
 			NFOC_OVELARR = 255;
 		else
-			NFOC_OVELARR = usSRegHoldBuf[VEMAXTIME]; // 速度超差目标值
+			NFOC_OVELARR = usSRegHoldBuf[VEMAXTIME]; // Velocity error target value
 	}
 #if FUNC_HOME_ENABLED
 	else
@@ -636,19 +644,19 @@ void Fault_OverVelErr(FaultVarible* h_Fault)
 #endif // #if PROT_OVEL_HARDWARE_ENABLED
 }
 
-/*****************************************************************************
- * Function:		 void	Fault_PhaseLoss(mcFaultVarible *h_Fault)
- * Description:	 缺相保护函数，当电机运行状态下，10ms取三相电流的最大值，
- 1.5s判断各相电流最大值，若存在两相电流值大于一定值，而第三相电流值却非常小，则判断为缺相保护，电机停机；
- * Parameter:		 mcFaultVarible *h_Fault
- * Return:			 no
- *****************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_PhaseLoss
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Phase loss protection
+ *---------------------------------------------------------------------------*/
 void Fault_PhaseLoss(FaultVarible* h_Fault)
 {
 #if PROT_PLOSS_HARDWARE_ENABLED
-	NFOC_PLTTH = usSRegHoldBuf[PHASELOSSANGLE]; // 缺相保护角度变化阈值
-	NFOC_PLRTH = usSRegHoldBuf[PHASELOSSCMDCUR]; // 缺相保护电流命令阈值
-	NFOC_PLITH = usSRegHoldBuf[PHASELOSSACTCUR]; // 缺相保护相电流阈值
+	NFOC_PLTTH = usSRegHoldBuf[PHASELOSSANGLE]; // Phase loss protection angle change threshold
+	NFOC_PLRTH = usSRegHoldBuf[PHASELOSSCMDCUR]; // Phase loss protectioncurrent command threshold
+	NFOC_PLITH = usSRegHoldBuf[PHASELOSSACTCUR]; // Phase loss protection phase current threshold
 #else
 
 #endif
@@ -656,31 +664,31 @@ void Fault_PhaseLoss(FaultVarible* h_Fault)
 }
 
 
-/*****************************************************************************
- * Function:	void	Fault_Stall(mcFaultVarible *h_Fault)
- * Description:	堵转保护函数，A stall condition occurs when [I > MICONT] and [I > 0.9×ILIM] and [V <
- *				STALLVEL]. A stall fault occurs whenever the duration of a stall condition exceeds STALLTIME.
- * Parameter:	mcFaultVarible *h_Fault
- * Return:		no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_Stall
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Motor stall protection
+ *---------------------------------------------------------------------------*/
 void Fault_Stall(FaultVarible* h_Fault)
 {
 #if PROT_STALL_HARDWARE_ENABLED
 	
-	NFOC_LKSTH = usSRegHoldBuf[STALLVEL];    // 堵转保护速度阈值
-	NFOC_LKITH = usSRegHoldBuf[STALLCUR]; // 堵转保护电流阈值
-	NFOC_LKARR = usSRegHoldBuf[STALLTIME]; // 堵转保护目标值
+	NFOC_LKSTH = usSRegHoldBuf[STALLVEL];    // Motor stall protectionspeed threshold
+	NFOC_LKITH = usSRegHoldBuf[STALLCUR]; // Motor stall protectioncurrent threshold
+	NFOC_LKARR = usSRegHoldBuf[STALLTIME]; // Motor stall protectiontarget value
 #else
 
 #endif
 }
 
-/*****************************************************************************
- * Function:		 void	Fault_OverTemperature(mcFaultVarible *h_Fault)
- * Description:	 过温保护函数，电机在运行状态，读取AD值，超过额定限幅的时候保护
- * Parameter:		 mcFaultVarible *h_Fault
- * Return:			 no
- *****************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_OverTemperature
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Over-temperature
+ *---------------------------------------------------------------------------*/
 void Fault_OverTemperature(FaultVarible* h_Fault)
 {
 	if (usSRegInBuf[DRIVETEMP] > ((uint32)usSRegHoldBuf[DRIVETHERMTRIP] * 3) >> 1)
@@ -708,12 +716,12 @@ void Fault_OverTemperature(FaultVarible* h_Fault)
 }
 
 
-/*****************************************************************************
- * Function:		 void	Fault_STO(mcFaultVarible *h_Fault)
- * Description:	 判断是否处于STO状态
- * Parameter:		 mcFaultVarible *h_Fault
- * Return:			 no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_STO
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	STO triggered
+ *---------------------------------------------------------------------------*/
 void Fault_STO(FaultVarible* h_Fault)
 {
 #ifdef STO_PIN
@@ -729,12 +737,12 @@ void Fault_STO(FaultVarible* h_Fault)
 }
 
 
-/*****************************************************************************
- * Function:		 void	Fault_CurrentOffset()
- * Description:	 判断电流偏置是否异常
- * Parameter:		 no
- * Return:			 no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_CurrentOffset
+ * Input	:	No
+ * Output	:	No
+ * Description:	Current offset abnormal
+ *---------------------------------------------------------------------------*/
 void Fault_CurrentOffset()
 {
 #if (HW_ADC_SYNC == ADCSAM_SYNC)
@@ -752,16 +760,16 @@ void Fault_CurrentOffset()
 }
 
 #if ((HardwareCurrent_Protect == Hardware_FO_Protect) || (HardwareCurrent_Protect == Hardware_FO_CMP_Protect))
-/*****************************************************************************
- * Function:	void Fault_HardOvercurrent(mcFaultVarible *h_Fault)
- * Description:	判断硬件是否过流，作为外部中断判断过流的二次备份
- * Parameter:	mcFaultVarible *h_Fault
- * Return:		no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_HardOvercurrent
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Check if hardware is overcurrent, as secondary backup for external interrupt overcurrent detection
+ *---------------------------------------------------------------------------*/
 void Fault_HardOvercurrent(FaultVarible* h_Fault)
 {
 	if (!readbit_csr(HOV_GPIO, HOV_PIN))
-//	if (mcFocCtrl.CurLoopEnable == 1 && !readbit_csr(HOV_GPIO, HOV_PIN)) // FO信号刚上电时异常，需避开
+//	if (mcFocCtrl.CurLoopEnable == 1 && !readbit_csr(HOV_GPIO, HOV_PIN)) // FO signal is abnormal at power-up, need to avoid
 	{
 		Fault_Handler(FaultHardOVCurrent, FLAG_HARDOVC);
 	}
@@ -772,17 +780,19 @@ void Fault_HardOvercurrent(FaultVarible* h_Fault)
 }
 #endif
 
-/*****************************************************************************
- * Function:	void Fault_ParamError(FaultVarible* h_Fault)
- * Description:	判断参数错误
- * Parameter:	no
- * Return:		no
- *****************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_ParamError
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Check parameter error
+ *---------------------------------------------------------------------------*/
 void Fault_ParamError(FaultVarible* h_Fault)
 {
 	if (usSRegHoldBuf[POLES] == 0
 		|| (usSRegHoldBuf[PITCH_H] == 0 && usSRegHoldBuf[PITCH_L] == 0)
-		|| (((int32)(usSRegHoldBuf[POSLIMPOS_H] << 16) | usSRegHoldBuf[POSLIMPOS_L]) < ((int32)(usSRegHoldBuf[POSLIMNEG_H] << 16) | usSRegHoldBuf[POSLIMNEG_L]))
+		|| (((int32)(usSRegHoldBuf[POSLIMPOS_H] << 16) | usSRegHoldBuf[POSLIMPOS_L])  \
+		 < ((int32)(usSRegHoldBuf[POSLIMNEG_H] << 16) | usSRegHoldBuf[POSLIMNEG_L]))
 		|| (usSRegHoldBuf[OVERVOLTAGE] < usSRegHoldBuf[UNDERVOLTAGE]))
 	{
 		Fault_Handler(FaultParamError, FLAG_PARAMERR);
@@ -793,12 +803,13 @@ void Fault_ParamError(FaultVarible* h_Fault)
 	}
 }
 
-/*****************************************************************************
- * Function:	void	Fault_Encoder(mcFaultVarible *h_Fault)
- * Description:	判断编码器是否报错
- * Parameter:	mcFaultVarible *h_Fault
- * Return:		no
- *****************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_Encoder
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Check if encoder has errors
+ *---------------------------------------------------------------------------*/
 void Fault_Encoder(FaultVarible* h_Fault)
 {
 	uint16 EncErr = usSRegInBuf[ENCODERERR];
@@ -842,7 +853,7 @@ void Fault_Encoder(FaultVarible* h_Fault)
 #if ENCODER_SEL_SPI_ENABLED || ENCODER_SEL_SPI2_ENABLED
 	if (EncErr != 0)
 	{
-		if (GetReg(EncErr, FAULT_ENC_CRC)) // CRC错误
+		if (GetReg(EncErr, FAULT_ENC_CRC)) // CRC error
 		{
 			Fault_Handler(FaultEncCRC, FLAG_ENCCRC);
 		}
@@ -851,7 +862,7 @@ void Fault_Encoder(FaultVarible* h_Fault)
 			Fault_Handler(FaultNoSource, FLAG_ENCCRC);
 		}
 		
-		if (GetReg(EncErr, ~(uint16)FAULT_ENC_CRC)) // 其他报错
+		if (GetReg(EncErr, ~(uint16)FAULT_ENC_CRC)) // Other errors
 		{
 			Fault_Handler(FaultEncInternal, FLAG_ENCINT);
 		}
@@ -861,10 +872,10 @@ void Fault_Encoder(FaultVarible* h_Fault)
 		}
 	}
 	
-	EncErr = usSRegInBuf[SFBENCERR]; // 负载侧编码器
+	EncErr = usSRegInBuf[SFBENCERR]; // Load side encoder
 	if (EncErr != 0)
 	{
-		if (GetReg(EncErr, FAULT_ENC_CRC)) // CRC错误
+		if (GetReg(EncErr, FAULT_ENC_CRC)) // CRC error
 		{
 			Fault_Handler(FaultSFBEncCRC, FLAG_SFBENCCRC);
 		}
@@ -873,7 +884,7 @@ void Fault_Encoder(FaultVarible* h_Fault)
 			Fault_Handler(FaultNoSource, FLAG_SFBENCCRC);
 		}
 
-		if (GetReg(EncErr, ~(uint16)FAULT_ENC_CRC)) // 其他报错
+		if (GetReg(EncErr, ~(uint16)FAULT_ENC_CRC)) // Other errors
 		{
 			Fault_Handler(FaultSFBEncInternal, FLAG_SFBENCINT);
 		}
@@ -886,12 +897,12 @@ void Fault_Encoder(FaultVarible* h_Fault)
 }
 
 
-/*****************************************************************************
- * Function:	void	Fault_Hall(mcFaultVarible *h_Fault)
- * Description:	判断Hall是否有效
- * Parameter:	mcFaultVarible *h_Fault
- * Return:		no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_Hall
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Check if Hall is valid
+ *---------------------------------------------------------------------------*/
 void Fault_Hall(FaultVarible* h_Fault)
 {
 	if ((usSRegHoldBuf[ENCTYPE] == ENCODER_SEL_ABZ_HALL || usSRegHoldBuf[ENCTYPE] == ENCODER_SEL_HALLS_ONLY) &&
@@ -915,16 +926,17 @@ void Fault_Hall(FaultVarible* h_Fault)
 }
 
 
-/*****************************************************************************
- * Function:	void	Fault_EncOutFreqTooHigh(mcFaultVarible *h_Fault)
- * Description:	判断分频输出频率是否过高
- * Parameter:	mcFaultVarible *h_Fault
- * Return:		no
- *****************************************************************************/
 #if EXCTRL_ENCOUT_ENABLED
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_EncOutFreqTooHigh
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Check if frequency divider output frequency is too high
+ *---------------------------------------------------------------------------*/
 void Fault_EncOutFreqTooHigh(FaultVarible* h_Fault)
 {
-	if ( (FreqDiv.OUT_SourceSel != 0) && (ABS((int32)FreqDiv.OUT_PulseDelta) > ((uint32)usSRegHoldBuf[ENCOUTMAX]/ ENCOUT_FREQUENCY)) )
+	if ( (FreqDiv.OUT_SourceSel != 0) && \
+	(ABS((int32)FreqDiv.OUT_PulseDelta) > ((uint32)usSRegHoldBuf[ENCOUTMAX]/ ENCOUT_FREQUENCY)) )
 	{
 		mcFaultSource = FaultEncOutFreqTooHigh;
 		FaultProcess();
@@ -932,12 +944,12 @@ void Fault_EncOutFreqTooHigh(FaultVarible* h_Fault)
 }
 #endif // #if EXCTRL_ENCOUT_ENABLED
 
-/*****************************************************************************
- * Function:	void	Fault_MainIntPeriodTimeOut(mcFaultVarible *h_Fault)
- * Description:	判断载波中断周期是否过长
- * Parameter:	mcFaultVarible *h_Fault
- * Return:		no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_MainIntPeriodTimeOut
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Check if carrier interrupt period is too long
+ *---------------------------------------------------------------------------*/
 void Fault_MainIntPeriodTimeOut(FaultVarible* h_Fault)
 {
 #if !PROT_CARINTOT_HARDWARE_ENABLED
@@ -945,12 +957,12 @@ void Fault_MainIntPeriodTimeOut(FaultVarible* h_Fault)
 #endif
 }
 
-/*****************************************************************************
- * Function:	void	Fault_AuxIntDelayTimeOut()
- * Description:	判断子中断延时是否过长
- * Parameter:	mcFaultVarible *h_Fault
- * Return:		no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_AuxIntDelayTimeOut
+ * Input	:	No
+ * Output	:	No
+ * Description:	Check if sub-interrupt delay is too long
+ *---------------------------------------------------------------------------*/
 void Fault_AuxIntDelayTimeOut()
 {
 	if (read_csr(TIM3_CNTR) > usSRegHoldBuf[AUXINTDELAY])
@@ -964,12 +976,12 @@ void Fault_AuxIntDelayTimeOut()
 }
 
 
-/*****************************************************************************
- * Function:	void	Fault_ExceedPositionLimit(mcFaultVarible *h_Fault)
- * Description:	超出正负限位
- * Parameter:	mcFaultVarible *h_Fault
- * Return:		no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_ExceedPositionLimit
+ * Input	:	h_Fault - Pointer to FaultVarible instance
+ * Output	:	No
+ * Description:	Check if positive/negative position limits are exceeded
+ *---------------------------------------------------------------------------*/
 void Fault_ExceedPositionLimit(FaultVarible* h_Fault)
 {
 	int32 actPos;
@@ -1023,13 +1035,14 @@ void Fault_ExceedPositionLimit(FaultVarible* h_Fault)
 	}
 }
 
-/*****************************************************************************
- * Function:	void Fault_Handler(uint16 FaultSource, uint16 FaultMask)
- * Description:	 将相应报错或者警告寄存器置位
- * Parameter:	FaultSource-报错编码
- *				FaultMask-报错警告掩码
- * Return:		no
- *****************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_Handler
+ * Input	:	FaultSource-Fault code
+ *				FaultMask-Fault/warning mask
+ * Output	:	No
+ * Description:	Set corresponding fault or warning register bits
+ *---------------------------------------------------------------------------*/
 void Fault_Handler(uint16 FaultSrc, uint32 FaultMask)
 {
 	uint32* pFaultMask = &usSRegHoldBuf[FAULTMASK0];
@@ -1053,16 +1066,16 @@ void Fault_Handler(uint16 FaultSrc, uint32 FaultMask)
 	}
 }
 
-/*****************************************************************************
- * Function:	void Fault_TimeCount()
- * Description:	报错时间计数, 放在1ms里面
- * Parameter:	no
- * Return:		no
- *****************************************************************************/
+/*---------------------------------------------------------------------------
+ * Name		:	Fault_TimeCount
+ * Input	:	No
+ * Output	:	No
+ * Description:	Fault time counting, placed in 1ms task
+ *---------------------------------------------------------------------------*/
 void Fault_TimeCount()
 {
 	mcFaultDect.CurrentTimeCount++;
-	if (mcFaultDect.CurrentTimeCount > 60000)  // 1 minute
+	if (mcFaultDect.CurrentTimeCount > MS_PER_MINUTE)  // 1 minute
 	{
 		mcFaultDect.CurrentTimeCount = 0;
 		mcFaultDect.CurrentMinute++;

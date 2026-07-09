@@ -22,17 +22,17 @@
 uint8 mcState = mcReady;
 MotStaM McStaSet = { 0 };
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   void MC_Control(void)
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 电机状态机函数，包括初始化、寻相、回零、启动、运行、故障等
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	MC_Control
+ * Input	:	No
+ * Output	:	No
+ * Description:	Motor control main state machine function, including initialization, phase finding, homing, startup, running, fault handling, etc.
+ *---------------------------------------------------------------------------*/
 void MC_Control(void)
 {
 	if (mcRegParam.FlashCtrl == FLASH_REBOOT_STEP1 && usSRegHoldBuf[FLASHCTRL] == FLASH_REBOOT_STEP2)
 	{
-		set_csr(RST_CR, SFRST); // 软件复位
+		set_csr(RST_CR, SFRST); // Software reset
 	}	
 	
 	if (mcFaultSource != FaultNoSource && mcState != mcDisable)
@@ -46,7 +46,7 @@ void MC_Control(void)
 	if (mcState != mcReady && (GetReg(usSRegHoldBuf[DRIVECTRL], CTRL_DISABLE)
 		|| GetReg(usSRegInBuf[DIGINSTATUS] & usSRegInBuf[DIGINSTAEN], INSTATUS_EMERGENCYSTOP)))
 	{
-		if (GetReg(usSRegInBuf[DRIVESTATUS], STATUS_ENABLE) && (mcState != mcDisable || // 如果处于Enable状态
+		if (GetReg(usSRegInBuf[DRIVESTATUS], STATUS_ENABLE) && (mcState != mcDisable || // If in Enable state
 			(mcState == mcDisable && !GetReg(mcRegParam.DriveCtrl, CTRL_DISABLE) && GetReg(usSRegHoldBuf[DRIVECTRL], CTRL_DISABLE))))
 		{
 			McStaSet.SetFlag.BrakeFlag = 0;
@@ -57,7 +57,7 @@ void MC_Control(void)
 	// Main State Machine
 	switch (mcState)
 	{
-	case mcReady:    // 关闭输出,上电会对电流进行采集校准,当采样校准结束标志置1且启动指令置1后，mcIdle
+	case mcReady:    // disable output,Power-on collects and calibrates current,When sampling calibration finish flag is set to 1 and start command is set to 1, mcIdle
 #if MOTOR_PRECHARGE_ENABLED
 		Motor_Charge();
 		if (mcFocCtrl.ChargeFinish == 1)
@@ -121,7 +121,6 @@ void MC_Control(void)
 				mcRegParam.WorkMode == CURSERIAL || mcRegParam.WorkMode == CURANALOG || mcRegParam.WorkMode == CURFRF)
 			{
 				McStaSet.SetFlag.ChargeSetFlag = 0;
-				mcFocCtrl.StopFlag = 0;
 				mcState = mcStart;
 			}
 			else
@@ -161,13 +160,15 @@ void MC_Control(void)
 		{
 			Motor_Home();
 
-			if (!GetReg(usSRegHoldBuf[DRIVECTRL], CTRL_DOHOME))
+			if (!GetReg(usSRegHoldBuf[DRIVECTRL], CTRL_DOHOME) || 
+				(!GetReg(mcRegParam.DigInStatus, INSTATUS_STOPONINPUT) &&
+				GetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_STOPONINPUT)))
 			{
 				Home_Reset();
-				mcFocCtrl.StopFlag = 1;
-				McStaSet.SetFlag.StopSetFlag = 0;
-				mcState = mcStop;
+				Motor_Profile_StartDeceleration();
+				mcState = mcRun;
 			}
+			
 			if (mcDoHome.State == HOME_FINISH)
 			{
 				mcDoHome.State = HOME_IDLE;
@@ -183,7 +184,7 @@ void MC_Control(void)
 				}
 			}
 #if FUNC_FORCECTRL_ENABLED
-			ForceCtrl.PauseFlag = 1; // 回零时暂停力控模式
+			ForceCtrl.PauseFlag = 1; // Pause force control mode during homing
 #endif
 #if SPECIAL_ELESCREW_ENABLE
 			ScrewCtrl.PauseFlag = 1;
@@ -208,7 +209,7 @@ void MC_Control(void)
 	case mcRun:
 		
 #if FUNC_FORCECTRL_ENABLED
-		if (usSRegHoldBuf[FCMOD]) // 力控模式
+		if (usSRegHoldBuf[FCMOD]) // Force control mode
 		{
 			ForceCtrl_RunInit();
 		}
@@ -224,16 +225,11 @@ void MC_Control(void)
 		{
 			Motor_Run();
 		}
-
-		if ((!GetReg(mcRegParam.DigInStatus, INSTATUS_STOPONINPUT) && GetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_STOPONINPUT))
-			|| (GetReg(mcRegParam.DigInStatus, INSTATUS_ENABLE) && !GetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_ENABLE)))
+		
+		if (GetReg(mcRegParam.DigInStatus, INSTATUS_ENABLE) && !GetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_ENABLE))
 		{
-			if (!GetReg(mcRegParam.DigInStatus, INSTATUS_STOPONINPUT) && GetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_STOPONINPUT))
-			{
-				mcFocCtrl.StopFlag = 1;
-			}
-			mcState = mcStop;
-			McStaSet.SetFlag.StopSetFlag = 0;
+			McStaSet.SetFlag.BrakeFlag = 0;
+			mcState = mcDisable;
 		}
 #if FUNC_HOME_ENABLED
 		else if ((!GetReg(mcRegParam.DigInStatus, INSTATUS_HOMECOMMAND) && GetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_HOMECOMMAND)) ||
@@ -247,30 +243,13 @@ void MC_Control(void)
 
 	case mcDisable:
 #if FUNC_DISMODE_ENABLED
-		Do_EmergencyStop();			//执行停机
+		Do_EmergencyStop();			//Execute motor stop
 #else
 		Do_DisableServo();
 		mcState = mcIdle;
 #endif // #if FUNC_DISMODE_ENABLED
 		break;
-
-	case mcStop:
-		Motor_Stop();
-		if (McStaSet.SetFlag.StopSetFlag)
-		{
-			if (mcFocCtrl.StopFlag == 1)
-			{
-				mcFocCtrl.StopFlag = 0;
-				usSRegHoldBuf[DRIVECTRL] = 0;
-				mcState = mcRun;
-			}
-			else
-			{
-				McStaSet.SetFlag.BrakeFlag = 0;
-				mcState = mcDisable;
-			}
-		}
-		break;
+		
 		
 #if FUNC_MOTOREST_ENABLED
 	case mcMotorIdentify:
@@ -291,7 +270,7 @@ void MC_Control(void)
 		{
 			FaultClear();
 #if EXCTRL_ECAT_ENABLED || EXCTRL_CANOPEN_ENABLED
-			CiA402_LocalError_OnceFlag = 0; //此处需要一句，ECAT状态机切换那里也需要一句
+			CiA402_LocalError_OnceFlag = 0; //This line is needed here, ECAT state machine state machine transition also needs this line
 #endif
 #if FUNC_HOME_ENABLED
 			Home_Reset();

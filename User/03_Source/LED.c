@@ -6,7 +6,7 @@
  * File Name     : LED.c
  * Author        : Zougi.Zou
  * Date          : 2023-09-20
- * Description   : 数码管显示 AIP650
+ * Description   : Seven-segment display AIP650
  *
  * Record        :
  * V1.0, 2023-09-20, Zougi.Zou: Created file
@@ -15,7 +15,7 @@
 #include <Myproject.h>
 
 LedTubeTypeDef mcLedTube;
-const uint8 Digital_Table[16] = {	//数码管的段码
+const uint8 Digital_Table[16] = {	//Segment codes for the seven-segment display
 	0x3F,  // 0
 	0x06,  // 1
 	0x5B,  // 2
@@ -54,25 +54,26 @@ const uint8 Digital_Table[16] = {	//数码管的段码
 LedDiodeTypeDef mcLedDiode = { 0 };
 #endif // #if FUNC_LED_DIODE_ENABLED
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void LedTube_Init(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Initial Led Register.
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	LedTube_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	Initial Led Tube Register.
+ *---------------------------------------------------------------------------*/
 void LedTube_Init(void)
 {
 	uint8 temp = LED_LIGHT5;
-	I2C_Master_WriteBytes(LED_CMD_MOD, &temp, 1);	//数码管开，7级显示亮度
+	I2C_Master_WriteBytes(LED_CMD_MOD, &temp, 1);	//Seven-segment display on, 7-level brightness
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void LedTube_UpdateStatus(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Update Led tube Status.
-/*---------------------------------------------------------------------------*/
+ /*---------------------------------------------------------------------------
+ * Name		:	LedTube_UpdateStatus
+ * Input	:	No
+ * Output	:	No
+ * Description:	Update Led tube Status.
+ *---------------------------------------------------------------------------*/
 void LedTube_UpdateStatus(void)
 {
 	uint8 temp = 0, temp1 = 0;
@@ -141,36 +142,39 @@ void LedTube_UpdateStatus(void)
 
 
 #if FUNC_LED_DIODE_ENABLED
-/*---------------------------------------------------------------------------*/
-/* Name		:	void LedDiode_Display(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	LED灯显示
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	LedDiode_Display
+ * Input	:	No
+ * Output	:	No
+ * Description:	LED diode display
+ *---------------------------------------------------------------------------*/
 void LedDiode_Display(void)
 {
-	switch (mcFaultSource)
+	switch (usSRegInBuf[ERRORSTATUS0])
 	{
 	case FaultNoSource:
 		ResetLEDPin;
 		memset(&mcLedDiode, 0, sizeof(LedDiodeTypeDef));
 		break;
 	default:
-		LedDiode_OnOff(&mcLedDiode, mcFaultSourceSize[(mcFaultSource - 0xA00) >> 8] + (mcFaultSource & 0xFF));
+		LedDiode_OnOff(&mcLedDiode, mcFaultSourceSize[(usSRegInBuf[ERRORSTATUS0] - 0xA00) >> 8] 
+			+ (usSRegInBuf[ERRORSTATUS0] & 0xFF));
 		break;
 	}
 
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void LedDiode_OnOff(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	LED灯的闪烁
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	LedDiode_OnOff
+ * Input	:	*hLedDisplay - Pointer to a LedDiodeTypeDef instance
+ *				htime - Number of blinks
+ * Output	:	No
+ * Description:	LED flashing
+ *---------------------------------------------------------------------------*/
 void LedDiode_OnOff(LedDiodeTypeDef* hLedDisplay, uint8 htime)
 {
-	if (hLedDisplay->LedTimCot < 2 *htime)
+	if (hLedDisplay->LedTimCot < 2 * htime)
 	{
 		if (hLedDisplay->Count < Led_OnOff_Freq)
 		{

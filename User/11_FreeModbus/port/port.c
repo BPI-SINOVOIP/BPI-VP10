@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * File: $Id: port.c,v 1.60 2015/02/01 9:18:05 Armink $
- *		 $Id: port.c,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: port.c,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for the Fengyan MCU chip $
  */
 
 /* ----------------------- System includes --------------------------------*/
@@ -39,4 +39,3 @@ void ExitCriticalSection(void)
 {
 //    rt_exit_critical();
 }
-

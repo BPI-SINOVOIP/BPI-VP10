@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * File: $Id: portevent.c,v 1.60 2013/08/13 15:07:05 Armink $
- *		 $Id: portevent.c,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: portevent.c,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for the Fengyin MCU chip $
  */
 
 /* ----------------------- Modbus includes ----------------------------------*/

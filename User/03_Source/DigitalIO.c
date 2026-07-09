@@ -189,9 +189,9 @@ void eInModeIdle(uint8 DigInput)
 void eInModeEnable(uint8 DigInput)
 {
     if(DigInput == IO_HIGH)
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_ENABLE, INSTATUS_ENABLE);
+        SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_ENABLE);
     else
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_ENABLE, 0);
+        ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_ENABLE);
 }
 
 
@@ -204,9 +204,9 @@ void eInModeEnable(uint8 DigInput)
 void eInModeClearFault(uint8 DigInput)
 {
     if(DigInput == IO_HIGH)
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_CLEARFAULT, INSTATUS_CLEARFAULT);
+    	SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_CLEARFAULT);
     else
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_CLEARFAULT, 0);
+    	ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_CLEARFAULT);
 }
 
 
@@ -220,10 +220,10 @@ void eInModeEmergencyStop(uint8 DigInput)
 {
     if(DigInput == IO_HIGH)
     {   
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_EMERGENCYSTOP, INSTATUS_EMERGENCYSTOP);
+    	SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_EMERGENCYSTOP);
     }
     else
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_EMERGENCYSTOP, 0);
+    	ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_EMERGENCYSTOP);
 }
 
 
@@ -236,9 +236,9 @@ void eInModeEmergencyStop(uint8 DigInput)
 void eInModeStopOnInput(uint8 DigInput)
 {
     if(DigInput == IO_HIGH)
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_STOPONINPUT, INSTATUS_STOPONINPUT);
+    	SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_STOPONINPUT);
     else
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_STOPONINPUT, 0);
+    	ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_STOPONINPUT);
 }
 
 
@@ -251,9 +251,9 @@ void eInModeStopOnInput(uint8 DigInput)
 void eInModeHomeCommand(uint8 DigInput)
 {
     if(DigInput == IO_HIGH)
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_HOMECOMMAND, INSTATUS_HOMECOMMAND);
+    	SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_HOMECOMMAND);
     else
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_HOMECOMMAND, 0);
+    	ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_HOMECOMMAND);
 }
 
 
@@ -266,9 +266,9 @@ void eInModeHomeCommand(uint8 DigInput)
 void eInModePosiLimitSwitch(uint8 DigInput)
 {
     if(DigInput == IO_HIGH)
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_POSILIMITSWITCH, INSTATUS_POSILIMITSWITCH);
+    	SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_POSILIMITSWITCH);
     else
-        SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_POSILIMITSWITCH, 0);
+    	ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_POSILIMITSWITCH);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -280,9 +280,9 @@ void eInModePosiLimitSwitch(uint8 DigInput)
 void eInModeNegaLimitSwitch(uint8 DigInput)
 {
 	if(DigInput == IO_HIGH)
-		SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_NEGALIMITSWITCH, INSTATUS_NEGALIMITSWITCH);
+		SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_NEGALIMITSWITCH);
 	else
-		SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_NEGALIMITSWITCH, 0);
+		ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_NEGALIMITSWITCH);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -294,10 +294,11 @@ void eInModeNegaLimitSwitch(uint8 DigInput)
 void eInModeHomeSwitch(uint8 DigInput)
 {
 	if(DigInput == IO_HIGH)
-		SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_HOMESWITCH, INSTATUS_HOMESWITCH);
+		SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_HOMESWITCH);
 	else
-		SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_HOMESWITCH, 0);
+		ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_HOMESWITCH);
 }
+
 /*---------------------------------------------------------------------------*/
 /* Name		:	void eInModeGainSwitch(uint8 DigInput)
 /* Input	:	Digital Input - IO_HIGH or IO_LOW.
@@ -307,10 +308,11 @@ void eInModeHomeSwitch(uint8 DigInput)
 void eInModeGainSwitch(uint8 DigInput)
 {
 	if (DigInput == IO_HIGH)
-		SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_GAINSWITCH, INSTATUS_GAINSWITCH);
+		SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_GAINSWITCH);
 	else
-		SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_GAINSWITCH, 0);
+		ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_GAINSWITCH);
 }
+
 /*---------------------------------------------------------------------------*/
 /* Name		:	void eInModeOpModeChange(uint8 DigInput)
 /* Input	:	Digital Input - IO_HIGH or IO_LOW.
@@ -320,15 +322,15 @@ void eInModeGainSwitch(uint8 DigInput)
 void eInModeOpModeChange1(uint8 DigInput)
 {
     if(DigInput == IO_HIGH)
-    	SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_OPMODECHANGE1, INSTATUS_OPMODECHANGE1);
+    	SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_OPMODECHANGE1);
     else
-    	SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_OPMODECHANGE1, 0);
+    	ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_OPMODECHANGE1);
 }
 
 void eInModeOpModeChange2(uint8 DigInput)
 {
 	if (DigInput == IO_HIGH)
-		SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_OPMODECHANGE2, INSTATUS_OPMODECHANGE2);
+		SetBit(usSRegInBuf[DIGINSTATUS], INSTATUS_OPMODECHANGE2);
 	else
-		SetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_OPMODECHANGE2, 0);
+		ClrBit(usSRegInBuf[DIGINSTATUS], INSTATUS_OPMODECHANGE2);
 }

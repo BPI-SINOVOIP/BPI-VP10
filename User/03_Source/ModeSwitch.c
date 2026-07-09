@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2024-2026 Fortior Technology Co., Ltd.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -6,7 +6,7 @@
  * File Name     : ModeSwitch.c
  * Author        : Victor.jin
  * Date          : 2024-01-18
- * Description   : 模式切换
+ * Description   : Mode switching
  *
  * Record        :
  * V1.0, 2024-01-18, Victor.jin: Created file
@@ -23,21 +23,20 @@
 ModeSWPTypedef ModeSW;
 
 
-/********************************************************************************
- * Internal Routine Prototypes
- ********************************************************************************/
+ /********************************************************************************
+  * Internal Routine Prototypes
+  ********************************************************************************/
 void ModeSW_Init(void);
 void ModeSW_Update(void);
 void RunMode_Update(void);
 
 
-
-/*---------------------------------------------------------------------------*/
-/* Name     :
-/* Input    :   NO
-/* Output   :   NO
-/* Description: usSRegInBuf[CMDCUR]
-/*---------------------------------------------------------------------------*/
+ /*---------------------------------------------------------------------------
+  * Name		:	ModeSW_Init
+  * Input	:	No
+  * Output	:	No
+  * Description:	Mode switch initialization
+  *---------------------------------------------------------------------------*/
 void ModeSW_Init(void)
 {
 	ModeSW.FirOnPower = 0;
@@ -56,16 +55,15 @@ void ModeSW_Init(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :
-/* Input    :   NO
-/* Output   :   NO
-/* Description:
-1、主循环函数调用
-/*---------------------------------------------------------------------------*/
+ /*---------------------------------------------------------------------------
+  * Name		:	ModeSW_Update
+  * Input	:	No
+  * Output	:	No
+  * Description:	Mode switch updates working mode (WorkMode)
+  *---------------------------------------------------------------------------*/
 void ModeSW_Update(void)
 {
-	switch (usSRegHoldBuf[OPMODESWITCH]) // 运行模式功能码
+	switch (usSRegHoldBuf[OPMODESWITCH]) // Run mode function code
 	{
 	case 1: //S-T
 		if (GetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_OPMODECHANGE1))
@@ -96,7 +94,7 @@ void ModeSW_Update(void)
 		else
 		{
 #if FUNC_FORCECLOSEDLOOP_ENABLED
-			if ((usSRegHoldBuf[FCMOD] == FCMODE_CLOSEDLOOP_ONCE) || (usSRegHoldBuf[FCMOD] == FCMODE_CLOSEDLOOP_REPEAT)) // 若在闭环力控，则运行模式为压力闭环模式
+			if ((usSRegHoldBuf[FCMOD] == FCMODE_CLOSEDLOOP_ONCE) || (usSRegHoldBuf[FCMOD] == FCMODE_CLOSEDLOOP_REPEAT)) // If in closed-loop force control, the run mode is force-closed-loop mode
 				mcRegParam.WorkMode = FRCSERIAL;//CURMOD;
 			else
 #endif
@@ -104,25 +102,25 @@ void ModeSW_Update(void)
 		}
 		break;
 
-	default: //关闭运动模式切换
+	default: // Motion mode switching disabled
 		mcRegParam.WorkMode = GetReg(usSRegHoldBuf[DRIVEMODE], MODE_WORKMODE3 | MODE_WORKMODE2 | MODE_WORKMODE1 | MODE_WORKMODE0);
 		break;
 	}
 
 
 
-	//判断在模式切换时进行调节器变量清零
+	// Decide whether to clear controller variables during mode switching
 	if (ModeSW.FirOnPower == 0)
 	{
-		ModeSW.RunModLatch = mcRegParam.WorkMode;//上电第一次的模式值
+		ModeSW.RunModLatch = mcRegParam.WorkMode;// Mode value at first power-on
 
 		ModeSW.FirOnPower = 1;
 	}
 	if ((ModeSW.FirOnPower == 1) && (ModeSW.RunModLatch != mcRegParam.WorkMode))
 	{
-		if ((mcState == mcRun) && (mcFaultSource == FaultNoSource)) //只有在运行过程中时，而且发生了切换动作，才进行补偿
+		if ((mcState == mcRun) && (mcFaultSource == FaultNoSource)) // Compensation is performed only during RUN state when a switch occurs
 		{
-			if ((ModeSW.RunModLatch == VELSERIAL /*VELMOD*/ ) && (mcRegParam.WorkMode == POSSERIAL /*POSMOD*/ ))						//Spd -> Pos 由速度环向位置环切换时
+			if ((ModeSW.RunModLatch == VELSERIAL /*VELMOD*/ ) && (mcRegParam.WorkMode == POSSERIAL /*POSMOD*/ ))						//Spd -> Pos
 			{
 				ModeSW.SwitchFlag = 1;
 			}
@@ -130,7 +128,7 @@ void ModeSW_Update(void)
 			{
 				ModeSW.SwitchFlag = 1;
 			}
-			else if ((ModeSW.RunModLatch == CURSERIAL /*CURMOD*/ ) && (mcRegParam.WorkMode == POSSERIAL /*POSMOD*/ ))					//Toq -> Pos 由转矩环向位置环切换时
+			else if ((ModeSW.RunModLatch == CURSERIAL /*CURMOD*/ ) && (mcRegParam.WorkMode == POSSERIAL /*POSMOD*/ ))					//Toq -> Pos
 			{
 				ModeSW.SwitchFlag = 1;
 			}
@@ -165,37 +163,32 @@ void ModeSW_Update(void)
 			}
 #endif
 
-#if 1
 			usSRegInBuf[CMDVEL] = 0;
 
-			mcFocCtrl.TargetRefFirstFlag = 0; // 计算位置命令的标志位清零
-			Motor_Profile_Reset();	// 初始化轨迹规划相关变量
+			mcFocCtrl.TargetRefFirstFlag = 0; // Clear flag for position command computation
+			Motor_Profile_Reset();	// Reset trajectory planning related variables
 
 			RunMode_Update();
-
-#endif
-
 		}
-		else  //在非RUN模式切换时，不进行补偿，直接将相应调节器清零
+		else  // When switching in non-RUN mode, no compensation; clear the corresponding regulators directly
 		{
 			mcProfile.Flag = 0;
 
 			ModeSW.SwitchFlag = 0;
 		}
 
-		ModeSW.RunModLatch = mcRegParam.WorkMode;//保存上一次的模式值
+		ModeSW.RunModLatch = mcRegParam.WorkMode;// Save the previous mode value
 	}
 
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :
-/* Input    :   NO
-/* Output   :   NO
-/* Description:
-1、主循环函数调用
-/*---------------------------------------------------------------------------*/
+ /*---------------------------------------------------------------------------
+  * Name		:	RunMode_Update
+  * Input	:	No
+  * Output	:	No
+  * Description:	Enable corresponding loops according to current work mode and update run mode RunMod
+  *---------------------------------------------------------------------------*/
 void RunMode_Update(void)
 {
 	if (mcRegParam.WorkMode == CURSERIAL || mcRegParam.WorkMode == CURANALOG || 
@@ -320,4 +313,3 @@ void RunMode_Update(void)
 
 	OutputFilter_RunModeUpdate();
 }
-

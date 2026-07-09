@@ -6,7 +6,7 @@
  * File Name     : MotorFunc.c
  * Author        : Summer
  * Date          : 2026-05-06
- * Description   : 调用算法模块
+ * Description   : Algorithm module calls
  *
  * Record        :
  * V1.0, 2026-05-06, Summer: Created file
@@ -52,16 +52,14 @@ void Scope_Update(void);
 
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   ElecAngCal_Init
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 初始化电角度的计算
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   ElecAngCal_Init
+ * Input    :   NO
+ * Output   :   NO
+ * Description: Initialize electrical angle calculation
+ *---------------------------------------------------------------------------*/
 void ElecAngCal_Init(void)
 {
-	memset(&ElecAngCal, 0, sizeof(ElecAngCalTypedef));
-
 	ElecAngCal.pElecAngSW = (uint32*) & usSRegHoldBuf[ELECANGSW_L];
 	ElecAngCal.pElecAngMW = (uint32*) & usSRegHoldBuf[ELECANGMW_L];
 	ElecAngCal.pEncRes = (uint32*) & usSRegHoldBuf[ENCRES_L];
@@ -70,20 +68,20 @@ void ElecAngCal_Init(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   PI_Control_Init(void)
-/* Input    :
-/* Output   :
-/* Description: PI控制器初始化
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   PI_Control_Init(void)
+ * Input    :
+ * Output   :
+ * Description: Initialize PI controller
+ *---------------------------------------------------------------------------*/
 void PI_Control_Init(PIControlSimple* p)
 {
-	memset(p, 0, sizeof(PIControl));
+	memset(p, 0, sizeof(PIControlSimple));
 
 	p->pKp = &usSRegHoldBuf[FCKP];
 	p->pKi = &usSRegHoldBuf[FCKI];
 	p->KpRank = KP_RANK;
-	p->KiRank = KI_RANK; // 注意KiRank应 >= KpRank
+	p->KiRank = KI_RANK; // Note: KiRank should be >= KpRank
 
 	p->ValueMax32 = (int32)(int16)usSRegHoldBuf[PEAKCURRENT] << p->KpRank;
 	p->ValueMin32 = -p->ValueMax32;
@@ -91,21 +89,19 @@ void PI_Control_Init(PIControlSimple* p)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   FeedBackOnLoad_Demo_Init
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 初始化全闭环控制
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   FeedBackOnLoad_Demo_Init
+ * Input    :   NO
+ * Output   :   NO
+ * Description: Initialize full closed-loop control
+ *---------------------------------------------------------------------------*/
 void FeedBackOnLoad_Demo_Init(void)
 {
-	memset(&FeedBackCfg, 0, sizeof(FeedBackCfgTypedef));
-
 	FeedBackCfg.pMode = &usSRegHoldBuf[FEEDBACKMODE];
 	FeedBackCfg.pMixErrMaxValue = (int32*) & usSRegHoldBuf[MIXERRMAXVAL_L];
 	FeedBackCfg.pMixErrClrRpm = &usSRegHoldBuf[MIXERRCLRRPM];
 	FeedBackCfg.pLoadFeedPulse = (int32*) & usSRegHoldBuf[LOADFEEDPULSE_L];
-	FeedBackCfg.pMotorActualAngle = &mcFocCtrl.ActualAngle;		// 内环实时位置
+	FeedBackCfg.pMotorActualAngle = &mcFocCtrl.ActualAngle;		// Inner loop real-time position
 	FeedBackCfg.pLoadActualAngle = &mcEncoder.LoadEncPos;
 	FeedBackCfg.pTargetAngle = &mcFocCtrl.TargetAngleFilt;
 	FeedBackCfg.pTargetRef = &mcFocCtrl.TargetRef;
@@ -120,12 +116,12 @@ void FeedBackOnLoad_Demo_Init(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 初始化振动抑制
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   NTF_Demo_Init
+ * Input    :   NO
+ * Output   :   NO
+ * Description: Initialize vibration suppression
+ *---------------------------------------------------------------------------*/
 void NTF_Demo_Init(void)
 {
 	int8 Num = NTF1NUM;
@@ -133,10 +129,10 @@ void NTF_Demo_Init(void)
 
 	VibrationCfg[0].Mode = usSRegHoldBuf[NTF1MODE + BaseNum];
 
-	VibrationCfg[0].SampFreq = (int32)PROFILE_FREQUENCY * 10;    // 单位0.1Hz
-	VibrationCfg[0].NotchFreq = (int32)usSRegHoldBuf[NTF1HZ + BaseNum]; // 单位0.1Hz
-	VibrationCfg[0].NotchSharp = (int32)usSRegHoldBuf[NTF1SHARP + BaseNum]; // 单位0.01
-	VibrationCfg[0].NotchGain = (int32)usSRegHoldBuf[NTF1GAIN + BaseNum];  // 单位Rad*10-3/Nm
+	VibrationCfg[0].SampFreq = (int32)PROFILE_FREQUENCY * 10;    // unit: 0.1Hz
+	VibrationCfg[0].NotchFreq = (int32)usSRegHoldBuf[NTF1HZ + BaseNum]; // unit: 0.1Hz
+	VibrationCfg[0].NotchSharp = (int32)usSRegHoldBuf[NTF1SHARP + BaseNum]; // unit: 0.01
+	VibrationCfg[0].NotchGain = (int32)usSRegHoldBuf[NTF1GAIN + BaseNum];  // unit: Rad*10-3/Nm
 
 	VibrationCfg[0].NumCoeff[0] = (((int32)usSRegHoldBuf[NTF1B0_H + CoeNum] << 16) + (uint32)usSRegHoldBuf[NTF1B0_L + CoeNum]);
 	VibrationCfg[0].NumCoeff[1] = (((int32)usSRegHoldBuf[NTF1B1_H + CoeNum] << 16) + (uint32)usSRegHoldBuf[NTF1B1_L + CoeNum]);
@@ -151,8 +147,8 @@ void NTF_Demo_Init(void)
 	CoeNum = 10 *Num;
 	VibrationCfg[1].Mode = usSRegHoldBuf[NTF1MODE + BaseNum];
 
-	VibrationCfg[1].SampFreq = (int32)PROFILE_FREQUENCY * 10;    // 单位0.1Hz
-	VibrationCfg[1].NotchFreq = (int32)usSRegHoldBuf[NTF1HZ + BaseNum]; // 单位0.1Hz
+	VibrationCfg[1].SampFreq = (int32)PROFILE_FREQUENCY * 10;    // unit: 0.1Hz
+	VibrationCfg[1].NotchFreq = (int32)usSRegHoldBuf[NTF1HZ + BaseNum]; // unit: 0.1Hz
 
 	VibrationCfg[1].NumCoeff[0] = (((int32)usSRegHoldBuf[NTF1B0_H + CoeNum] << 16) + (uint32)usSRegHoldBuf[NTF1B0_L + CoeNum]);
 	VibrationCfg[1].NumCoeff[1] = (((int32)usSRegHoldBuf[NTF1B1_H + CoeNum] << 16) + (uint32)usSRegHoldBuf[NTF1B1_L + CoeNum]);
@@ -162,45 +158,41 @@ void NTF_Demo_Init(void)
 	VibrationCfg[1].DenCoeff[2] = (((int32)usSRegHoldBuf[NTF1A2_H + CoeNum] << 16) + (uint32)usSRegHoldBuf[NTF1A2_L + CoeNum]);
 #endif
 
-	//NTF初始化
+	//NTF initialization
 	NTF_Init(VibrationCfg);
 
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   ErrorCorrection_Demo_Init
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 初始化误差校准功能
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   ErrorCorrection_Demo_Init
+ * Input    :   NO
+ * Output   :   NO
+ * Description: Initialize error correction function
+ *---------------------------------------------------------------------------*/
 void ErrorCorrection_Demo_Init(void)
 {
-	memset(&ErrCorCfg, 0, sizeof(ErrCorCfgTypedef));
-	
 	ErrCorCfg.En = usSRegHoldBuf[ERRCOREN];
 
 	ErrCorCfg.StartPos = ((int32)usSRegHoldBuf[ERRCORSTARTPOS_H] << 16) | usSRegHoldBuf[ERRCORSTARTPOS_L];
 	ErrCorCfg.Interval = ((int32)usSRegHoldBuf[ERRCORINTERVAL_H] << 16 | usSRegHoldBuf[ERRCORINTERVAL_L]);
 	ErrCorCfg.Protaty = ((int32)usSRegHoldBuf[ERRCORPROTARY_H] << 16 | usSRegHoldBuf[ERRCORPROTARY_L]);
 
-	ErrCorCfg.NumPoints = usSRegHoldBuf[ERRCORNUMPOINTS];		//误差校正点数
+	ErrCorCfg.NumPoints = usSRegHoldBuf[ERRCORNUMPOINTS];		//Error correction number of points
 	ErrCorCfg.pPosErr = &usSRegHoldBuf[ERRCORER1];
 	
 	ErrorCorrection_Init(&ErrCorCfg);
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   FricCmp_Demo_Init
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 初始化摩擦力补偿功能
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   FricCmp_Demo_Init
+ * Input    :   NO
+ * Output   :   NO
+ * Description: Initialize friction compensation function
+ *---------------------------------------------------------------------------*/
 void FricCmp_Demo_Init(void)
 {
-	memset(&FriCmpCfg, 0, sizeof(FriCmpCfgTypedef));
-
 	FriCmpCfg.PosVelDeadBand = usSRegHoldBuf[FRICPVHYST];
 	FriCmpCfg.NegVelDeadBand = usSRegHoldBuf[FRICNVHYST];
 
@@ -226,16 +218,14 @@ void FricCmp_Demo_Init(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   CurrBack_Demo_Init
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 初始化电流折返功能
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   CurrBack_Demo_Init
+ * Input    :   NO
+ * Output   :   NO
+ * Description: Initialize current foldback function
+ *---------------------------------------------------------------------------*/
 void CurrBack_Demo_Init(void)
 {
-	memset(&CurrBackCfg, 0, sizeof(CurrBackCfgTypedef));
-
 	CurrBackCfg.DriveVal = MOTORDRIVE;
 	CurrBackCfg.PeakVal = MOTORPEAK;
 	CurrBackCfg.FaultThresHoldVal = FAULTHOLDVALUE;
@@ -243,7 +233,7 @@ void CurrBack_Demo_Init(void)
 
 	CurrBackCfg.Tdelay = DELAYTIME;
 	CurrBackCfg.Tc = TIMECONSTANT;
-	CurrBackCfg.CurCtrlFreq = CURRENTBACK_FREQ;
+	CurrBackCfg.CurBackFreq = CURRENTBACK_FREQ;
 
 	CurrBackCfg.CurrMax = usSRegHoldBuf[VOUTMAX];
 	CurrBackCfg.CurrMin = usSRegHoldBuf[VOUTMIN];
@@ -255,16 +245,14 @@ void CurrBack_Demo_Init(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   FieldSoftControl_Demo_Init
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 初始化柔顺控制功能
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   FieldSoftControl_Demo_Init
+ * Input    :   NO
+ * Output   :   NO
+ * Description: Initialize compliance control function
+ *---------------------------------------------------------------------------*/
 void FieldSoftControl_Demo_Init(void)
 {
-	memset(&SoftCfg, 0, sizeof(SoftCfgTypedef));
-
 	SoftCfg.WorkMode = usSRegHoldBuf[SOFTCTRLWORMOD];
 
 	SoftCfg.VelLimMax = usSRegHoldBuf[POUTMAX];
@@ -299,17 +287,16 @@ void FieldSoftControl_Demo_Init(void)
 	SoftCfg.pSXForceCmd = &usSRegHoldBuf[SOFTCTRLFD];
 	SoftCfg.pSXForceAct = &usSRegHoldBuf[SOFTCTRLFC];
 
-
 	FieldSoftControl_Init(&SoftCfg);
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   Scope_Init
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 示波器采样初始化
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   Scope_Init
+ * Input    :   NO
+ * Output   :   NO
+ * Description: Oscilloscope sampling initialization
+ *---------------------------------------------------------------------------*/
 void Scope_Init(void)
 {
 	memset(&ScopeCfg, 0, sizeof(ScopeCfgTypeDef));
@@ -320,12 +307,12 @@ void Scope_Init(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   Scope_Update
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 示波器采样参数更新
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   Scope_Update
+ * Input    :   NO
+ * Output   :   NO
+ * Description: Oscilloscope sampling parameter updatnew
+ *---------------------------------------------------------------------------*/
 void Scope_Update(void)
 {
 	uint8 i;
@@ -361,7 +348,7 @@ void Scope_Update(void)
 			}
 		}
 
-		// 触发采样
+		// Trigger sampling
 		ScopeCfg.TriggerLevel = ((int32)usSRegHoldBuf[SCOPETRIGLEVEL_H] << 16) | usSRegHoldBuf[SCOPETRIGLEVEL_L];
 		ScopeCfg.TriggerPrePoints = usSRegHoldBuf[SCOPETRIGPRE];
 

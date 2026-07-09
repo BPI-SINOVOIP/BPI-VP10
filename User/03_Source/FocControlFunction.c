@@ -13,84 +13,87 @@
  */
 
 
-/* Includes -------------------------------------------------------------------------------------*/
+/********************************************************************************
+* Header Definition
+********************************************************************************/
 #include <Myproject.h>
 #include "FocControlFunction.h"
 
+
+/********************************************************************************
+* Macro & Structure Definition
+*******************************************************************************/
 FOCCTRL				mcFocCtrl = { 0 };
-QEP_Typedef			QEP = { 0 };
 
 RegParamTypeDef		mcRegParam __attribute__((section(".pram.data.mcRegParam"))) = { 0 };
 AnInTypeDef			mcAnalogInput __attribute__((section(".pram.data.mcAnalogInput"))) = { 0 };
-
 
 volatile uint8 TimerFlag_1ms = 0;
 uint8 SYNC0_Flag = 0;
 uint8 EscIntStep = 0;
 
+/********************************************************************************
+* Internal Routine Prototypes
+********************************************************************************/
 
-
-/*---------------------------------------------------------------------------*/
-/* Name		:	void FOC_Init(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	mcInit???￡???FOC?????????????????,??????????????????????????
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	FOC_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	FOC initialization, configure FOC related registers
+ *---------------------------------------------------------------------------*/
 void FOC_Init(void)
 {
 	uint16 reg;
 	
-	memset(NFOC_BASE + 136, 0, 1024 - 136); //FOC1相关寄存器清零
-	write_csr(DRV1_FCR0, 0x00);		//FOC1相关寄存器清零
-	write_csr(DRV1_FCR1, 0x00);		//FOC1相关寄存器清零
-
-	clr_csr(DRV1_FCR1, ANGMAMD);	//使能后NFOC_THETA不再来源于ETHETA
+	memset(NFOC_BASE + FOC_REG_CLEAR_OFFSET, 0, 1024 - FOC_REG_CLEAR_OFFSET); //Clear FOC1 related registers
 	
-	set_csr(DRV1_FCR0, FDIS_MD2);	//跳过估算器到角度的计算，从电流环开始计算，用户填NFOC_THETA
+	write_csr(DRV1_FCR0, 0x00);		//Clear FOC1 related registers
+	write_csr(DRV1_FCR1, 0x00);		//Clear FOC1 related registers
+	
+	NFOC_ARR = PWM_VALUE_LOAD; // FOC carrier frequency, must match DRVx_ARR value
+
+	clr_csr(DRV1_FCR1, ANGMAMD);	//After enable, NFOC_THETA no longer comes from ETHETA
+	
+	set_csr(DRV1_FCR0, FDIS_MD2);	//Skip estimator angle calculation, start from current loop, user fills NFOC_THETA
 	clr_csr(DRV1_FCR0, FDIS_MD1);
 	clr_csr(DRV1_FCR0, FDIS_MD0);
 	
 	set_csr(DRV1_FCR5, LUT_EN); // 0:LUT, 1:Cordic
-	clr_csr(DRV1_FCR5, DTC_EN); // 死区补偿使能, 0:不使能, 1:使能
+	clr_csr(DRV1_FCR5, DTC_EN); // Dead-time compensation enable, 0:disable, 1:enable
 
 	
-	// 电角度跟ActPos方向
+	// Electrical angle and ActPos direction
 	if (mcFocCtrl.EAngDir)
 	{
-		set_csr(DRV1_FCR4, IQREF_INV); // IQREF取反
+		set_csr(DRV1_FCR4, IQREF_INV); // IQREF inverted
 	}
 	else
 	{
-		clr_csr(DRV1_FCR4, IQREF_INV); // IQREF不取反
+		clr_csr(DRV1_FCR4, IQREF_INV); // IQREF not inverted
 	}
 	
 
-//	NFOC_I1 = 0x4000;				//FOC第一次启动时并没有采样电流，I1 I2没有更新，为0值，计算电流时减去基准后，IA IB IC就会很大
-//	NFOC_I2 = 0x4000;				//因此需要将I1 I2初始成基准附近的值
+	/* Outer loop selection */
+	clr_csr(DRV1_FCR1, WPIMD0 | WPIMD1);  //User manually fills WFDB
 
-	/**
-	 * 外环环路选择
-	 */
-	clr_csr(DRV1_FCR1, WPIMD0 | WPIMD1);  //用户手动填写WFDB
-
-
-    /*外环初始化*/
-//	NFOC_WREF = 0; // omitted
-//	NFOC_WFDB = 0; // omitted
+    /* Outer loop initialization */
 	NFOC_WKP = 0;
 	NFOC_WKI = 0;
 	NFOC_WMAX = usSRegHoldBuf[VOUTMAX];
 	NFOC_WMIN = usSRegHoldBuf[VOUTMIN];
 	
+	// Outer loop calculation period selection (DRV_FCR1[wpi_auto] must be 11)  00:every 1 MMT period 01:every 2 MMT periods
+	// Outer loop calculation period selection (DRV_FCR1[wpi_auto] must be 11)  10:every 4 MMT periods 11:every 8 MMT periods	
 #if DRV32K_ENABLE_SWITCH
-	set_csr(DRV1_FCR4, WPI_CAL_CYCLE1);		// 外环计算周期选择(DRV_FCR1[wpi_auto]须配11)  00:每1个MMT计算周期 01:每2个MMT计算周期
-	clr_csr(DRV1_FCR4, WPI_CAL_CYCLE0);		// 外环计算周期选择(DRV_FCR1[wpi_auto]须配11)  10:每4个MMT计算周期 11:每8个MMT计算周期
+	set_csr(DRV1_FCR4, WPI_CAL_CYCLE1);
+	clr_csr(DRV1_FCR4, WPI_CAL_CYCLE0);
 #else
-	clr_csr(DRV1_FCR4, WPI_CAL_CYCLE1);		// 外环计算周期选择(DRV_FCR1[wpi_auto]须配11)  00:每1个MMT计算周期 01:每2个MMT计算周期
-	set_csr(DRV1_FCR4, WPI_CAL_CYCLE0);		// 外环计算周期选择(DRV_FCR1[wpi_auto]须配11)  10:每4个MMT计算周期 11:每8个MMT计算周期
+	clr_csr(DRV1_FCR4, WPI_CAL_CYCLE1);
+	set_csr(DRV1_FCR4, WPI_CAL_CYCLE0);
 #endif	
 
-	/*功率计算配置*/
+	/* Power calculation configuration */
 #if (IT_POW_MD == DIS_IT_POW)
 	{
 		clr_csr(DRV1_FCR0, ITPOWMD0 | ITPOWMD1);
@@ -112,38 +115,36 @@ void FOC_Init(void)
 	}	
 #endif
 
-
+	/*Current sampling mode*/
 #if (HW_ADC_RESISTOR_MODE == SINGLE_RESISTOR)
 #if (Single_Resistor_ignoreEnable == 1)
-	set_csr(DRV1_FCR0, 0x08);        // DRV1_FCR0(bit1-bit3): 电流采样模式配置                                     //旧单电阻忽略模式
+	set_csr(DRV1_FCR0, 0x08);        // DRV1_FCR0(bit1-bit3): Current sampling modeconfiguration                                     //Legacy single-resistor ignore mode
 #endif
-	// NFOC_I1     =  mcCurOffset.Iw_busOffset;
-	// NFOC_I2     =  mcCurOffset.Iw_busOffset;
-	NFOC_TS = PWM_TS_LOAD;									//单电阻最小采样窗口
+	NFOC_TS = PWM_TS_LOAD;									//Single-resistor minimum sampling window
 	NFOC_TDTC = 0;
 	NFOC_NTS = 0;
-	NFOC_TDLY = 0x0A;          // 提前采样设置0x0fff，滞后采样设置0x0005;
+	NFOC_TDLY = 0x0A;          // Advanced sampling set 0x0fff, delayed sampling set 0x0005;
 
 #elif (HW_ADC_RESISTOR_MODE == DOUBLE_RESISTOR)
 	
 #if DOUBLESAMP_ENABLE_SWITCH
-	set_csr(DRV1_FCR0, NCSAMMD3);	// 双电阻两次采样(1001)，同时CT_SEL必须置一
+	set_csr(DRV1_FCR0, NCSAMMD3);	// Double-resistor dual sampling (1001), CT_SEL must be set to 1
 	clr_csr(DRV1_FCR0, NCSAMMD2);
 	clr_csr(DRV1_FCR0, NCSAMMD1);
 	set_csr(DRV1_FCR0, NCSAMMD0);
-	NFOC_CSAM = 0x09; // 采样模式初值
+	NFOC_CSAM = 0x09; // sampling mode initial value
 #else
-	clr_csr(DRV1_FCR0, NCSAMMD3);	// 双电阻单次采样(0001)
+	clr_csr(DRV1_FCR0, NCSAMMD3);	// Double-resistor single sampling (0001)
 	clr_csr(DRV1_FCR0, NCSAMMD2);
 	clr_csr(DRV1_FCR0, NCSAMMD1);
 	set_csr(DRV1_FCR0, NCSAMMD0);
 	NFOC_CSAM = 0x01;
 #endif
 	
-	set_csr(DRV1_FCR1, CT_SEL);      // 计算FOC时机 0:电流采样后下次上溢点计算FOC  1:电流采样后立刻计算FOC
+	set_csr(DRV1_FCR1, CT_SEL);      // FOC calculation timing 0:calculate FOC at next overflow after current sampling  1:calculate FOC immediately after current sampling
 	
 #if (HW_ADC_SYNC == ADCSAM_SYNC)
-	set_csr(ME_CR, TRIG_MD);			// 开启双ADC同步采样
+	set_csr(ME_CR, TRIG_MD);			// Enable dual ADC synchronous sampling
 #endif
 	
 	NFOC_TS = usSRegHoldBuf[MINPWMWIDTH]; //PWM_DLOWL_TIME;
@@ -152,144 +153,114 @@ void FOC_Init(void)
 	NFOC_TDLY = ((uint32)usSRegHoldBuf[ISAMDELAY] * MCU_CLOCK) >> 10; // ISAM_DELAY;
 	write_csr(DRV1_DTR, ((uint32)usSRegHoldBuf[DEADTIME] * MCU_CLOCK) >> 10); // PWM_LOAD_DEADTIME
 	
-	/*五段式或七段式选择*/
+	/*5-segment or 7-segment selection*/
 #if (HW_SVPWM_MODE == SVPWM_7_SEGMENT)
 	{
-		clr_csr(DRV1_FCR2, NSEG5);							// 7段式
+		clr_csr(DRV1_FCR2, NSEG5);							// 7-segment
 	}
 #elif (HW_SVPWM_MODE == SVPWM_5_SEGMENT)
 	{
-		set_csr(DRV1_FCR2, NSEG5);							// 5段式
+		set_csr(DRV1_FCR2, NSEG5);							// 5-segment
 	}
 #endif
 
 #elif (HW_ADC_RESISTOR_MODE == THREE_RESISTOR)
-	set_csr(DRV1_FCR0, 0x04);                                                // 三电阻模式
+	set_csr(DRV1_FCR0, 0x04);                                                // Three-resistor mode
 #if (Three_Resistor_switcheEnable == 1)
-	set_csr(DRV1_FCR0, 0x0C);                                            // 新三电阻模式
+	set_csr(DRV1_FCR0, 0x0C);                                            // newThree-resistor mode
 #endif
-	// NFOC_I1     =  mcCurOffset.IuOffset;
-	// NFOC_I2     =  mcCurOffset.IvOffset;
 	NFOC_TS = usSRegHoldBuf[MINPWMWIDTH]; //PWM_DLOWL_TIME;
 	NFOC_TDTC = PWM_DT_LOAD;
 	NFOC_NTS = 0;
-	NFOC_TDLY = 0x0006;          // 提前采样设置0x0805，滞后采样设置0x0005;
+	NFOC_TDLY = 0x0006;          // advanced sampling set 0x0805, delayed sampling set0x0005;
 
 #elif (HW_ADC_RESISTOR_MODE == SINGLE_RESISTOR_NEW)
-	set_csr(DRV1_FCR0, 0x06);                                                // 新单电阻模式
-	// NFOC_I1     =  mcCurOffset.Iw_busOffset;
-	// NFOC_I2     =  mcCurOffset.Iw_busOffset;
+	set_csr(DRV1_FCR0, 0x06);                                                // New single-resistor mode
 	NFOC_TS = 0;
 	NFOC_TDTC = 0;
-	NFOC_NTS = 30;              // 单电阻采样窗口
-	NFOC_TDLY = 0x0F;            // 提前采样设置0x0805，滞后采样设置0x0005;待确定
+	NFOC_NTS = 30;              // Single-resistor sampling window
+	NFOC_TDLY = 0x0F;            // Advanced sampling set 0x0805, delayed sampling set 0x0005; TBD
 #endif
 
-#if (FG_OUTPUT == 1)
-	{
-		set_csr(PH_SEL, TIM4_IN_EN);
-		set_csr(TIM4_CR0, T4MOD);
-		set_csr(DRV1_FCR1, FG_IDLE_LEVEL);
-		set_csr(DRV1_FCR1, FG_CALEN);
-		set_csr(DRV1_FCR1, FG_OE);
-	}
-#endif
+	/* Initialize Driver output */
+	uint16 halfPWM = (PWM_VALUE_LOAD) >> 1;
+	NFOC_DR1	= halfPWM;
+	NFOC_DR1N	= halfPWM;
+	NFOC_DR2	= halfPWM;
+	NFOC_DR2N	= halfPWM;
+	NFOC_DR3	= halfPWM;
+	NFOC_DR3N	= halfPWM;
 
-#if (OverModulation == 1)
-	{
-		set_csr(DRV1_FCR0, NOVMDL);
-	}
-#endif //end OverModulation
-
-	//初始化driver输出
-	NFOC_DR1	= (PWM_VALUE_LOAD) >> 1;
-	NFOC_DR1N	= (PWM_VALUE_LOAD) >> 1;
-	NFOC_DR2	= (PWM_VALUE_LOAD) >> 1;
-	NFOC_DR2N	= (PWM_VALUE_LOAD) >> 1;
-	NFOC_DR3	= (PWM_VALUE_LOAD) >> 1;
-	NFOC_DR3N	= (PWM_VALUE_LOAD) >> 1;
-
-	write_csr(DRV1_CMPU1, (PWM_VALUE_LOAD) >> 1);
-	write_csr(DRV1_CMPD1, (PWM_VALUE_LOAD) >> 1);
-	write_csr(DRV1_CMPU2, (PWM_VALUE_LOAD) >> 1);
-	write_csr(DRV1_CMPD2, (PWM_VALUE_LOAD) >> 1);
-	write_csr(DRV1_CMPU3, (PWM_VALUE_LOAD) >> 1);
-	write_csr(DRV1_CMPD3, (PWM_VALUE_LOAD) >> 1);
+	write_csr(DRV1_CMPU1, halfPWM);
+	write_csr(DRV1_CMPD1, halfPWM);
+	write_csr(DRV1_CMPU2, halfPWM);
+	write_csr(DRV1_CMPD2, halfPWM);
+	write_csr(DRV1_CMPU3, halfPWM);
+	write_csr(DRV1_CMPD3, halfPWM);
 	
-//	write_csr(DRV1_DR, (PWM_VALUE_LOAD) >> 1);
+#if (OVMDL_EN == 1)
+	set_csr(DRV1_FCR0, NOVMDL); // Over-modulation
+#endif
+	
 
+	/* Current loop complex vector decoupling */
 	if (usSRegHoldBuf[CVMOD] == 0)
 	{
-		clr_csr(DRV1_FCR6, CVD_EN);                //复矢量解耦使能位
+		clr_csr(DRV1_FCR6, CVD_EN);                //Complex vector decoupling enable bit
 	}
 	else
 	{
-		// 设置电流环复矢量控制器相关系数
-		set_csr(DRV1_FCR6, CVD_EN);                //复矢量解耦使能位
-		// 若NFOC_UDCMAX = 0x7fff, NFOC_UDCMIN = 0x7fff，然后只给KP、KI的话就和原来的电流环效果一样
-
-		// 系数Q值
-		reg = read_csr(DRV1_FCR7);
-		SetReg(reg, CVKP_SEL1 | CVKP_SEL0 | CVKI1_SEL1 | CVKI1_SEL0 | CVKI2_SEL1 | CVKI2_SEL0 |
-			CVKO_SEL1 | CVKO_SEL0, usSRegHoldBuf[CVKQSEL] << 8);
-		write_csr(DRV1_FCR7, reg);
-
-		NFOC_CVK1 = ((int32)usSRegHoldBuf[CVK1] * (int32)usSRegHoldBuf[CFR]) >> 14; // FeedbackDecouplingControllerK1; //
-		NFOC_CVK2 = ((int32)usSRegHoldBuf[CVK2] * (int32)usSRegHoldBuf[CFR]) >> 14; // FeedbackDecouplingControllerK2; //
-		NFOC_CVK3 = ((int32)usSRegHoldBuf[CVK3] * (int32)usSRegHoldBuf[CFR]) >> 14; // FeedbackDecouplingControllerK3; //
-		NFOC_CVDK4 = ((int32)usSRegHoldBuf[CVDK4] * (int32)usSRegHoldBuf[CFR]) >> 14; // FeedbackDecouplingControllerK4; //
-		NFOC_CVQK4 = ((int32)usSRegHoldBuf[CVQK4] * (int32)usSRegHoldBuf[CFR]) >> 14; // FeedbackDecouplingControllerK5; //
-		NFOC_CVDK5 = ((int32)usSRegHoldBuf[CVDK5] * (int32)usSRegHoldBuf[CFR]) >> 14;
-		NFOC_CVQK5 = ((int32)usSRegHoldBuf[CVQK5] * (int32)usSRegHoldBuf[CFR]) >> 14;
-		NFOC_CVKI2D = ((int32)usSRegHoldBuf[CVKI2D] * (int32)usSRegHoldBuf[CFR]) >> 14; // DComplexVectorDecouplingPIKi2_Q12; //
-		NFOC_CVKI2Q = ((int32)usSRegHoldBuf[CVKI2Q] * (int32)usSRegHoldBuf[CFR]) >> 14; // QComplexVectorDecouplingPIKi2_Q12; //
+		// Set current loop complex vector controller coefficients
+		set_csr(DRV1_FCR6, CVD_EN);                
+		// If NFOC_UDCMAX = 0x7fff, NFOC_UDCMIN = 0x7fff, and only KP/KI are provided, the effect is the same as the original current loop
 		
 		NFOC_UDCMAX = usSRegHoldBuf[UDCMAX]; // UdcMax; //
 		NFOC_UDCMIN = usSRegHoldBuf[UDCMIN]; // UdcMin; //
-		NFOC_UDCLIM = usSRegHoldBuf[UDCMIN]; // UdcMin; // UDCLIM需要赋个初值
+		NFOC_UDCLIM = usSRegHoldBuf[UDCMIN]; // UdcMin; // UDCLIM needs an initial value
 	}
 	
+	/* Current loop PI enable */
 #if OPENLOOP_ENABLE_TEST
 	if (mcState == mcStart)
 	{
-		set_csr(DRV1_FCR0, NVQDIS); // Q轴PI禁止使能
-		set_csr(DRV1_FCR0, NVDDIS); // D轴PI禁止使能
-		clr_csr(DRV1_FCR6, CVD_EN); // 复矢量解耦使能位
+		set_csr(DRV1_FCR0, NVQDIS); // Q-axis PI disable
+		set_csr(DRV1_FCR0, NVDDIS); // D-axis PI disable
+		clr_csr(DRV1_FCR6, CVD_EN); // Complex vector decoupling enable bit
 	}
 	else
 	{
-		clr_csr(DRV1_FCR0, NVQDIS);		// Q轴PI使能
-		clr_csr(DRV1_FCR0, NVDDIS);		// D轴PI使能
+		clr_csr(DRV1_FCR0, NVQDIS);		// Q-axis PI enable
+		clr_csr(DRV1_FCR0, NVDDIS);		// D-axis PI enable
 	}
 #else
-	clr_csr(DRV1_FCR0, NVQDIS);		// Q轴PI使能
-	clr_csr(DRV1_FCR0, NVDDIS);		// D轴PI使能
+	clr_csr(DRV1_FCR0, NVQDIS);		// Q-axis PI enable
+	clr_csr(DRV1_FCR0, NVDDIS);		// D-axis PI enable
 #endif
 	
-
+	/* Current loop PI controller output limits */
 	NFOC_DMAX = usSRegHoldBuf[DOUTMAX];
 	NFOC_DMIN = usSRegHoldBuf[DOUTMIN];
 
 	NFOC_QMAX = usSRegHoldBuf[QOUTMAX];
 	NFOC_QMIN = usSRegHoldBuf[QOUTMIN];
 
+	/* Velocity loop controller output limits */
     NFOC_IQMAX = usSRegHoldBuf[VOUTMAX];
     NFOC_IQMIN = usSRegHoldBuf[VOUTMIN];
-
-	NFOC_ARR = PWM_VALUE_LOAD;
 	
-	set_csr(DRV1_FCR5, IDQ_LPF_EN); // 使能ID/IQ滤波
-	set_csr(DRV1_FCR5, IDQ_FB_SEL); // ID/IQ选择滤波后的值作为反馈值
+    /* Filter settings */
+	set_csr(DRV1_FCR5, IDQ_LPF_EN); // Enable ID/IQ filter
+	set_csr(DRV1_FCR5, IDQ_FB_SEL); // ID/IQ select filtered value as feedback
 	NFOC_IDK = usSRegHoldBuf[IDQLPFK]; // 9000Hz 51BE fs:32kHz
 	NFOC_IQK = usSRegHoldBuf[IDQLPFK];
 	
-	set_csr(DRV1_FCR4, UDQ_LPF_EN);     // UDQ低通滤波器使能	0:不使能  1:使能
-	NFOC_UDK = usSRegHoldBuf[UDQLPFK]; // 9000Hz 51BE fs:32kHz
+	set_csr(DRV1_FCR4, UDQ_LPF_EN);     // UDQ low-pass filter enable	0:disable  1:enable
+	NFOC_UDK = usSRegHoldBuf[UDQLPFK];  // 9000Hz 51BE fs:32kHz
 	NFOC_UQK = usSRegHoldBuf[UDQLPFK];
 	
-	NFOC_UDCK = 0x1000; // 母线电压采样滤波系数
+	NFOC_UDCK = 0x1000; // Bus voltage sampling filter coefficient
 	
-	// M_MT法
+	/* Velocity calculation M-method */
 	NFOC_MBASE = usSRegHoldBuf[QEPSPEEDCOE];
 	NFOC_MSHFT = usSRegHoldBuf[SPEEDCOERANK];
 	if (GetReg(usSRegHoldBuf[DRIVESWITCH], SW_MTMODE))
@@ -300,36 +271,54 @@ void FOC_Init(void)
 	{
 		NFOC_MARR = VELCTRL_TS;
 	}
-	/*每次启动基准校正*/
+	
+	/* Set DAC hardware overcurrent value */
+#if (HardwareCurrent_Protect == Hardware_CMP_Protect || \
+	HardwareCurrent_Protect == Hardware_FO_CMP_Protect)	//Both selected
+#if FUNC_EEPROM_ENABLED
+		uint16 temp = usSRegHoldBuf[HARDCURRENT] >> 5;
+	if (temp > 511)
+		temp = 511;
+	write_csr(DAC_DR0, temp);
+#else
+	write_csr(DAC_DR0, 511);// Temporarily set to maximum to avoid false triggering caused by input voltage fluctuation after motor enable
+#endif
+#endif
+	
+	/* Current offset calibration */
 #if(HW_ADC_CALIB_MODE == CALIB_START)
-	{
-		UpdateCurrentOffset();              // 电流偏置的获取
-	}
+	UpdateCurrentOffset();              // Current offset acquisition
 #endif
 	
 #if MOTOR_VCM_ENABLED
+	/*Voice coil motor control requires ME interrupt configuration*/
 	if (usSRegHoldBuf[MOTORCOMMTYPE] == VOICECOIL_MOTOR)
 	{
-		write_csr(ME_ST0, 8);				// 在Clarke变换这一步产生中断
-		set_csr(ME_IER, 0x03);				// 开启ME状态机中断
-
-		write_csr(IP10, MEFSM_INT_PRI);		// ME状态机中断(中断号10) 优先级别为6
+		write_csr(ME_ST0, 8);				// Generate interrupt at Clarke transform step
+		set_csr(ME_IER, 0x03);				// Enable ME state machine interrupt
+		write_csr(IP10, MEFSM_INT_PRI);		// ME state machine interrupt (IRQ 10) priority 6
 	}
 #endif
 
 #if FUNC_FIELDWEAKEN_ENABLED
+	/*Field weakening control requires ME interrupt configuration*/
 	write_csr(ME_ST0, 567);				
 	set_csr(ME_IER, NPE0 | NIE0);
-	write_csr(IP10, MEFSM_INT_PRI);		// ME状态机中断(中断号10) 优先级别为6
+	write_csr(IP10, MEFSM_INT_PRI);		// ME state machine interrupt (IRQ 10) priority 6
 #endif
 	
-	set_csr(DRV1_FCR0, NCALEN);	// FOC计算使能，相当于开FOC
+	set_csr(DRV1_FCR0, NCALEN);			// FOC calculation enable
 }
 
 
+/*---------------------------------------------------------------------------
+ * Name		:	FOC_RunModeUpdate
+ * Input	:	No
+ * Output	:	No
+ * Description:	Set corresponding registers based on RunMod
+ *---------------------------------------------------------------------------*/
 void FOC_RunModeUpdate(void)
-{
-	
+{	
 #if FUNC_SOFTCTRL_ENABLED
 	if ((mcFocCtrl.RunMod == CURMOD) ||
 		((mcFocCtrl.RunMod == POS_CURMOD) && (FieldSoftControl_GetSwToPosFlag() != 1)))
@@ -337,32 +326,31 @@ void FOC_RunModeUpdate(void)
 	if (mcFocCtrl.RunMod == CURMOD)
 #endif
 	{
-		clr_csr(DRV1_FCR1, WPILDEN);	// NFOC_WUFIN不自动装载进NFOC_FIX0
-
-		clr_csr(DRV1_FCR1, WPIAUTO1);  // 每个systick自动计算一次外环
-		clr_csr(DRV1_FCR1, WPIAUTO0);  // 每个载波自动计算一次外环
+		clr_csr(DRV1_FCR1, WPILDEN);	// Velocity loop output NFOC_WUFIN auto-loads into torque filter input NFOC_FIX0
+		clr_csr(DRV1_FCR1, WPIAUTO1);	// 00: Outer loop disable
+		clr_csr(DRV1_FCR1, WPIAUTO0);	
 	}
 	else 
 	{
-		set_csr(DRV1_FCR1, WPILDEN);     // NFOC_WUFIN自动装载进NFOC_FIX0
-
-		set_csr(DRV1_FCR1, WPIAUTO1);  // 每个systick自动计算一次外环
-		set_csr(DRV1_FCR1, WPIAUTO0);  // 每个载波自动计算一次外环
+		set_csr(DRV1_FCR1, WPILDEN);	// Velocity loop output NFOC_WUFIN auto-loads into torque filter input NFOC_FIX0
+		set_csr(DRV1_FCR1, WPIAUTO1);	// 11: Velocity loop frequency determined by WPI_CAL_CYCLE1
+		set_csr(DRV1_FCR1, WPIAUTO0);	
 		
 #if FUNC_FIELDWEAKEN_ENABLED
 		set_csr(DRV1_FCR2, FWEAK_EN);
-		set_csr(DRV1_FCR2, FWEAK_MD); // 弱磁模式1使能位有效
+		set_csr(DRV1_FCR2, FWEAK_MD); // Field weakening mode 1 enable bit active
 #endif
 	}
 
 }
 
-/*-------------------------------------------------------------------------------------------------
-	Function Name :	void MotorControlInit(void)
-	Description   :	????????????????,??????????????????????????????
-	Input         :	??????????????
-  Output				:	?????????????
--------------------------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	MotorControlInit
+ * Input	:	No
+ * Output	:	No
+ * Description:	Software variable power-on initialization, including protection parameters and motor state initialization
+ *---------------------------------------------------------------------------*/
 void MotorControlInit(void)
 {
 	Scope_Init();
@@ -370,7 +358,7 @@ void MotorControlInit(void)
 	ElecAngCal_Init();
 	
 #if FUNC_GAINSW_ENABLED
-	GainSW_Demo_Init();  // 增益切换初始化
+	GainSW_Demo_Init();  // Gain switching initialization
 #endif //#if FUNC_GAINSW_ENABLED
 	
 	PI_Init();	
@@ -384,14 +372,14 @@ void MotorControlInit(void)
 #endif
 	
 #if FUNC_SPDFF_ENABLED
-	SpdFF_Init(); // 速度前馈初始化
+	SpdFF_Init(); // Velocity feedforward initialization
 #endif //#if FUNC_SPDFF_ENABLED
 
 #if FUNC_TOQFF_ENABLED
-	ToqFF_Init(); // 转矩前馈初始化
+	ToqFF_Init(); // Torque feedforward initialization
 #endif //#if FUNC_TOQFF_ENABLED
 
-	ModeSW_Init(); // 模式切换初始化
+	ModeSW_Init(); // Mode switching initialization
 
 #if FUNC_INERTIA_ENABLED
 	InFricId_Demo_Init();
@@ -421,10 +409,10 @@ void MotorControlInit(void)
 
     mcFaultDect.pErrorHist = &usSRegInBuf[ERRORTIME0];
 
-	// 固件版本号
+	// Firmware version number
     usSRegInBuf[FIRMWAREVERSION_H] = (uint32)FIRMWAREVERSION_I >> 16;
     usSRegInBuf[FIRMWAREVERSION_L] =(uint32)FIRMWAREVERSION_I;
-	// 载波周期
+	// Carrier period
     usSRegInBuf[PWMFREQUENCY] = (uint16)PWM_FREQUENCY;
     usSRegInBuf[CURCTRLFREQUENCY] = (uint16)CURCTRL_FREQUENCY;
     usSRegInBuf[VELCTRLFREQUENCY] = (uint16)VELCTRL_FREQUENCY;
@@ -437,11 +425,11 @@ void MotorControlInit(void)
     usSRegInBuf[OUTFILTFREQ] = (uint16) OUTFILT_FREQUENCY;
     usSRegInBuf[VELFEBFREQ] = (uint16) VELFEB_FREQUENCY;
     usSRegInBuf[POSREFFREQ] = (uint16) POSREF_FREQUENCY;
-    // 驱动器类型
+    // Driver type
     usSRegInBuf[DRIVERTYPE] = HARDWARE_VERSION;
-    // 主频时钟
+    // Master clock frequency
     usSRegInBuf[MCUCLOCK] = (uint16)MCU_CLOCK;
-    // 功能开关
+    // Function switches
     usSRegInBuf[FUNCMASK0] = (uint16)(EXCTRL_ECAT_ENABLED | (EXCTRL_PULSE_ENABLED << 1) | (EXCTRL_ANALOG_ENABLED << 2) |
     	(EXCTRL_ENCOUT_ENABLED << 3) | (EXCTRL_CANOPEN_ENABLED << 4) | (MOTOR_VCM_ENABLED << 5) |
     	(ENCODER_SEL_ABZ_ENABLED << 6) | (ENCODER_SEL_HALL_ENABLED << 7) | (ENCODER_SEL_TMG_ENABLED << 8) |
@@ -456,12 +444,13 @@ void MotorControlInit(void)
     	(FUNC_SWEEP_ENABLED << 12);
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_EnableServo(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	position loop enable
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_EnableServo
+ * Input	:	No
+ * Output	:	No
+ * Description:	Motor enable
+ *---------------------------------------------------------------------------*/
 void Motor_EnableServo(void)
 {
 	FOC_Init(); 
@@ -476,14 +465,14 @@ void Motor_EnableServo(void)
 	usSRegInBuf[MB_IDREF] = 0;
 	
 #if FUNC_ERRORCORRECTION_ENABLED
-	ErrorCorrection_Demo_Init(); // 误差校准初始化
+	ErrorCorrection_Demo_Init(); // Error correction initialization
 #endif
 	
 #if FUNC_GAINSW_ENABLED
-	GainSW_Demo_Init();  // 增益切换初始化
+	GainSW_Demo_Init();  // Gain switching initialization
 #endif //#if FUNC_GAINSW_ENABLED
 	
-	PI_Init();	// 速度环PI初始化
+	PI_Init();	// Velocity loop PI initialization
 	
 #if FUNC_FEEDBACKONLOAD_ENABLED
 	FeedBackOnLoad_Demo_Init();
@@ -503,27 +492,27 @@ void Motor_EnableServo(void)
 	
 	InputFilter_Rst();
 
-	mcFocCtrl.TargetRefFirstFlag = 0; // 计算位置命令的标志位清零
+	mcFocCtrl.TargetRefFirstFlag = 0; // Clear flag for position command calculation
 	
 	usSRegInBuf[CMDVEL] = 0;
 	mcElecAng.FOCThetaFlag = 0;
 
-	Motor_Profile_Reset();	// 初始化轨迹规划相关变量
+	Motor_Profile_Reset();	// Initialize trajectory planning related variables
 
 #if FUNC_NTF_ENABLED
-	NTF_Demo_Init();  // 末端抖动抑制初始化
+	NTF_Demo_Init();  // Nodal vibration suppression initialization
 #endif //#if FUNC_NTF_ENABLED
   
 #if FUNC_SPDFF_ENABLED
-    SpdFF_Init(); // 速度前馈初始化
+    SpdFF_Init(); // Velocity feedforward initialization
 #endif //#if FUNC_SPDFF_ENABLED
 
 #if FUNC_TOQFF_ENABLED   
-    ToqFF_Init(); // 转矩前馈初始化
+    ToqFF_Init(); // Torque feedforward initialization
 #endif //#if FUNC_TOQFF_ENABLED
     
 #if EXCTRL_ECAT_ENABLED || EXCTRL_CANOPEN_ENABLED || COMM_CAN_PDO_ENABLED
-    ECATCSP_Init();// 线性插补初始化
+    ECATCSP_Init();// Linear interpolation initialization
 #endif //#if EXCTRL_ECAT_ENABLED
   
 #if COMM_CAN_PDO_ENABLED
@@ -534,22 +523,9 @@ void Motor_EnableServo(void)
     DeadTimeCompensationInit(usSRegHoldBuf[DEADCOMPCUR]);
 #endif
     
-    /**********设置DAC硬件过流值,舍弃低位精度*****************/
-#if (HardwareCurrent_Protect == Hardware_CMP_Protect || \
-    HardwareCurrent_Protect == Hardware_FO_CMP_Protect)	//两者都选择
-#if FUNC_EEPROM_ENABLED
-    uint16 temp = usSRegHoldBuf[HARDCURRENT] >> 5;
-    if (temp > 511)
-    	temp = 511;
-    write_csr(DAC_DR0, temp);
-#else
-    write_csr(DAC_DR0, 511);// 暂时设为最大值，避免输入电流在电机使能后电压值跳动导致误触发
-#endif
-#endif
-    
 	RunMode_Update();
 	
-	OutputFilter_Init();  // 转矩滤波器初始化
+	OutputFilter_Init();  // torque filter initialization
 	
 #if (HW_UVW_POLARITY == UVWPOL_NORMAL)
 	write_csr(DRV1_CMR, 0x0abF);
@@ -557,7 +533,7 @@ void Motor_EnableServo(void)
 	write_csr(DRV1_CMR, 0x057F);
 #endif
     set_csr(DRV1_OUT, MOE);
-    set_csr(DRV1_CR, DRVOE);			// Driver输出使能	0-->Disable		1-->Enable
+    set_csr(DRV1_CR, DRVOE);			// Driver output enable	0-->Disable		1-->Enable
 		
 	SetReg(usSRegInBuf[DRIVESTATUS], STATUS_ENABLE, STATUS_ENABLE);
 	
@@ -571,11 +547,17 @@ void Motor_EnableServo(void)
 }
 
 
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_DisableServo
+ * Input	:	No
+ * Output	:	No
+ * Description:	Motor disable
+ *---------------------------------------------------------------------------*/
 void Motor_DisableServo(void)
 {
-	clr_csr(DRV1_CR, DRVOE);			// Driver输出使能	0-->Disable		1-->Enable
+	clr_csr(DRV1_CR, DRVOE);	// Driver output enable	0-->Disable		1-->Enable
 	clr_csr(DRV1_OUT, MOE);
-	clr_csr(DRV1_FCR0, NCALEN);	// 关FOC计算使能，相当于关FOC
+	clr_csr(DRV1_FCR0, NCALEN);	// disable FOC calculation enable, equivalent to disable FOC
 	mcFocCtrl.CurLoopEnable = 0;
 	mcFocCtrl.VelLoopEnable = 0;
 	mcFocCtrl.PosLoopEnable = 0;
@@ -632,13 +614,12 @@ void Motor_DisableServo(void)
 }
 
 
-
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_Open(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	?????????????????
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Open
+ * Input	:	No
+ * Output	:	No
+ * Description:	Motor enters running state
+ *---------------------------------------------------------------------------*/
 void Motor_Open(void)
 {  
 	McStaSet.SetFlag.AutoEnableSetFlag = 1;
@@ -648,74 +629,28 @@ void Motor_Open(void)
 }
 
 
-
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_Run(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	write script of normal running.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Run
+ * Input	:	No
+ * Output	:	No
+ * Description:	Running mode and parameter settings in run state
+ *---------------------------------------------------------------------------*/
 void Motor_Run(void)
 { 
-	// 所有三种模式下，上位机点开始运动Motion这位都会置一，点停止运动Motion都会清零
-	
-	// 串口位置模式
+	// Serial position mode
 	Motor_Profile_Update();
 	
-	// 串口速度模式
-	if ((mcRegParam.WorkMode == VELSERIAL) || (mcRegParam.WorkMode == CURSERIAL) ||
-#if EXCTRL_ECAT_ENABLED || EXCTRL_CANOPEN_ENABLED
-		(usSRegInBuf[FBOPMODE] == PROFILE_VELOCITY_MODE) || (usSRegInBuf[FBOPMODE] == PROFILE_TORQUE_MODE) ||
-#endif
-		(mcRegParam.WorkMode == VELFRF) || (mcRegParam.WorkMode == CURFRF) || (mcRegParam.WorkMode == CURTUNE))
-	{
-		if (mcProfile.Flag && !mcProfile.Flag_Pre)// MOTIONEN 上升沿
-		{
-			Motor_SerialIn_Init();
-		}
-
-		// 停止运动
-		if (!mcProfile.Flag && mcProfile.Flag_Pre)  // MOTIONEN 下降沿
-		{
-			Motor_SerialIn_StartDeceleration();	// 其他模式下停止为停机
-		}
-	}
+	// Serial velocity mode
+	Motor_SerialIn_Update();
 }
 
 
-
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_Stop(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	??????????????
-/*---------------------------------------------------------------------------*/
-void Motor_Stop(void)
-{
-	if (McStaSet.SetFlag.StopSetFlag == 0)
-	{
-		McStaSet.SetFlag.StopSetFlag = 1;
-		Motor_Profile_StartDeceleration();
-	}
-	else
-	{
-		// update MotionStatus
-		if (Position_Profile_GetMotionStatus() == MS_FINISH || Position_Profile_GetMotionStatus() == MS_READY)
-		{
-			mcFocCtrl.State_Count = 0;
-			McStaSet.SetFlag.StopSetFlag = 0;
-		}
-	}
-}
-
-
-
-/*---------------------------------------------------------------------------*/
-/* Name		:	void UpdateParam(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	update parameter after modbus write.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	UpdateParam
+ * Input	:	No
+ * Output	:	No
+ * Description:	Update parameter variables based on parameter table changes
+ *---------------------------------------------------------------------------*/
 void UpdateParam(void)
 {	
 	Scope_Update();
@@ -759,13 +694,9 @@ void UpdateParam(void)
     if(mcRegParam.PulseMode != mcRegParam.PulseMode_Pre)
     {
         mcRegParam.PulseMode_Pre = mcRegParam.PulseMode;
-        
-//		if(mcRegParam.PulseMode == Pulse_Dir)
-//            ClrBit(PI_CR, T2TSS);
-//        else //if(mcFocCtrl.StepMode == CW_CCW)
-//            SetBit(PI_CR, T2TSS);
     }
 
+    // Current loop PI or complex vector controller
     if (usSRegHoldBuf[CVMOD] == 0)
     {
     	NFOC_DKP = usSRegHoldBuf[DQKP];
@@ -792,10 +723,8 @@ void UpdateParam(void)
 
     	if (mcRegParam.DQKQSel != usSRegHoldBuf[CVKQSEL])
     	{
-    		mcRegParam.DQKQSel = read_csr(DRV1_FCR7);
-    		SetReg(mcRegParam.DQKQSel, CVKP_SEL1 | CVKP_SEL0 | CVKI1_SEL1 | CVKI1_SEL0 | CVKI2_SEL1 | CVKI2_SEL0 |
+    		reset_csr(DRV1_FCR7, CVKP_SEL1 | CVKP_SEL0 | CVKI1_SEL1 | CVKI1_SEL0 | CVKI2_SEL1 | CVKI2_SEL0 |
     			CVKO_SEL1 | CVKO_SEL0, usSRegHoldBuf[CVKQSEL] << 8);
-    		write_csr(DRV1_FCR7, mcRegParam.DQKQSel);
 
     		mcRegParam.DQKQSel = usSRegHoldBuf[CVKQSEL];
     	}
@@ -810,9 +739,8 @@ void UpdateParam(void)
     mcFocCtrl.LoadAngDir = ReadBit(usSRegHoldBuf[DRIVEMODE], MODE_SFBANGDIR);
     mcFocCtrl.EAngDir = mcElecAng.ElecAngDir ^ mcFocCtrl.AngDir;
 
-
+    // M-method
     mcFocCtrl.QepSpeedCoe = usSRegHoldBuf[QEPSPEEDCOE];
-    // M_MT法
     NFOC_MBASE = usSRegHoldBuf[QEPSPEEDCOE];
     NFOC_MSHFT = usSRegHoldBuf[SPEEDCOERANK];
     if (GetReg(usSRegHoldBuf[DRIVESWITCH], SW_MTMODE))
@@ -829,30 +757,32 @@ void UpdateParam(void)
     mcFocCtrl.SfbEncRes = *((uint32*) & usSRegHoldBuf[SFBENCRES_L]);
     
     mcFocCtrl.AngToCnt = mcFocCtrl.EncRes / (usSRegHoldBuf[POLES] >> 1);
-    mcFocCtrl.QEPLoadThetaOffset = *((int32*) & usSRegHoldBuf[SFBANGOFFSET_L]);
+    mcFocCtrl.QepLoadThetaOffset = *((int32*) & usSRegHoldBuf[SFBANGOFFSET_L]);
 
-    mcFocCtrl.QEPThetaOffset = *((int32*) & usSRegHoldBuf[ANGOFFSET_L]);
+    mcFocCtrl.QepThetaOffset = *((int32*) & usSRegHoldBuf[ANGOFFSET_L]);
 
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	int32 Motor_Pulse_Handler(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Pulse & Direction Control
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Pulse_Handler
+ * Input	:	No
+ * Output	:	No
+ * Description:	Pulse direction control
+ *---------------------------------------------------------------------------*/
 int32 Motor_Pulse_Handler(void)
 {	
-	return (mcProfile.StartingAngle + read_csr(TIM6_CNTR) * (int16)usSRegHoldBuf[GEARIN] /(int16)usSRegHoldBuf[GEAROUT]);
+	return (mcProfile.StartingAngle + read_csr(TIM6_CNTR) * (int16)usSRegHoldBuf[GEARIN] 
+		/(int16)usSRegHoldBuf[GEAROUT]);
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void RegenerationHandler(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Handle regeneration base on direct duty control.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	RegenerationHandler
+ * Input	:	No
+ * Output	:	No
+ * Description:	Regenerative braking, handle regeneration based on direct duty control.
+ *---------------------------------------------------------------------------*/
 void RegenerationHandler(void)
 {
 	uint16 busvoltage = usSRegInBuf[BUSVOLTAGE];
@@ -877,12 +807,12 @@ void RegenerationHandler(void)
 }
 
 #if EXCTRL_ANALOG_ENABLED
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_AnalogIn_Handler(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	VelAnalog and CurAnalog Control
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_AnalogIn_Handler
+ * Input	:	No
+ * Output	:	No
+ * Description:	Analog control, VelAnalog and CurAnalog Control
+ *---------------------------------------------------------------------------*/
 void Motor_AnalogIn_Handler(void)
 {
 	set_csr(ADC1_CR, ADCBSY);            // ???ADC
@@ -904,31 +834,32 @@ void Motor_AnalogIn_Handler(void)
         usSRegInBuf[CMDCUR] = ((int32)mcAnalogInput.AnInValue_s * usSRegHoldBuf[ANINISCALE]) >> 10;
 #if FUNC_FORCECLOSEDLOOP_ENABLED
 	else // Force loop
-		usSRegInBuf[ACTFRC] = ((int32)mcAnalogInput.AnInValue_s * usSRegHoldBuf[ANINFSCALE]) >> 10; // 压力反馈值
+		usSRegInBuf[ACTFRC] = ((int32)mcAnalogInput.AnInValue_s * usSRegHoldBuf[ANINFSCALE]) >> 10; // Pressure feedback value
 #endif
 }
 #endif // #if EXCTRL_ANALOG_ENABLED
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Fan_Control(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Control the fan with different duty cycle.
-/*---------------------------------------------------------------------------*/
+
 #ifdef FAN_PIN
+/*---------------------------------------------------------------------------
+ * Name		:	Fan_Control
+ * Input	:	No
+ * Output	:	No
+ * Description:	Fan control, control the fan with different duty cycle.
+ *---------------------------------------------------------------------------*/
 void Fan_Control(void)
 {
     xor_csr(FAN_GPIO, FAN_PIN); // FANPIN = ~FANPIN;
 }
 #endif
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Check_InPos(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	The motor is considered settled when PE (position error) has 
-/*              remained below PEINPOS for the time defined by PEINPOSTIME.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*
+ * Name		:	void Check_InPos(void)
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	In-position signal, the motor is considered settled when PE (position error)  
+ *              has remained below PEINPOS for the time defined by PEINPOSTIME.
+ *---------------------------------------------------------------------------*/
 void Check_InPos(void)
 {
 	int32 PeinPosRange = 0;
@@ -964,7 +895,7 @@ void Check_InPos(void)
 #if EXCTRL_ECAT_ENABLED || EXCTRL_CANOPEN_ENABLED
 			|| usSRegInBuf[FBOPMODE] == PROFILE_POSITION_MODE
 #endif
-			) && (Position_Profile_GetMotionStatus() == MS_MOVEING ||
+			) && (Position_Profile_GetMotionStatus() == MS_MOVING ||
 			(Position_Profile_GetMotionStatus() == MS_FINISH && 
 			GetReg(usSRegHoldBuf[PROFILECTRL], PROF_MOTIONEN) != 0 &&
 			GetReg(usSRegHoldBuf[PROFILECTRL], PROF_PROFILEREP) != 0)))
@@ -985,51 +916,13 @@ void Check_InPos(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void UpdateTemperature(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Update Temperature.
-/*---------------------------------------------------------------------------*/
-void UpdateTemperature(void)
-{
-#ifdef ADC1_ENABLEMASK
-	if (!(mcRegParam.WorkMode == VELANALOG || mcRegParam.WorkMode == CURANALOG))
-	{
-		set_csr(ADC1_CR, ADCBSY);            // ADC顺序采样
-		while (readbit_csr(ADC1_CR, ADCBSY));
-	}
-#endif
-
-#ifdef ADC2_ENABLEMASK
-	set_csr(ADC2_CR, ADCBSY);            // ADC2顺序采样
-	while (readbit_csr(ADC2_CR, ADCBSY));
-#endif
-	
-	// Driver/MCU Temperature
-#if TEMPSRC_KNTC_ENABLED > 0
-	usSRegInBuf[DRIVETEMP] = TemperatureCalc(ADCDR_TEMP);
-#else
-	usSRegInBuf[DRIVETEMP] = TemperatureCalc(0);
-#endif
-
-	// Motor Temperature
-#ifdef ADCDR_MOTTEMP
-	usSRegInBuf[MOTORTEMP] = ADCDR_MOTTEMP;
-#endif
-
-	// UV phase current
-	usSRegInBuf[ADCIA] = NFOC_I1;
-	usSRegInBuf[ADCIB] = NFOC_I2;
-}
-
 #if MOTOR_VCM_ENABLED
-/*---------------------------------------------------------------------------*/
-/* Name		:	void VCM_DriverOut(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Update PWM of Voice Coil Motor.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	VCM_DriverOut
+ * Input	:	No
+ * Output	:	No
+ * Description:	Voice coil motor, update PWM of Voice Coil Motor.
+ *---------------------------------------------------------------------------*/
 void VCM_DriverOut(void)
 {
 	int16 U_Duty;
@@ -1046,8 +939,8 @@ void VCM_DriverOut(void)
 	NFOC_DR1N = DR1;
 	NFOC_DR2 = DR2;
 	NFOC_DR2N = DR2;
-	NFOC_DR3 = 0;	// 设为0的话目前是上管常开，下管常闭，W相对地电压为11.8V；因为CMR寄存器设置的极性为下桥正常输出，上桥反向互补输出。
-	NFOC_DR3N = 0;	// 设为PWM_VALUE_LOAD的话为下管常开，上管常闭，W相对地电压为0。
+	NFOC_DR3 = 0;	// When set to 0, the upper switch is always on and the lower switch is always off; W-phase to ground voltage is 11.8V; because CMR register polarity is set to lower bridge normal output, upper bridge inverted complementary output.
+	NFOC_DR3N = 0;	// When set to PWM_VALUE_LOAD, the lower switch is always on and the upper switch is always off; W-phase to ground voltage is 0V.
 }
 #endif // #if MOTOR_VCM_ENABLED
 

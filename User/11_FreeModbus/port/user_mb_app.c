@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * File: $Id: user_mb_app.c,v 1.60 2013/11/23 11:49:05 Armink $
- *		 $Id: user_mb_app.c,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: user_mb_app.c,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for Fengyan MCU chip $
  */
 
 #include "user_mb_app.h"
@@ -148,7 +148,7 @@ eMBErrorCode eMBRegHoldingCB(UCHAR * pucRegBuffer, UCHAR usAddressH, UCHAR usAdd
 				SendFramePointer.Length[0] = usNRegs * 2 + 5;
 				SendFramePointer.Addr[0] = pucRegBuffer - 3;
 
-				while (usNRegs > 0)
+while (usNRegs > 0)
 				{
 					*pucRegBuffer++ = (UCHAR)(pusRegHoldingBuf[iRegIndex] >> 8);
 					*pucRegBuffer++ = (UCHAR)(pusRegHoldingBuf[iRegIndex] & 0xFF);
@@ -297,7 +297,7 @@ eMBErrorCode eMBRegErrorCB(UCHAR * pucRegBuffer)
 //
 //    /* it already plus one in modbus function method. */
 //    usAddress--;
-//
+
 //    if( ( usAddress >= COIL_START ) &&
 //        ( usAddress + usNCoils <= COIL_START + COIL_NCOILS ) )
 //    {
@@ -400,4 +400,3 @@ eMBErrorCode eMBRegErrorCB(UCHAR * pucRegBuffer)
 //
 //    return eStatus;
 //}
-//

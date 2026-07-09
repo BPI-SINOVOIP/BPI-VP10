@@ -23,11 +23,13 @@ UINT8 EncSPIReadData[ENC_SPI_LEN] = { 0 };
 UINT8 EncSPIWriteData[ENC_SPI_LEN] = { 0 };
 #endif
 
-/*=================================================================================
-    Function Name	:	SPI_Encoder_Init(void)
-    Description		:	SPI initial function
-	Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI_Encoder_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	SPI encoder initialization
+ *---------------------------------------------------------------------------*/
 void SPI_Encoder_Init(void)
 {
 	SPI1_Init();
@@ -48,7 +50,7 @@ void SPI_Encoder_Init(void)
 	
 #ifdef ENCCAL_PIN
 	clr_csr(ENCCAL_GPIO, ENCCAL_PIN);
-	set_csr(ENCCAL_OE, ENCCAL_PIN);		// 输出使能 /* 0: Enable digital output */
+	set_csr(ENCCAL_OE, ENCCAL_PIN);		// Output enable /* 0: Enable digital output */
 #endif
 
 #if (ENCSPI_Source == ENCSPI_KTH)
@@ -58,14 +60,16 @@ void SPI_Encoder_Init(void)
 #endif
 }
 
-/*=================================================================================
-	Function Name	:	SPI_Encoder_Enable(void)
-	Description		:	SPI enable function
-	Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI_Encoder_Enable
+ * Input	:	No
+ * Output	:	No
+ * Description:	SPI encoder enable
+ *---------------------------------------------------------------------------*/
 void SPI_Encoder_Enable(uint8 EncSel)
 {
-	set_csr(SPI1_CR, SPIEN);				// SPI使能 0-->Disable 1-->Enable
+	set_csr(SPI1_CR, SPIEN);				// SPI enable 0-->Disable 1-->Enable
 	
 	mcEncoder.SPI.Multi = 0;
 	mcEncoder.SPI.EncSel = EncSel;
@@ -103,25 +107,29 @@ void SPI_Encoder_Enable(uint8 EncSel)
 #endif
 #endif
 	
-	DESELECT_SPI; // 拉高NSS脚
+	DESELECT_SPI; // Pull high NSS pin
 }
 
-/*=================================================================================
-	Function Name	:	SPI_Encoder_Disable(void)
-	Description		:	SPI disable function
-	Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI_Encoder_Disable
+ * Input	:	No
+ * Output	:	No
+ * Description:	SPI encoder disable
+ *---------------------------------------------------------------------------*/
 void SPI_Encoder_Disable(void)
 {
-	DESELECT_SPI;			// 拉高NSS脚
-	clr_csr(SPI1_CR, SPIEN);				// SPI使能 0-->Disable 1-->Enable
+	DESELECT_SPI;			// Pull high NSS pin
+	clr_csr(SPI1_CR, SPIEN);				// SPI enable 0-->Disable 1-->Enable
 }
 
-/*=================================================================================
-Function Name	:	SPI_Encoder_Update(void)
-Description		:	SPI update data length
-Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI_Encoder_Update
+ * Input	:	No
+ * Output	:	No
+ * Description:	SPI encoder parameter update
+ *---------------------------------------------------------------------------*/
 void SPI_Encoder_Update(void)
 {
 	if (mcEncoder.SPI.EncSel == ENCSEL_MOTOR && mcEncoder.SPI.ZeroBits != usSRegHoldBuf[ENCZEROBITS])
@@ -133,11 +141,13 @@ void SPI_Encoder_Update(void)
 	}
 }
 
-/*=================================================================================
-Function Name	:	SPI_Encoder_Calibration(void)
-Description		:	Do Encoder_Calibration
-Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI_Encoder_Calibration
+ * Input	:	No
+ * Output	:	No
+ * Description:	SPI encoder calibration
+ *---------------------------------------------------------------------------*/
 void SPI_Encoder_Calibration(void)
 {
 #if (ENCSPI_Source == ENCSPI_KTH)
@@ -179,12 +189,14 @@ void SPI_Encoder_Calibration(void)
 #endif
 }
 
-/*=================================================================================
-	Function Name	:	SPI_Encoder_GetPos(void)
-	Description		:	get SPI data.
-	Parameter		:	None.
-=================================================================================*/
-uint16 SPI_Encoder_GetPos(uint32* pEncPos) //获取绝对值编码器位置的函数
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI_Encoder_GetPos
+ * Input	:	*pEncPos - encoder value
+ * Output	:	encoder error status
+ * Description:	Get SPI encoder value
+ *---------------------------------------------------------------------------*/
+uint16 SPI_Encoder_GetPos(uint32* pEncPos)
 {
 	uint8 EncSPIData[4] = { 0 };
 	uint16 errCode = 0;
@@ -221,7 +233,7 @@ uint16 SPI_Encoder_GetPos(uint32* pEncPos) //获取绝对值编码器位置的�
 	SELECT_SPI;
 
 	set_csr(ENCSPI1_WR_DMA_CR, DMABSY);
-	set_csr(ENCSPI1_RD_DMA_CR, DMABSY); // 读busy需放在写busy之后
+	set_csr(ENCSPI1_RD_DMA_CR, DMABSY); // Read busy must be placed after write busy
 
 #else
 	SELECT_SPI;

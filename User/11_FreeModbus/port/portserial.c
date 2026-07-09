@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * File: $Id: portserial.c,v 1.60 2013/08/13 15:07:05 Armink $
- *		 $Id: portserial.c,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: portserial.c,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for the Fengyin MCU chip $
  */
 
 #include "port.h"
@@ -52,7 +52,7 @@ void xMBPortSerialInit(void)
     
 #if COMM_SERIAL_RS485_ENABLED
     clr_csr(RTSRS485_GPIO, RTSRS485_PIN);
-    set_csr(RTSRS485_OE, RTSRS485_PIN);		// 输出使能 /* 0: Enable digital output */
+    set_csr(RTSRS485_OE, RTSRS485_PIN);		// Output enable /* 0: Enable digital output */
 #endif
 }
 
@@ -73,7 +73,7 @@ void vMBPortSerialEnable(BOOL xRxEnable, BOOL xTxEnable)
 		xMBPortRxDMASwitch();
 	
 #if COMM_SERIAL_RS485_ENABLED
-		Delay_us(30); //由于UART + DMA发送会提前一个byte进DMA中断，故加个延时再拉低RE
+		Delay_us(30); //Because UART + DMA transmission can cause one byte to enter the DMA interrupt early, add a delay before pulling RE low
 		clr_csr(RTSRS485_GPIO, RTSRS485_PIN);
 #endif
 	}
@@ -87,4 +87,3 @@ void vMBPortClose(void)
     UART2_Close();
 #endif
 }
-

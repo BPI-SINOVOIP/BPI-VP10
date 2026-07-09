@@ -29,7 +29,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * File: $Id: mbfuncinput.c,v 1.10 2007/09/12 10:15:56 wolti Exp $
- *		 $Id: mbfuncinput.c,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: mbfuncinput.c,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for Fengyin MCU chips $
  */
 
 /* ----------------------- System includes ----------------------------------*/

@@ -19,7 +19,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * File: $Id: portdma.c,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ * File: $Id: portdma.c,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for Fengying MCU chip $
  */
 
 #include "port.h"
@@ -63,10 +63,10 @@ void xMBPortRxDMAInit(unsigned char* ulAddr, char cLen)
 void xMBPortRxDMAReset(void)
 {
 #if(MODBUS_UART == 1)
-	clr_csr(UT1_CR0, UTTI); // 清标志位
+	clr_csr(UT1_CR0, UTTI); // Clear flag bits
 	clr_csr(UT1_CR0, UTRI);
 #else
-	clr_csr(UT2_CR0, UTTI); // 清标志位
+	clr_csr(UT2_CR0, UTTI); // Clear flag bits
 	clr_csr(UT2_CR0, UTRI);
 #endif
 #if COMM_SERIAL_RS485_ENABLED
@@ -80,9 +80,9 @@ void xMBPortRxDMAReset(void)
 void xMBPortTxDMAStart(unsigned char* ulAddr, char cLen)
 {
 #if(MODBUS_UART == 1)
-	clr_csr(UT1_CR0, UTTI); // 清标志位
+	clr_csr(UT1_CR0, UTTI); // Clear flag bits
 #else
-	clr_csr(UT2_CR0, UTTI); // 清标志位
+	clr_csr(UT2_CR0, UTTI); // Clear flag bits
 #endif
 	
 	SetDataPackage_DMA0(ulAddr, cLen);

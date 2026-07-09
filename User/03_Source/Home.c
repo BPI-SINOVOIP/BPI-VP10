@@ -6,7 +6,7 @@
  * File Name     : Home.c
  * Author        : Summer
  * Date          : 2021-11-13
- * Description   : define some function for home.
+ * Description   :	Initialize homing & perform homing
  *
  * Record        :
  * V1.0, 2021-11-13, Summer: Created file
@@ -30,19 +30,18 @@ HomeTypeDef mcDoHome __attribute__((section(".pram.data.mcDoHome"))) = { 0 };
 /********************************************************************************
 * Internal Routine Prototypes
 ********************************************************************************/
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_Home(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Home Initial & Do home, standard homing methods, as defined
-/*               in CiA 402. Call this function every cycle.
-/*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Home
+ * Input	:	No
+ * Output	:	No
+ * Description:	Initialize homing & perform homing
+ *---------------------------------------------------------------------------*/
 void Motor_Home(void)
 {
 	if (mcDoHome.State == HOME_IDLE)
 	{
-		uint16 Temp;
+		uint32 Temp;
 		memset(&mcDoHome, 0, sizeof(HomeTypeDef));		           // reset home variable
 		if (GetReg(usSRegInBuf[DRIVESTATUS], STATUS_ENABLE) == STATUS_ENABLE)
 			mcDoHome.EnableStatus = 1;
@@ -51,7 +50,6 @@ void Motor_Home(void)
 //		Motor_DisableServo();
 
 		mcFocCtrl.State_Count = usSRegHoldBuf[HOMETIMEOUT];
-		//		mcFocCtrl.QEPThetaOffset = 0;
 
 		// avoid overcurrent error
 		if ((int16)usSRegHoldBuf[HOMEMETHOD] == HardStopNToIndex || (int16)usSRegHoldBuf[HOMEMETHOD] == HardStopPToIndex
@@ -60,8 +58,8 @@ void Motor_Home(void)
 			Temp = usSRegHoldBuf[HOMEBLOCKCURRENT] + (usSRegHoldBuf[HOMEBLOCKCURRENT] >> 1);  // set limit current,large than user set
 			if (Temp > usSRegHoldBuf[RMSCURRENT])
 				Temp = usSRegHoldBuf[RMSCURRENT];
-
-			PI_Spd_UpdateLimit(Temp, -Temp);
+			
+			mcDoHome.IqRefLimit = Temp;
 		}
 
 		SetReg(usSRegInBuf[DRIVESTATUS], STATUS_HOMECOMPLETE, 0);
@@ -108,13 +106,13 @@ void Motor_Home(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void DoHoming(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Home Initial & Do home, standard homing methods, as defined
-/*               in CiA 402. Call this function every cycle.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	DoHoming
+ * Input	:	No
+ * Output	:	No
+ * Description:	Perform homing, Do home, standard homing methods, as defined
+ *               in CiA 402. Call this function every cycle.
+ *---------------------------------------------------------------------------*/
 void DoHoming(void)
 {
 	if (mcFocCtrl.State_Count <= 2)  // TimeOut
@@ -150,7 +148,8 @@ void DoHoming(void)
 		case NToIndex:
 		case PToIndex:
 			mcDoHome.State = HOME_SEARCHINDEX;
-			break;
+
+break;
 
 		case NowPositionAsHome:
 			mcDoHome.State = HOME_GETABS;
@@ -162,12 +161,14 @@ void DoHoming(void)
 		case HardStopP:
 			Motor_EnableServo();
 			Motor_Profile_Init(T_PROFILE, mcDoHome.MoveDistance, mcDoHome.HomeSpeed, mcDoHome.HomeAcc, 0);
+			NFOC_IQMAX = mcDoHome.IqRefLimit; // set the IQREF limit
+			NFOC_IQMIN = -mcDoHome.IqRefLimit;
 			mcDoHome.State = HOME_REACHLIMIT;
 			break;
 		}
 		break;
 		
-	case HOME_SEARCHLIMIT:     // 寻找限位高电平
+	case HOME_SEARCHLIMIT:     // Searching for limit high level
 		switch ((int16)usSRegHoldBuf[HOMEMETHOD])
 		{
 		case DisengagNLimitToIndex:
@@ -184,7 +185,7 @@ void DoHoming(void)
 		}
 		break;
 
-	case HOME_REACHLIMIT:     // 寻找限位低电平
+	case HOME_REACHLIMIT:     // Searching for limit low level
 		switch ((int16)usSRegHoldBuf[HOMEMETHOD])
 		{
 		case DisengagNLimitToIndex:
@@ -210,7 +211,8 @@ void DoHoming(void)
 				{
 					Motor_DisableServo();
 					Delay_ms(HomeBlockEndWaitTime);
-					PI_Spd_ResetLimit();
+					NFOC_IQMAX = usSRegHoldBuf[VOUTMAX];
+					NFOC_IQMIN = usSRegHoldBuf[VOUTMIN];
 					mcDoHome.SkipFaultOverPosErr = 0;
 					mcDoHome.State = HOME_SEARCHINDEX;
 				}
@@ -235,7 +237,7 @@ void DoHoming(void)
 		case DisengagPLimitToIndex:
 		case DisengagHomeSwitchPToIndex:
 		case DisengagHomeSwitchNToIndex:
-			Timer2_ZIndexInt_Enable();   // start interrupt: z rising edge
+			Timer2_ZIndexCap_Enable();   // start catching z rising edge
 			mcDoHome.State = HOME_CATCHINDEX;
 			break;
 		
@@ -243,7 +245,7 @@ void DoHoming(void)
 		case HardStopNToIndex:
 		case NToIndex:
 		case PToIndex:
-			Timer2_ZIndexInt_Enable();   // start interrupt: z rising edge
+			Timer2_ZIndexCap_Enable();   // start catching z rising edge
 			Motor_EnableServo();
 			Motor_Profile_Init(T_PROFILE, -mcDoHome.MoveDistance, mcDoHome.ZeroSpeed, mcDoHome.HomeAcc, 0);
 			mcDoHome.State = HOME_CATCHINDEX;
@@ -262,9 +264,10 @@ void DoHoming(void)
 		case HardStopPToIndex:
 		case NToIndex:
 		case PToIndex:
-			if (mcDoHome.ZCapturedFlag == 1)
+			if (readbit_csr(TIM2_SR, T2IR)) // Catch a Z Index
 			{
-				mcDoHome.ZCapturedFlag = 0;
+				clr_csr(TIM2_SR, T2IR);
+				Home_ZCaptured();
 				Motor_Profile_StartDeceleration(); // Start Deceleration
 				mcDoHome.State = HOME_SLOWDOWN;
 				mcDoHome.NextState = HOME_GETABS;
@@ -273,7 +276,7 @@ void DoHoming(void)
 		}
 		break;
 		
-	case HOME_TURNAROUND:     // 掉头
+	case HOME_TURNAROUND:     // Reverse direction
 		switch ((int16)usSRegHoldBuf[HOMEMETHOD])
 		{
 		case DisengagNLimitToIndex:
@@ -286,7 +289,7 @@ void DoHoming(void)
 		}
 		break;
 
-	case HOME_SLOWDOWN:     // 减速
+	case HOME_SLOWDOWN:     // Slow down
 		if ((Position_Profile_GetMotionStatus() == MS_FINISH) && mcFocCtrl.TargetRef == 0 && 
 			GetReg(usSRegInBuf[DRIVESTATUS], STATUS_INPOS))
 		{
@@ -296,7 +299,8 @@ void DoHoming(void)
 
 	case HOME_GETABS:     // change offset,go zero
 		Motor_DisableServo();
-		switch ((int16)usSRegHoldBuf[HOMEMETHOD])
+
+switch ((int16)usSRegHoldBuf[HOMEMETHOD])
 		{
 		case DisengagNLimitToIndex:
 		case DisengagPLimitToIndex:
@@ -310,18 +314,18 @@ void DoHoming(void)
 #if FUNC_FEEDBACKONLOAD_ENABLED
 			if (FEEDBACK_MOTOR == Feedback_GetOnLoadFlag())
 			{
-				mcFocCtrl.QEPThetaOffset += mcDoHome.EncThetaBuffer;
+				mcFocCtrl.QepThetaOffset += mcDoHome.EncThetaBuffer;
 			}
 			else
 			{
-				mcFocCtrl.QEPLoadThetaOffset += mcDoHome.LoadEncThetaBuffer;
-				mcFocCtrl.QEPThetaOffset += mcDoHome.EncThetaBuffer;
+				mcFocCtrl.QepLoadThetaOffset += mcDoHome.LoadEncThetaBuffer;
+				mcFocCtrl.QepThetaOffset += mcDoHome.EncThetaBuffer;
 			}
-			*((int32*) & usSRegHoldBuf[SFBANGOFFSET_L]) = mcFocCtrl.QEPLoadThetaOffset;
+			*((int32*) & usSRegHoldBuf[SFBANGOFFSET_L]) = mcFocCtrl.QepLoadThetaOffset;
 #else					
-			mcFocCtrl.QEPThetaOffset += mcDoHome.EncThetaBuffer;
+			mcFocCtrl.QepThetaOffset += mcDoHome.EncThetaBuffer;
 #endif			
-			*((int32*) & usSRegHoldBuf[ANGOFFSET_L]) = mcFocCtrl.QEPThetaOffset;
+			*((int32*) & usSRegHoldBuf[ANGOFFSET_L]) = mcFocCtrl.QepThetaOffset;
 			break;
 
 		case NowPositionAsHome:
@@ -332,7 +336,7 @@ void DoHoming(void)
 			{
 				mcDoHome.EncThetaBuffer = mcFocCtrl.ActualAngle + (((int32)usSRegHoldBuf[HOMEOFFSET_H] << 16) |
 					(uint16)usSRegHoldBuf[HOMEOFFSET_L]);
-				mcFocCtrl.QEPThetaOffset += mcDoHome.EncThetaBuffer;
+				mcFocCtrl.QepThetaOffset += mcDoHome.EncThetaBuffer;
 			}
 			else
 			{
@@ -343,14 +347,14 @@ void DoHoming(void)
 				
 				mcDoHome.EncThetaBuffer = mcFocCtrl.ActualAngle + (((int32)usSRegHoldBuf[HOMEOFFSET_H] << 16) |
 					(uint16)usSRegHoldBuf[HOMEOFFSET_L]);
-				mcFocCtrl.QEPThetaOffset += mcDoHome.EncThetaBuffer;
+				mcFocCtrl.QepThetaOffset += mcDoHome.EncThetaBuffer;
 			}
 #else
 			mcDoHome.EncThetaBuffer = mcFocCtrl.ActualAngle + (((int32)usSRegHoldBuf[HOMEOFFSET_H] << 16) |
 				(uint16)usSRegHoldBuf[HOMEOFFSET_L]);
-			mcFocCtrl.QEPThetaOffset += mcDoHome.EncThetaBuffer;
+			mcFocCtrl.QepThetaOffset += mcDoHome.EncThetaBuffer;
 #endif			
-			*((int32*) & usSRegHoldBuf[ANGOFFSET_L]) = mcFocCtrl.QEPThetaOffset;
+			*((int32*) & usSRegHoldBuf[ANGOFFSET_L]) = mcFocCtrl.QepThetaOffset;
 			break;
 		}
 		if ((int16)usSRegHoldBuf[HOMEMETHOD] != NowPositionAsHome)
@@ -383,53 +387,47 @@ void DoHoming(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Home_Reset(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Reset Home in the beginning and fault.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Home_Reset
+ * Input	:	No
+ * Output	:	No
+ * Description:	Reset homing
+ *---------------------------------------------------------------------------*/
 void Home_Reset(void)
 {
 	mcDoHome.State = HOME_IDLE;
 	mcDoHome.SkipFaultOverPosErr = 0; // skip FaultPosFollowing during hardstop
-	Timer2_ZIndexInt_Disable();  // end interrupt
-	PI_Spd_ResetLimit();     // restore PI_Spd Limit
+	NFOC_IQMAX = usSRegHoldBuf[VOUTMAX];   // restore IQREF Limit
+	NFOC_IQMIN = usSRegHoldBuf[VOUTMIN]; 
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Home_ZCaptured(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Home_ZCaptured in the interrupt.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Home_ZCaptured
+ * Input	:	No
+ * Output	:	No
+ * Description:	Calculate new angle offset after capturing Z signal.
+ *---------------------------------------------------------------------------*/
 void Home_ZCaptured(void)
 {
-	if (mcDoHome.ZCapturedFlag == 0)
-	{
-		Timer2_ZIndexInt_Disable();  // end interrupt
-		mcDoHome.EncThetaBuffer = read_csr(TIM2_QEP_ARR);
+	mcDoHome.EncThetaBuffer = read_csr(TIM2_QEP_ARR);
 
-		if (mcFocCtrl.AngDir)
-			mcDoHome.EncThetaBuffer = -mcDoHome.EncThetaBuffer - mcFocCtrl.QEPThetaOffset;
-		else
-			mcDoHome.EncThetaBuffer = mcDoHome.EncThetaBuffer - mcFocCtrl.QEPThetaOffset;
-
-		mcDoHome.ZCapturedFlag = 1;
-	}
+	if (mcFocCtrl.AngDir)
+		mcDoHome.EncThetaBuffer = -mcDoHome.EncThetaBuffer - mcFocCtrl.QepThetaOffset;
+	else
+		mcDoHome.EncThetaBuffer = mcDoHome.EncThetaBuffer - mcFocCtrl.QepThetaOffset;
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Home_TimeCount(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	回零撞硬限位的时间判断，放在1ms循环里
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Home_TimeCount
+ * Input	:	No
+ * Output	:	No
+ * Description:	Time check for homing hitting hard limit; run in 1ms loop
+ *---------------------------------------------------------------------------*/
 void Home_TimeCount(void)
 {
 	if (mcDoHome.TimeCounter > 0)
-		mcDoHome.TimeCounter--;   // 回零撞硬限位的时间判断
+		mcDoHome.TimeCounter--;   // Time check for homing hitting hard limit
 }
 #endif // #if FUNC_HOME_ENABLED

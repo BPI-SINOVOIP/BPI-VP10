@@ -15,30 +15,28 @@
 /* Includes -------------------------------------------------------------------------------------*/
 #include <Myproject.h>
 
-#define FO_INT        _interrupt_handler_1		// IPM硬件过流中断
-#define FO2_INT       _interrupt_handler_3		// IPM硬件过流中断
-#define CMP3_INT	  _interrupt_handler_4		// MOS硬件过流中断
-#define EXTERN1_INT   _interrupt_handler_2		// ECAT外部中断
-#define DRVPIF_INT    _interrupt_handler_6		// 保护中断
-#define FOC_INT       _interrupt_handler_8		// 载波中断
-#define MEFSM_INT     _interrupt_handler_10		// ME状态机中断
-#define DMA0_INT      _interrupt_handler_12		// DMA串口接收/发送中断
-#define SYSTICK_INT   _interrupt_handler_15
-#define TIM2_INT      _interrupt_handler_16		// Z信号中断
-#define TIM3_INT      _interrupt_handler_17		// 位置环中断
-#define CAN_INT       _interrupt_handler_30		// CAN接收完成中断
+#define FO_INT        _interrupt_handler_1		// IPM hardware overcurrent interrupt
+#define FO2_INT       _interrupt_handler_3		// IPM hardware overcurrent interrupt
+#define CMP3_INT	  _interrupt_handler_4		// MOS hardware overcurrent interrupt
+#define EXTERN1_INT   _interrupt_handler_2		// EtherCAT external interrupt
+#define DRVPIF_INT    _interrupt_handler_6		// Protection interrupt
+#define FOC_INT       _interrupt_handler_8		// Carrier interrupt
+#define MEFSM_INT     _interrupt_handler_10		// ME state machine interrupt
+#define DMA0_INT      _interrupt_handler_12		// DMA serial RX/TX interrupt
+#define SYSTICK_INT   _interrupt_handler_15     // Systick interrupt (Not used)
+#define TIM3_INT      _interrupt_handler_17		// Position loop interrupt
+#define CAN_INT       _interrupt_handler_30		// CAN receive complete interrupt
 
 
-
-/*---------------------------------------------------------------------------*/
-/* Name		:	void FO_INT(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	FO_INT interrupt，硬件过流，硬件FO过流保护，关断输出，中断优先级最高。
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	FO_INT
+ * Input	:	No
+ * Output	:	No
+ * Description:	Hardware FO overcurrent protection, shut down output, highest interrupt priority.
+ *---------------------------------------------------------------------------*/
 #if ((HardwareCurrent_Protect == Hardware_FO_Protect) || (HardwareCurrent_Protect == Hardware_FO_CMP_Protect))
 #if (Hardware_FO_SRC == Hardware_FO_EXTI0)
-__attribute__((__interrupt__)) void FO_INT(void) // interrupt 1					// 硬件FO过流中断，关闭输出
+__attribute__((__interrupt__)) void FO_INT(void) // interrupt 1					// Hardware FO overcurrent interrupt, shut down output
 {
 	if (readbit_csr(EXT0IF, EX0IF13))
 	{
@@ -47,11 +45,11 @@ __attribute__((__interrupt__)) void FO_INT(void) // interrupt 1					// 硬件FO�
 	}
 }
 #else
-__attribute__((__interrupt__)) void FO2_INT(void) // interrupt 3					// 硬件FO过流中断，关闭输出
+__attribute__((__interrupt__)) void FO2_INT(void) // interrupt 3					// Hardware FO overcurrent interrupt, shut down output
 {
 	if (readbit_csr(EXT2IF, EX2IE10))
 	{
-		if (mcFocCtrl.CurLoopEnable == 1) // FO信号刚上电时异常，需避开
+		if (mcFocCtrl.CurLoopEnable == 1) // FO signal may be abnormal when first powered on; must avoid
 		{
 			Fault_Handler(FaultHardOVCurrent, FLAG_HARDOVC);
 		}
@@ -62,12 +60,12 @@ __attribute__((__interrupt__)) void FO2_INT(void) // interrupt 3					// 硬件FO
 #endif  // #if ((HardwareCurrent_Protect == Hardware_FO_Protect) || (HardwareCurrent_Protect == Hardware_FO_CMP_Protect))
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void CMP3_INT(void) interrupt 4
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	硬件比较器过流中断，关断输出，中断优先级最高。
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	CMP3_INT
+ * Input	:	No
+ * Output	:	No
+ * Description:	Hardware comparator overcurrent interrupt, shut down output, highest interrupt priority.
+ *---------------------------------------------------------------------------*/
 #if ((HardwareCurrent_Protect == Hardware_CMP_Protect) || (HardwareCurrent_Protect == Hardware_FO_CMP_Protect))
 __attribute__((__interrupt__)) void CMP3_INT(void)
 {
@@ -79,13 +77,12 @@ __attribute__((__interrupt__)) void CMP3_INT(void)
 }
 #endif 
 
-
-/*---------------------------------------------------------------------------*/
-/* Name        : void EXTERN1_INT(void)
-/* Input       : NO
-/* Output      : NO
-/* Description : 外部中断，用于处于EtherCAT的sync0信号
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	EXTERN1_INT
+ * Input	:	No
+ * Output	:	No
+ * Description:	External interrupt, used for EtherCAT sync0 signal
+ *---------------------------------------------------------------------------*/
 #if EXCTRL_ECAT_ENABLED
 __attribute__((__interrupt__)) void EXTERN1_INT(void) // interrupt 2
 {
@@ -97,30 +94,30 @@ __attribute__((__interrupt__)) void EXTERN1_INT(void) // interrupt 2
 		EscIntStep = 1;	
 		EcatCSPVar.ExcCnt = 3;
 		mcEncoder.EncLoopTime = 0;
-		clr_csr(EXT1IF, EX1IF8);                    // 清零中断标志位
+		clr_csr(EXT1IF, EX1IF8);                    // Clear interrupt flag
 	}
 }
 #endif //#if EXCTRL_ECAT_ENABLED
 
 
-/*---------------------------------------------------------------------------*/
-/* Name        : void DRVPIF_INT(void)
-/* Input       : NO
-/* Output      : NO
-/* Description : 硬件保护中断 
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	DRVPIF_INT
+ * Input	:	No
+ * Output	:	No
+ * Description:	Hardware protection interrupt 
+ *---------------------------------------------------------------------------*/
 #if PROT_HARDWARE_ENABLED
 __attribute__((__interrupt__)) void DRVPIF_INT(void) // interrupt 6
 {
 #if PROT_OUVP_HARDWARE_ENABLED
-	if (readbit_csr(DRV1_PSR, OVPIF))     // 软件过压保护触发
+	if (readbit_csr(DRV1_PSR, OVPIF))     // Software over-voltage protection triggered
 	{
 		mcFaultSource = FaultOverVoltage;
 		FaultProcess();
 		clr_csr(DRV1_PSR, OVPIF);   
 	}
 	
-	if (readbit_csr(DRV1_PSR, UVPIF))     // 软件欠压保护触发
+	if (readbit_csr(DRV1_PSR, UVPIF))     // Software under-voltage protection triggered
 	{
 		mcFaultSource = FaultUnderVoltage;
 		FaultProcess();
@@ -129,7 +126,7 @@ __attribute__((__interrupt__)) void DRVPIF_INT(void) // interrupt 6
 #endif // #if PROT_OUVP_HARDWARE_ENABLED
 	
 #if PROT_SOCP_HARDWARE_ENABLED
-	if (readbit_csr(DRV1_PSR, SOCPIF))     // 软件过流保护触发
+	if (readbit_csr(DRV1_PSR, SOCPIF))     // Software over-current protection triggered
 	{
 		if (mcCurVarible.PeakCurCnt >= mcCurVarible.PeakCurArr)
 		{
@@ -146,16 +143,17 @@ __attribute__((__interrupt__)) void DRVPIF_INT(void) // interrupt 6
 #endif // #if PROT_SOCP_HARDWARE_ENABLED
 	
 #if PROT_OVEL_HARDWARE_ENABLED
-	if (readbit_csr(DRV1_PSR, OVELIF))     // 速度超差保护触发
+	if (readbit_csr(DRV1_PSR, OVELIF))     // Over-speed error protection triggered
 	{
 		mcFaultSource = FaultOverVelErr;
 		FaultProcess();
-		clr_csr(DRV1_PSR, OVELIF); 
-	}
+		clr_csr(DRV1_PSR, OVELIF);
+
+}
 #endif // #if PROT_OVEL_HARDWARE_ENABLED
 	
 #if PROT_OSPD_HARDWARE_ENABLED
-	if (readbit_csr(DRV1_PSR, OSPDIF))     // 速度过超保护触发
+	if (readbit_csr(DRV1_PSR, OSPDIF))     // Over-speed protection triggered
 	{
 		mcFaultSource = FaultOverSpeed;
 		FaultProcess();
@@ -164,7 +162,7 @@ __attribute__((__interrupt__)) void DRVPIF_INT(void) // interrupt 6
 #endif // #if PROT_OSPD_HARDWARE_ENABLED
 	
 #if PROT_STALL_HARDWARE_ENABLED
-	if (readbit_csr(DRV1_PSR, LOCKIF))     // 堵转保护触发
+	if (readbit_csr(DRV1_PSR, LOCKIF))     // Stall protection triggered
 	{
 		mcFaultSource = FaultStall;
 		FaultProcess();
@@ -173,7 +171,7 @@ __attribute__((__interrupt__)) void DRVPIF_INT(void) // interrupt 6
 #endif // #if PROT_STALL_HARDWARE_ENABLED
 	
 #if PROT_PLOSS_HARDWARE_ENABLED
-	if (readbit_csr(DRV1_PSR, PLIF))     // 缺相保护触发
+	if (readbit_csr(DRV1_PSR, PLIF))     // Phase loss protection triggered
 	{
 		mcFaultSource = FaultPhaseLoss;
 		FaultProcess();
@@ -182,7 +180,7 @@ __attribute__((__interrupt__)) void DRVPIF_INT(void) // interrupt 6
 #endif // #if PROT_PLOSS_HARDWARE_ENABLED
 	
 #if PROT_CARINTOT_HARDWARE_ENABLED
-	if (readbit_csr(DRV1_PSR, ODCIF_IF))     // 载波中断超时保护触发
+	if (readbit_csr(DRV1_PSR, ODCIF_IF))     // Carrier interrupt timeout protection triggered
 	{
 		Fault_Handler(FaultMainIntTimeOut, FLAG_MAININTOT);
 		clr_csr(DRV1_PSR, ODCIF_IF); 
@@ -193,12 +191,12 @@ __attribute__((__interrupt__)) void DRVPIF_INT(void) // interrupt 6
 #endif // #if PROT_HARDWARE_ENABLED
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   void FOC_INT(void) interrupt 3
-/* Input    :   NO
-/* Output   :   NO
-/* Description: FOC中断(Drv中断),每1个载波周期执行一次，用于处理响应较高的程序。
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	FOC_INT
+ * Input	:	No
+ * Output	:	No
+ * Description:	FOC interrupt (carrier interrupt), executed every 1, 2 or 0.5 carrier cycles, used to handle routines requiring higher response. 
+ *---------------------------------------------------------------------------*/
 __attribute__((__interrupt__)) void FOC_INT(void) // interrupt 8
 {
 #if TESTPIN_ENABLED
@@ -226,54 +224,33 @@ __attribute__((__interrupt__)) void FOC_INT(void) // interrupt 8
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   void TIM4S_INT(void) interrupt 10
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 1ms定时器中断（SYS TICK中断），用于处理附加功能，如寻相、
-/*              各种保护等。中断优先级为1，低于FO中断和FOC中断。
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	SYSTICK_INT
+ * Input	:	No
+ * Output	:	No
+ * Description:	1 ms timer interrupt (SYSTICK interrupt), currently not used
+ *---------------------------------------------------------------------------*/
 __attribute__((__interrupt__)) void SYSTICK_INT(void)
 {
 
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   void TIM2_INT(void)
-/* Input    :   NO
-/* Output   :   NO
-/* Description: Z 信号上升沿中断，中断优先级为3，较低
-/*---------------------------------------------------------------------------*/
-#if ENCODER_SEL_ABZ_ENABLED
-__attribute__((__interrupt__)) void TIM2_INT(void)
-{
-	if (readbit_csr(TIM2_SR, T2IR)) // 计数上溢标志
-	{
-#if FUNC_HOME_ENABLED
-		Home_ZCaptured();
-#endif //#if FUNC_HOME_ENABLED		
-		clr_csr(TIM2_SR, T2IR);
-	}
-}
-#endif //#if ENCODER_SEL_ABZ_ENABLED
-
-
-/*---------------------------------------------------------------------------*/
-/* Name     :   void TIM3_INT(void) interrupt 17
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 位置环中断
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	TIM3_INT
+ * Input	:	No
+ * Output	:	No
+ * Description:	Position-loop interrupt
+ *---------------------------------------------------------------------------*/
 __attribute__((__interrupt__)) void TIM3_INT(void)
 {
 #if TESTPIN_ENABLED
 	set_csr(TEST_GPIO2, TEST_PIN2);
 #endif
 	
-	if (readbit_csr(TIM3_SR, T3IR)) // 比较匹配标志
+	if (readbit_csr(TIM3_SR, T3IR)) // Compare match flag
 	{
-		Fault_AuxIntDelayTimeOut(); // 检查中断延时是否异常
+		Fault_AuxIntDelayTimeOut(); // Check if interrupt delay is abnormal
 		clr_csr(TIM3_SR, T3IR);
 		
 		PosControl_Isr();
@@ -286,12 +263,12 @@ __attribute__((__interrupt__)) void TIM3_INT(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   void DMA0_INT(void) interrupt 12
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 串口接收/发送中断
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	DMA0_INT
+ * Input	:	No
+ * Output	:	No
+ * Description:	UART receive/transmit interrupt
+ *---------------------------------------------------------------------------*/
 #if COMM_UART_ENABLED > 0
 __attribute__((__interrupt__)) void DMA0_INT(void)
 {
@@ -307,12 +284,12 @@ __attribute__((__interrupt__)) void DMA0_INT(void)
 #endif // #if COMM_UART_ENABLED > 0
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   void MEFSM_INT(void) interrupt 10
-/* Input    :   NO
-/* Output   :   NO
-/* Description: ME状态机中断
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	MEFSM_INT
+ * Input	:	No
+ * Output	:	No
+ * Description:	ME state-machine interrupt, handles voice-coil motor or field weakening
+ *---------------------------------------------------------------------------*/
 #if MOTOR_VCM_ENABLED | FUNC_FIELDWEAKEN_ENABLED
 __attribute__((__interrupt__)) void MEFSM_INT(void)			// ME interrupt
 {
@@ -321,8 +298,8 @@ __attribute__((__interrupt__)) void MEFSM_INT(void)			// ME interrupt
 	int16 IQMax = 0;
 	int16 IQMin = 0;
 	int32 WUFIN_TEMP = 0;
-	
-	if (readbit_csr(ME_IFR, NIF0))
+
+if (readbit_csr(ME_IFR, NIF0))
 	{
 		if (mcFocCtrl.VelLoopEnable)
 		{
@@ -354,36 +331,34 @@ __attribute__((__interrupt__)) void MEFSM_INT(void)			// ME interrupt
 //			NFOC_ID = NFOC_IB;
 			NFOC_IQ = NFOC_IA;
 			
-			write_csr(ME_STR, 27);		// 跳过Clarke变换
-			write_csr(ME_ST0, 140);		// 147在SVPWM之前产生中断 136:在电流环PI之后产生中断
+			write_csr(ME_STR, 27);		// Skip Clarke transform
+			write_csr(ME_ST0, 140);		// 147 generates interrupt before SVPWM 136: generates interrupt after current-loop PI
 		}
 		else
 		{
 			MEFlag = 0;
 			VCM_DriverOut();
-			write_csr(ME_STR, 221);		// 跳过SVPWM
-			write_csr(ME_ST0, 8);		// 在Clarke变换这一步产生中断
+			write_csr(ME_STR, 221);		// Skip SVPWM
+			write_csr(ME_ST0, 8);		// Generate interrupt at the Clarke transform step
 		}
 
 		clr_csr(ME_IER, NIE0 | NPE0);
 		clr_csr(ME_IFR, NIF0 | NPF0);
 		set_csr(ME_IER, NIE0 | NPE0);
-	}
-		
+	}		
 #endif
-
 }
 #endif // #if MOTOR_VCM_ENABLED
 
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   void CAN_INT(void) interrupt 30
-/* Input    :   NO
-/* Output   :   NO
-/* Description: CAN接收/发送完成中断
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	CAN receive/transmit complete interrupt
+ * Input	:	No
+ * Output	:	No
+ * Description:	CAN receive/transmit complete interrupt
+ *---------------------------------------------------------------------------*/
 #if EXCTRL_CANOPEN_ENABLED || COMM_CAN_ENABLED
-__attribute__((__interrupt__)) void CAN_INT(void)			//CAN中断
+__attribute__((__interrupt__)) void CAN_INT(void)			//CAN interrupt
 {
 	if (readbit_csr(CAN_IFR, RXIF))
 	{

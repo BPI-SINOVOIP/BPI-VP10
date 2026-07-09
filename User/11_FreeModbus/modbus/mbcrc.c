@@ -29,7 +29,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * File: $Id: mbcrc.c,v 1.7  2007/02/18 23:50:27 wolti Exp $
- *		 $Id: mbcrc.c,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: mbcrc.c,v 2.01 2022/05/13 11:09:05 Summer.li: Modified for Fortior MCU chip $
  */
 
 /* ----------------------- Platform includes --------------------------------*/
@@ -108,8 +108,8 @@ void usMBCRCInit(void)
 {
 	set_csr(CRC_CR, CRCVAL);	//0-->0x0000  1-->0xffff
 	set_csr(CRC_CR, CRCDINI);	//1-->init success
-	set_csr(CRC_CR, RESINV);	//1-->输出结果翻转
-	set_csr(CRC_CR, DATINV);	//1-->数据输入翻转
+	set_csr(CRC_CR, RESINV);	//1-->Invert output result
+	set_csr(CRC_CR, DATINV);	//1-->Invert data input
 	set_csr(CRC_CR, CRCSEL);	//0-->0x1021  1-->0x8005
 
 #if CRC_DMA_ENABLED

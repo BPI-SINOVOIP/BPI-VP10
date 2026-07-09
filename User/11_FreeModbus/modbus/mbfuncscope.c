@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * File: $Id: mbfuncscope.c,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ * File: $Id: mbfuncscope.c,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for the Fengyin MCU chip $
  */
 
 /* ----------------------- System includes ----------------------------------*/

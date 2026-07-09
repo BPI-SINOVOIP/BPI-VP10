@@ -29,7 +29,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * File: $Id: mb.h,v 1.17 2006/12/07 22:10:34 wolti Exp $
- *		 $Id: mb.h,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: mb.h,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for Fengyin MCU chips $
  */
 
 #ifndef _MB_H
@@ -148,7 +148,8 @@ eMBErrorCode eMBInit(UCHAR ucSlaveAddress);
  *
  * \param usTCPPort The TCP port to listen on.
  * \return If the protocol stack has been initialized correctly the function
- *   returns eMBErrorCode::MB_ENOERR. Otherwise one of the following error
+
+*   returns eMBErrorCode::MB_ENOERR. Otherwise one of the following error
  *   codes is returned:
  *    - eMBErrorCode::MB_EINVAL If the slave address was not valid. Valid
  *        slave addresses are in the range 1 - 247.
@@ -298,6 +299,7 @@ eMBErrorCode eMBSetSlaveID(UCHAR ucSlaveID, BOOL xIsRunning,
  *   - eMBErrorCode::MB_EIO If an unrecoverable error occurred. In this case
  *       a <b>SLAVE DEVICE FAILURE</b> exception is sent as a response.
  */
+
 eMBErrorCode eMBRegInputCB(UCHAR * pucRegBuffer, UCHAR usAddressH, UCHAR usAddressL,
 	USHORT usNRegs);
 
@@ -448,6 +450,7 @@ eMBErrorCode eMBRegErrorCB(UCHAR * pucRegBuffer);
  *       a <b>SLAVE DEVICE FAILURE</b> exception is sent as a response.
  */
 //eMBErrorCode    eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress,
+
 //                                  USHORT usNDiscrete );
 
 #ifdef __cplusplus

@@ -24,11 +24,13 @@ UINT8 EncSPI2ReadData[ENC_SPI2_LEN] = { 0 };
 UINT8 EncSPI2WriteData[ENC_SPI2_LEN] = { 0 };
 #endif
 
-/*=================================================================================
-    Function Name	:	SPI2_Encoder_Init(void)
-    Description		:	SPI2 initial function
-	Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI2_Encoder_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	SPI2 encoder initialization
+ *---------------------------------------------------------------------------*/
 void SPI2_Encoder_Init(void)
 {
 	SPI2_Init();
@@ -49,7 +51,7 @@ void SPI2_Encoder_Init(void)
 	
 #ifdef ENCCAL_PIN
 	clr_csr(ENCCAL_GPIO, ENCCAL_PIN);
-	set_csr(ENCCAL_OE, ENCCAL_PIN);		// 输出使能 /* 0: Enable digital output */
+	set_csr(ENCCAL_OE, ENCCAL_PIN);		// Output enable /* 0: Enable digital output */
 #endif
 
 #if (ENCSPI2_Source == ENCSPI_KTH)
@@ -59,15 +61,17 @@ void SPI2_Encoder_Init(void)
 #endif
 }
 
-/*=================================================================================
-	Function Name	:	SPI2_Encoder_Enable(void)
-	Description		:	SPI enable function
-	Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI2_Encoder_Enable
+ * Input	:	No
+ * Output	:	No
+ * Description:	SPI2 encoder enable
+ *---------------------------------------------------------------------------*/
 void SPI2_Encoder_Enable(uint8 EncSel)
 {
-	clr_csr(CK_CR, BISSCKEN);				// 关闭BiSS模块时钟
-	set_csr(SPI2_CR, SPIEN);				// SPI使能 0-->Disable 1-->Enable
+	clr_csr(CK_CR, BISSCKEN);				// Disable BiSS module clock
+	set_csr(SPI2_CR, SPIEN);				// SPI enable 0-->Disable 1-->Enable
 	
 	mcEncoder.SPI2.Multi = 0;
 	mcEncoder.SPI2.EncSel = EncSel;
@@ -105,25 +109,29 @@ void SPI2_Encoder_Enable(uint8 EncSel)
 #endif
 #endif
 	
-	DESELECT_SPI2; // 拉高NSS脚
+	DESELECT_SPI2; // Pull high NSS pin
 }
 
-/*=================================================================================
-	Function Name	:	SPI2_Encoder_Disable(void)
-	Description		:	SPI2 disable function
-	Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI2_Encoder_Disable
+ * Input	:	No
+ * Output	:	No
+ * Description:	SPI2 encoder disable
+ *---------------------------------------------------------------------------*/
 void SPI2_Encoder_Disable(void)
 {
-	DESELECT_SPI2;			// 拉高NSS脚
-	clr_csr(SPI2_CR, SPIEN);				// SPI使能 0-->Disable 1-->Enable
+	DESELECT_SPI2;			// Pull high NSS pin
+	clr_csr(SPI2_CR, SPIEN);				// SPI enable 0-->Disable 1-->Enable
 }
 
-/*=================================================================================
-Function Name	:	SPI2_Encoder_Update(void)
-Description		:	SPI update data length
-Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI2_Encoder_Update
+ * Input	:	No
+ * Output	:	No
+ * Description:	SPI2 encoder parameter update
+ *---------------------------------------------------------------------------*/
 void SPI2_Encoder_Update(void)
 {
 	if (mcEncoder.SPI2.EncSel == ENCSEL_MOTOR && mcEncoder.SPI2.ZeroBits != usSRegHoldBuf[ENCZEROBITS])
@@ -135,11 +143,13 @@ void SPI2_Encoder_Update(void)
 	}
 }
 
-/*=================================================================================
-Function Name	:	SPI2_Encoder_Calibration(void)
-Description		:	Do Encoder_Calibration
-Parameter		:	None.
-=================================================================================*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI2_Encoder_Calibration
+ * Input	:	No
+ * Output	:	No
+ * Description:	SPI2 encoder calibration
+ *---------------------------------------------------------------------------*/
 void SPI2_Encoder_Calibration(void)
 {
 #if (ENCSPI2_Source == ENCSPI_KTH)
@@ -181,12 +191,14 @@ void SPI2_Encoder_Calibration(void)
 #endif
 }
 
-/*=================================================================================
-	Function Name	:	SPI2_Encoder_GetPos(void)
-	Description		:	get SPI2 data. KTH7111
-	Parameter		:	None.
-=================================================================================*/
-uint16 SPI2_Encoder_GetPos(uint32* pEncPos)     //获取绝对值编码器位置的函数
+
+/*---------------------------------------------------------------------------
+ * Name		:	SPI2_Encoder_GetPos
+ * Input	:	*pEncPos - encoder value
+ * Output	:	encoder error status
+ * Description:	Get SPI2 encoder value
+ *---------------------------------------------------------------------------*/
+uint16 SPI2_Encoder_GetPos(uint32* pEncPos) 
 {
 	uint8 EncSPIData[4] = { 0 };
 	uint16 errCode = 0;
@@ -223,7 +235,7 @@ uint16 SPI2_Encoder_GetPos(uint32* pEncPos)     //获取绝对值编码器位置
 	SELECT_SPI2;
 
 	set_csr(ENCSPI2_WR_DMA_CR, DMABSY);
-	set_csr(ENCSPI2_RD_DMA_CR, DMABSY); // 读busy需放在写busy之后
+	set_csr(ENCSPI2_RD_DMA_CR, DMABSY); // Read busy must be placed after write busy
 
 #else
 	SELECT_SPI2;

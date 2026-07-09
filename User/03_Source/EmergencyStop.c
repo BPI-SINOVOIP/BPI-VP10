@@ -29,12 +29,12 @@ EmergencyStopTypeDef mcEmergencyStop = {0};
 * Internal Routine Prototypes
 ********************************************************************************/
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Do_EmergencyStop(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	停车方式.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Do_EmergencyStop
+ * Input	:	No
+ * Output	:	No
+ * Description:	Stopping method
+ *---------------------------------------------------------------------------*/
 void Do_EmergencyStop(void)
 {	
 	if (McStaSet.SetFlag.BrakeFlag == 0)
@@ -65,7 +65,7 @@ void Do_EmergencyStop(void)
 	
 	switch (mcEmergencyStop.State)
 	{
-	case EMER_DEC:     // 开始减速
+	case EMER_DEC:     // Start deceleration
 		RampStop_Init();
 		mcEmergencyStop.DisSpeed = usSRegHoldBuf[DISSPEED];
 		mcEmergencyStop.TimeCounter = usSRegHoldBuf[DISTIME];
@@ -74,7 +74,7 @@ void Do_EmergencyStop(void)
 		mcEmergencyStop.State = EMER_STOP;
 		break;
 		
-	case EMER_STOP:     // 减速到DISSPEED且维持一段时间
+	case EMER_STOP:     // Decelerate to DISSPEED and hold for a period
 		if (ABS((int16)usSRegInBuf[ACTVEL]) <= mcEmergencyStop.DisSpeed || mcEmergencyStop.TimeOutCounter == 0)
 		{
 			if (mcEmergencyStop.TimeCounter == 0 || mcEmergencyStop.TimeOutCounter == 0)
@@ -86,8 +86,8 @@ void Do_EmergencyStop(void)
 				else
 				{
 					mcEmergencyStop.StartBrakeFlag = 0;
-					clr_csr(DRV1_CR, DRVOE);			// Driver输出使能	0-->Disable		1-->Enable
-					clr_csr(DRV1_OUT, MOE);		//关闭主输出使能(DB无效)
+					clr_csr(DRV1_CR, DRVOE);			// Driver output enable	0-->Disable		1-->Enable
+					clr_csr(DRV1_OUT, MOE);		// Disable main output enable (DB invalid)
 					mcEmergencyStop.State = EMER_FINISH;
 				}
 			}
@@ -98,7 +98,7 @@ void Do_EmergencyStop(void)
 		}
 		break;
 
-	case EMER_DISABLE:     // 关掉通电、开启DB
+	case EMER_DISABLE:     // Turn off power and enable DB
 		Do_DisableServo();
 		
 		if (GetReg(usSRegHoldBuf[DISMODE], DYNBRKMODE) == DYNBRK_ALWAYS || 
@@ -113,7 +113,7 @@ void Do_EmergencyStop(void)
 			mcEmergencyStop.TimeCounter = usSRegHoldBuf[DISTIME];
 			mcEmergencyStop.TimeOutCounter = usSRegHoldBuf[DISTIMEOUT];
 		}
-		else // 斜坡/零速停机不用再次确认降速到期望值
+		else // Ramp/zero-speed stop doesn't need to reconfirm deceleration to desired value
 		{
 			mcEmergencyStop.DisSpeed = usSRegHoldBuf[DISSPEED] >> 3;
 			mcEmergencyStop.TimeCounter = 5;
@@ -125,7 +125,7 @@ void Do_EmergencyStop(void)
 
 		
 	case EMER_IDLE:
-	case EMER_FINISH:     // 跳出mcState = mcDisable状态
+	case EMER_FINISH:     // Exit to mcDisable state
 		if (mcFaultSource != FaultNoSource)
 		{
 			mcState = mcFault;
@@ -143,44 +143,44 @@ void Do_EmergencyStop(void)
 }
 	
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_DynamicBrake_Init(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	动态制动初始化
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_DynamicBrake_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	Dynamic brake initialization
+ *---------------------------------------------------------------------------*/
 void Motor_DynamicBrake_Init(void)
 {
 	mcEmergencyStop.BrakeArrMax = read_csr(DRV1_ARR) + 1;
 	mcEmergencyStop.BrakeArr = mcEmergencyStop.BrakeArrMax >> 1;
 	
-	clr_csr(DRV1_CR, DRVOE);			// Driver输出使能	0-->Disable		1-->Enable
-	clr_csr(DRV1_OUT, MOE);		//主输出使能，用于选择三相上下桥信号来源
-	clr_csr(DRV1_FCR0, NCALEN);	// 关FOC计算使能
+	clr_csr(DRV1_CR, DRVOE);			// Driver output enable	0-->Disable		1-->Enable
+	clr_csr(DRV1_OUT, MOE);		// Main output enable, used to select the source of three-phase upper/lower bridge signals
+	clr_csr(DRV1_FCR0, NCALEN);	// Disable FOC calculation enable
 
-	write_csr(DRV1_DR, mcEmergencyStop.BrakeArr);		//三相PWM占空比设定值
-	write_csr(DRV1_CMR, 0x0015);					// 上管全关，下管全开
+	write_csr(DRV1_DR, mcEmergencyStop.BrakeArr);		// Three-phase PWM duty setting
+	write_csr(DRV1_CMR, 0x0015);					// Upper transistors fully off, lower transistors fully on
 
 	set_csr(DRV1_OUT, MOE);
-	set_csr(DRV1_CR, DRVOE);			// Driver输出使能	0-->Disable		1-->Enable
+	set_csr(DRV1_CR, DRVOE);			// Driver output enable	0-->Disable		1-->Enable
 	
 	if ((int16)usSRegHoldBuf[STOPCURRENT] > 0)
 		mcEmergencyStop.StartBrakeFlag = 1;
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_DynamicBrake_realize(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	动态制动，根据电流值修改占空比
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_DynamicBrake_realize
+ * Input	:	No
+ * Output	:	No
+ * Description:	Dynamic braking: adjust duty cycle according to current value
+ *---------------------------------------------------------------------------*/
 void Motor_DynamicBrake_realize(void)
 {
 	if (mcEmergencyStop.StartBrakeFlag == 1)
 	{
 		int16 maxIaIb = MAX(ABS((int16)usSRegInBuf[MB_IA]), ABS((int16)usSRegInBuf[MB_IB]));
-		//计算ARR值，更改占空比
+		// Calculate ARR value, change duty cycle
 		mcEmergencyStop.BrakeArr += ((int16)usSRegHoldBuf[STOPCURRENT] - maxIaIb) >> 6;
 		
 		if (mcEmergencyStop.BrakeArr > mcEmergencyStop.BrakeArrMax)
@@ -188,17 +188,17 @@ void Motor_DynamicBrake_realize(void)
 		else if (mcEmergencyStop.BrakeArr < 1)
 			mcEmergencyStop.BrakeArr = 1;
 		
-		write_csr(DRV1_DR, mcEmergencyStop.BrakeArr);		//三相PWM占空比设定值	
+		write_csr(DRV1_DR, mcEmergencyStop.BrakeArr);		// Three-phase PWM duty setting	
 	}
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void RampStop_Init(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	减速停机初始化
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	RampStop_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	Deceleration stop initialization
+ *---------------------------------------------------------------------------*/
 void RampStop_Init(void)
 {
 	mcEmergencyStop.VelInc = (int32)usSRegHoldBuf[DISDEC];
@@ -214,12 +214,13 @@ void RampStop_Init(void)
 	mcEmergencyStop.DecStopFlag = 1;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void RampStop_realize(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	减速停机(在中断里执行)
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	RampStop_realize
+ * Input	:	No
+ * Output	:	Planned speed command
+ * Description:	Execute deceleration stop, executed in interrupt
+ *---------------------------------------------------------------------------*/
 int16 RampStop_realize(void)
 {
 	int32 temp;
@@ -263,19 +264,19 @@ int16 RampStop_realize(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void EmergencyStop_TimeCount(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	停机的时间判断，放在1ms循环里
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	EmergencyStop_TimeCount
+ * Input	:	No
+ * Output	:	No
+ * Description:	Stop time judgment, placed in 1ms loop
+ *---------------------------------------------------------------------------*/
 void EmergencyStop_TimeCount(void)
 {
 	if (mcEmergencyStop.TimeCounter > 0)
-		mcEmergencyStop.TimeCounter--;   //停机静止计数器
+		mcEmergencyStop.TimeCounter--;   // Stop stationary counter
 	
 	if (mcEmergencyStop.TimeOutCounter > 0)
-		mcEmergencyStop.TimeOutCounter--;   //停机超时计数器
+		mcEmergencyStop.TimeOutCounter--;   // Stop timeout counter
 	
 	Motor_DynamicBrake_realize();
 }
@@ -283,12 +284,12 @@ void EmergencyStop_TimeCount(void)
 #endif // #if FUNC_DISMODE_ENABLED
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Do_DisableServo(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	电机关掉通电.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Do_DisableServo
+ * Input	:	No
+ * Output	:	No
+ * Description:	Turn off motor power.
+ *---------------------------------------------------------------------------*/
 void Do_DisableServo(void)
 {
 	Motor_DisableServo();
@@ -300,7 +301,7 @@ void Do_DisableServo(void)
 	
 	if (mcRegParam.WorkMode == COMM_ECAT)
 	{
-		// 用于ECAT通讯时，控制伺服的边沿变量的清零
+		// Used during ECAT communication to clear edge variables for servo control
 		ClrBit(usSRegHoldBuf[DRIVECTRL], CTRL_DISABLE);
 		ClrBit(usSRegHoldBuf[DRIVECTRL], CTRL_ENABLE);
 		ClrBit(usSRegHoldBuf[PROFILECTRL], PROF_MOTIONEN);

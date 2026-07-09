@@ -30,7 +30,7 @@
  *
  * File: $Id: mbport.h,v 1.17 2006/12/07 22:10:34 wolti Exp $
  *            mbport.h,v 1.60 2013/08/17 11:42:56 Armink Add Master Functions  $
- *		 $Id: mbport.h,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: mbport.h,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for Fengyan MCU chip $
  */
 
 #ifndef _MB_PORT_H
@@ -45,9 +45,8 @@ PR_BEGIN_EXTERN_C
 /*! \brief If connect with ServoStudio using CAN is enabled. */
 #define COMM_SERIAL_RS485_ENABLED				(COMM_UART_RS485_ENABLED)
   
-// 选择UART1或者UART2          
+// Choose UART1 or UART2          
 #define MODBUS_UART								( 2 )
-
 
 	/* ----------------------- Defines ------------------------------------------*/
 

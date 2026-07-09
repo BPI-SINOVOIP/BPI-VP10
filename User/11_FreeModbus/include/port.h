@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * File: $Id: port.h,v 1.60 2013/08/13 15:07:05 Armink add Master Functions $
- *		 $Id: port.h,v 2.01 2022/05/13 11:09:05 Summer.li: 针对峰岹MCU芯片做相应修改 $
+ *		 $Id: port.h,v 2.01 2022/05/13 11:09:05 Summer.li: Made corresponding modifications for the Fengyan MCU chips $
  */
 
 #ifndef _PORT_H
@@ -40,7 +40,7 @@
 #define EXIT_CRITICAL_SECTION()    // ExitCriticalSection()
 
 
-//此处需修改成宏定义模式，否则与ecat协议栈相关定义冲突  by Victor 20230321
+//This needs to be changed to macro definition mode, otherwise it will conflict with definitions related to the ecat protocol stack  by Victor 20230321
 //typedef unsigned char  BOOL;
 #ifndef BOOL
 #define BOOL                                      unsigned char

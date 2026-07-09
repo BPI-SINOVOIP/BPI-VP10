@@ -6,7 +6,7 @@
  * File Name     : main.c
  * Author        : Fortior Application Team
  * Date          : 2021-04-27
- * Description   : 主循环
+ * Description   : Main loop
  *
  * Record        :
  * V1.0, 2021-04-27, Fortior Application Team: Created file
@@ -30,26 +30,25 @@ void HardwareInit(void);
 void SoftwareInit(void);
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void main(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	主函数主要功能是初始化，包括上电等待，软件初始化，硬件初始化，
-/*              调试模式设置，主循环扫描。
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	main
+ * Input	:	h_Fault - Pointer to the instance of FaultVarible
+ * Output	:	No
+ * Description:	The main function's primary role is initialization, including power-on wait, software initialization, hardware initialization, 
+ *              debug mode setup, main loop scanning, and 1ms processing.
+ *---------------------------------------------------------------------------*/
 void main(void)
 {
 	Delay_ms(SYSTEM_POWERUP_TIME);// Wait until voltage and current stable
 
-	/*Software Init*/
+	/*Software initialization*/
 	SoftwareInit();
 
-	/*Hardware Init*/
+	/*Hardware initialization*/
 	HardwareInit();
 
-	/****************************总中断使能**************************/
+	/*Global interrupt enable*/
 	set_csr(MIE, IRQ_EN);
-	/****************************************************************/
 
 	while (1)
 	{
@@ -76,26 +75,26 @@ void main(void)
 			CANSpec_cycle_process();
 #endif
 
-			UpdateTemperature();		// 更新温度值
+			UpdateTemperature();		// Update temperature value
 			
-			/*****故障保护函数功能，如过欠压保护、启动保护、缺相、堵转等********/
+			// Fault protection functions, such as over/under voltage protection, startup protection, phase loss, locked-rotor, etc.
 			Fault_Detection();
-			Fault_TimeCount();			// 报错计时
+			Fault_TimeCount();			// Error timing
 
-			Check_InPos();				// 检测是否到位完成
+			Check_InPos();				// Check if position reached/completed
 
 #if FUNC_LED_TUBE_ENABLED
-			LedTube_UpdateStatus();       // 更新数码管的显示值
+			LedTube_UpdateStatus();       // Update digital tube display value
 #endif //#if FUNC_LED_TUBE_ENABLED
 
 #if FUNC_LED_DIODE_ENABLED
-			LedDiode_Display();		     // 更新LED灯的闪烁
+			LedDiode_Display();		     // Update LED blinking
 #endif // #if FUNC_LED_DIODE_ENABLED
 
 			if (mcState == mcPhaseFind && McStaSet.SetFlag.PhaseFindSetFlag == 1)
-				Motor_PhaseFind();
+				Motor_PhaseFind(); // Phase finding
 
-			
+			// Update phase currents, bus voltage (for host computer display)
 			usSRegInBuf[MB_IC] = NFOC_IC;
 			usSRegInBuf[BUSVOLTAGE] = NFOC_UDC; // NFOC_UDCFLTH;
 			if (mcFocCtrl.CurLoopEnable == 1)
@@ -111,21 +110,22 @@ void main(void)
 			usSRegInBuf[MB_ID] = NFOC_ID;
 			usSRegInBuf[MB_UD] = NFOC_UDFIN;
 			usSRegInBuf[MB_UQ] = NFOC_UQFIN;
+			// UV phase current
+			usSRegInBuf[ADCIA] = NFOC_I1;
+			usSRegInBuf[ADCIB] = NFOC_I2;
 			
 #if ENCODER_SEL_HALL_ENABLED
 			usSRegInBuf[HALLS] = GetHallStatus();
 #endif // #if ENCODER_SEL_HALL_ENABLED
 
-
-			/*****电机状态机的时序处理*****/
-			if (mcFocCtrl.State_Count > 0) mcFocCtrl.State_Count--;  // 状态机切换专用计数器
+			if (mcFocCtrl.State_Count > 0) mcFocCtrl.State_Count--;  // Special counter for state machine switching
 			
 #if FUNC_DISMODE_ENABLED
 			EmergencyStop_TimeCount();
 #endif //#if FUNC_DISMODE_ENABLED
 			
 #if FUNC_FORCECTRL_ENABLED
-			if (ForceCtrl.TimeCounter > 0) ForceCtrl.TimeCounter--;  // 力控模式各阶段等待时间计数器
+			if (ForceCtrl.TimeCounter > 0) ForceCtrl.TimeCounter--;  // Wait time counter for each stage of force control mode
 #endif //#if FUNC_FORCECTRL_ENABLED
 			
 #if SPECIAL_ELESCREW_ENABLE
@@ -133,14 +133,14 @@ void main(void)
 #endif
 
 #if FUNC_HOME_ENABLED
-			Home_TimeCount();  // 回零计时
+			Home_TimeCount();  // Homing timing
 #endif //#if FUNC_HOME_ENABLED
 			
-			Motor_Profile_TimeCount();  // 位置规划计时
+			Motor_Profile_TimeCount();  // Position profiling timing
 			
 #if FUNC_MOTOREST_ENABLED
 			if ((mcState == mcMotorIdentify) && (McStaSet.SetFlag.IdentifySetFlag == 1))
-				Motor_Identify_realize();
+				Motor_Identify_realize(); // Motor parameter identification
 #endif
 				
 			TimerFlag_1ms = 0;
@@ -158,112 +158,108 @@ void main(void)
 		ScrewCtrl_Update();
 #endif
 		
-		ModeSW_Update();
+		ModeSW_Update();							// Mode switching
 
-		MC_Control();                           // 主控函数
+		MC_Control();								// Main state machine function
 
 		if (mcState != mcReady)
 		{
-			UpdateParam();			                // 根据modbus传过来的参数更新变量值(非实时)
-			UpdateDigitalIO();                      // 更新IO状态
+			UpdateParam();			                // Update variable values based on parameters from serial port (non-real-time)
+			UpdateDigitalIO();                      // Update IO status
 
 #if FUNC_REGENERATION_ENABLED
-			RegenerationHandler();                  // 再生制动
+			RegenerationHandler();                  // Regenerative braking
 #endif //#if FUNC_REGENERATION_ENABLED
 
 		}
 		
-		IWDT_Refresh();					//独立看门狗喂狗
+		IWDT_Refresh();								//Independent watchdog feed
 		
 #if EXCTRL_CANOPEN_ENABLED
 		CANOpenProcess();
 #endif //#if EXCTRL_CANOPEN_ENABLED
 
-#if DEBUG_UART_ENABLED > 0 // 串口测试模式
+#if DEBUG_UART_ENABLED > 0 // Serial port test mode
 		UART_ANODubugerBuffConfig();
 		SendDataByUart();
-#elif COMM_UART_ENABLED > 0 // 串口上位机通信模式
+#elif COMM_UART_ENABLED > 0 // Serial port host communication mode
 		eMBPoll();
 #endif
 		
-#if COMM_CAN_ENABLED > 0 // CAN上位机通信模式
+#if COMM_CAN_ENABLED > 0 // CAN host communication mode
 		eCSPoll();
 #endif
 	}
 }
 
 
-
-/*---------------------------------------------------------------------------*/
-/* Name		:	void SoftwareInit(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	软件初始化，初始化所有定义变量
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	SoftwareInit
+ * Input	:	No
+ * Output	:	No
+ * Description:	Software initialization, initializes all defined variables
+ *---------------------------------------------------------------------------*/
 void SoftwareInit(void)
 {
-	memset(NFOC_BASE, 0, 2048);
-	/****初始化所有定义的参数变量****/
-	MotorControlInit();
-	/****电机初始状态为mcReady，故障保护为无故障******/
-	mcState = mcReady;
+	memset(NFOC_BASE, 0, 2048); // Initialize all hardware FOC variables
+	
+	MotorControlInit(); // Initialize all defined parameter variables
+
+	mcState = mcReady; // Motor initial state is mcReady
 }
 
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void HardwareInit(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	硬件初始化，初始化需要使用的硬件设备配置，FOC必须配置的是
-/*              运放电压、运放初始化、ADC初始化、Driver初始化
-/*              TIM4初始化，其他的可根据实际需求加。
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	HardwareInit
+ * Input	:	No
+ * Output	:	No
+ * Description:	Hardware initialization, initializes required hardware configurations; for FOC, op-amp voltage, 
+ *              op-amp initialization, ADC initialization, and driver initialization are mandatory.
+ *---------------------------------------------------------------------------*/
 void HardwareInit(void)
 {
-	write_csr(CK_CR, 0xfffff); // 启动时钟
+	/****** Start clock ******/
+	write_csr(CK_CR, 0xfffff);
 
-
-	/****** 功能IO初始化 ******/
+	/****** Functional IO initialization ******/
 	GPIO_Init();
 
-	/****** SPI DEBUG 初始化 ******/
+	/****** SPI DEBUG initialization ******/
 #if TEST_SPIDEBUG_HW_ENABLED || TEST_SPIDEBUG_SW_ENABLED
 	SPIDebugSet();
 #endif
 
-	/****** Signal Debug 初始化 ******/
+	/****** Signal Debug initialization ******/
 #if TEST_SIGNALDEBUG_ENABLED
-	SignalDebugSet();			//打开DATAMONITOR，管脚PA9连接到单线DBG的板子能查看信号，管脚PA1能查看电流采样时机
+	SignalDebugSet();			//Turn on DATAMONITOR; PA9 connected to single-wire DBG board allows signal monitoring, PA1 allows checking current sampling timing.
 #endif
 	
 #if FUNC_LED_TUBE_ENABLED || !FUNC_SOFT_EEPROM_ENABLED
-	/****** IIC LED/EEPROM 初始化 ******/
+	/****** IIC LED/EEPROM initialization ******/
 	I2C_Init();
-#endif // #if FUNC_LED_TUBE_ENABLED || FUNC_EEPROM_ENABLED
+#endif
 	
 #if FUNC_EEPROM_ENABLED
-	/****** 加载Flash的参数表 ******/
-	// set newly added parameters default value here
-	//	usSRegHoldBuf[FBSYNCSET] = 65241;
-	UploadDataFromEEPROM(); // 参数表中包含电流基准校正需要的参数
-	Fault_UploadErrCode();
+	/****** Load from EEPROM ******/
+	UploadDataFromEEPROM(); // Load parameter table
+	Fault_UploadErrCode();  // Load error history
 	mcRegParam.DriveMode = usSRegHoldBuf[DRIVEMODE];
 #endif // #if FUNC_EEPROM_ENABLED
 	
 	
-#if DEBUG_UART_ENABLED > 0 // 串口测试模式
+#if DEBUG_UART_ENABLED > 0 // Serial port test mode
 #if(MODBUS_UART == 1)
-	UART1_Init();	// 串口调试模式 uart initial in UART.c
+	UART1_Init();
 #else
 	UART2_Init();
 #endif
-#elif COMM_UART_ENABLED > 0 // 串口上位机通信模式
+#elif COMM_UART_ENABLED > 0 // Serial port host communication mode
 	eMBInit(MODEBUS_SLAVE_ID);
 	eMBEnable();
 #endif
 
-#if COMM_CAN_ENABLED > 0 // CAN上位机通信模式
+#if COMM_CAN_ENABLED > 0 // CAN host communication mode
 	usSRegHoldBuf[CANBITRATE] = 0;
 	eCSInit(usSRegHoldBuf[CANBITRATE]);
 	eCSEnable();
@@ -271,15 +267,15 @@ void HardwareInit(void)
 	
 
 #if EXCTRL_ECAT_ENABLED
-	/****** EtherCAT同步信号外部中断初始化 ******/
+	/****** EtherCAT synchronization signal external interrupt initialization ******/
 	EXTI1_Init();	// 
-	/****** EtherCAT初始化 ******/
+	/****** EtherCAT initialization ******/
 	EcatInit();
 #endif // #if EXCTRL_ECAT_ENABLED
 	
 	
 #if EXCTRL_CANOPEN_ENABLED
-	/****** CANopen初始化 ******/
+	/****** CANopen initialization ******/
 #if (HARDWARE_VERSION == HARDWARE_FPGA_HIGHVOL_SWITCH || HARDWARE_VERSION == HARDWARE_FPGA_LOWVOL_SWITCH)
 	usSRegHoldBuf[COMMADDR] = 5;
 #endif
@@ -287,28 +283,28 @@ void HardwareInit(void)
 	CANOpenInit(usSRegHoldBuf[COMMADDR], usSRegHoldBuf[CANBITRATE]);
 #endif // #if EXCTRL_CANOPEN_ENABLED
 	
-	/****** ADC参考电压电压配置 ******/
+	/****** ADC reference voltage configuration ******/
 	VREFConfigInit();
 	
 #if (HW_AMP_SEL == AMP_ONCHIP)
-	/****** 运算放大器初始化 ******/
+	/****** Operational amplifier initialization ******/
     AMP_Init();
 #endif
 
-	/****** ADC初始化 ******/
+	/****** ADC initialization ******/
 	ADC_Init();
 	ADC2_Init();
 	
-	/****** 硬件FO过流，比较器初始化，用于硬件过流比较保护 ******/
-#if (HardwareCurrent_Protect == Hardware_FO_Protect)		//外部中断初始化，用于外部中断硬件过流FO的保护
+	/****** Hardware FO overcurrent, comparator initialization, used for hardware overcurrent comparison protection ******/
+#if (HardwareCurrent_Protect == Hardware_FO_Protect)		//External interrupt initialization, used for external interrupt hardware overcurrent FO protection
 #if (Hardware_FO_SRC == Hardware_FO_EXTI0)
 	EXTI0_Init();
 #else
 	EXTI2_Init();
 #endif
-#elif (HardwareCurrent_Protect == Hardware_CMP_Protect)		//选择比较过流，比较器初始化
+#elif (HardwareCurrent_Protect == Hardware_CMP_Protect)		//Select comparison overcurrent, comparator initialization
 	CMP3_Init();
-#elif (HardwareCurrent_Protect == Hardware_FO_CMP_Protect)	//两者都选择
+#elif (HardwareCurrent_Protect == Hardware_FO_CMP_Protect)	//Both selected
 #if (Hardware_FO_SRC == Hardware_FO_EXTI0)
 	EXTI0_Init();
 #else
@@ -318,48 +314,48 @@ void HardwareInit(void)
 #endif
 
 
-	/****** Driver初始化 ******/
+	/****** Driver initialization ******/
 	Driver1_Init();
 
-	/****** 位置环中断Timer3初始化 ******/
+	/****** Position loop interrupt Timer3 initialization ******/
 	Timer3_Init();
 	
-	/****** 编码器初始化 ******/
+	/****** Encoder initialization ******/
 	Encoder_Init();
 
 #if EXCTRL_ENCOUT_ENABLED
-	/****** 分频输出初始化 ******/
+	/****** Frequency division output initialization ******/
 	Timer5_Init();
 #endif // #if EXCTRL_ENCOUT_ENABLED
 
 #if EXCTRL_PULSE_ENABLED
-	/****** 脉冲方向输入初始化 ******/
+	/****** Pulse-direction input initialization ******/
 	Timer6_Init();
 #endif // #if EXCTRL_PULSE_ENABLED
 
 #if FUNC_REGENERATION_ENABLED
-	/****** 制动斩波Timer初始化 ******/
+	/****** Regenerative braking chopper Timer initialization ******/
 	Timer8_Init();
 #endif // #if FUNC_REGENERATION_ENABLED
 
 #if FUNC_PROBE_ENABLED
-	/****** 探针输入初始化 ******/
+	/****** Probe input initialization ******/
 	Probe_Init();
 #endif // #if FUNC_PROBE_ENABLED
 	
 #if FUNC_PCOM_ENABLED
-	/****** 位置比较输出初始化 ******/
+	/****** Position comparison output initialization ******/
 	PCOM_Init();
 #endif // #if FUNC_PCOM_ENABLED
 
 #if FUNC_LED_TUBE_ENABLED
-	/****** 数码管初始化 ******/
+	/****** Digital tube initialization ******/
 	LedTube_Init();
 #endif // #if FUNC_LED_TUBE_ENABLED
 
-	/****** 上拉不用的GPIO ******/
+	/****** Pull up unused GPIOs ******/
 	GPIO_PU_Init();
 	
-	/****** 独立看门狗初始化 ******/
+	/****** Independent watchdog initialization ******/
 	IWDT_Init();
 }

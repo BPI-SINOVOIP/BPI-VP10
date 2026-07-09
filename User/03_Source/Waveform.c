@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2024-2026 Fortior Technology Co., Ltd.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -6,32 +6,78 @@
  * File Name     : Waveform.c
  * Author        : Summer
  * Date          : 2024-10-09
- * Description   : Base function for velocity/ current loop waveform.
+ * Description   : Base function for velocity/ current loop waveform, including
+ *					trap, sin, constant.
  *
  * Record        :
  * V1.0, 2024-10-09, Summer: Created file
  */
 
-/* Includes -------------------------------------------------------------------------------------*/
+
+/********************************************************************************
+* Header Definition
+********************************************************************************/
 #include "Myproject.h"
 
+
+/********************************************************************************
+* Macro & Structure Definition
+*******************************************************************************/
 SigGenTypeDef mcSigGen = { 0 };
 SINSWEEP_Typedef SinSweep = { 0 };
 #if FUNC_SWEEP_ENABLED
 CHIRPSWEEP_Typedef ChirpSweep = { 0 };
 #endif
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_SerialIn_Init(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Initialize profile variable
-/*---------------------------------------------------------------------------*/
+
+/********************************************************************************
+* Internal Routine Prototypes
+********************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_SerialIn_Update
+ * Input	:	No
+ * Output	:	No
+ * Description:	Update serial velocity/serial current
+ *---------------------------------------------------------------------------*/
+void Motor_SerialIn_Update(void)
+{
+	uint8 motionFlag_Pre, motionFlag;
+	
+	if ((mcRegParam.WorkMode == VELSERIAL) || (mcRegParam.WorkMode == CURSERIAL) ||
+#if EXCTRL_ECAT_ENABLED || EXCTRL_CANOPEN_ENABLED
+		(usSRegInBuf[FBOPMODE] == PROFILE_VELOCITY_MODE) || (usSRegInBuf[FBOPMODE] == PROFILE_TORQUE_MODE) ||
+#endif
+		(mcRegParam.WorkMode == VELFRF) || (mcRegParam.WorkMode == CURFRF) || (mcRegParam.WorkMode == CURTUNE))
+	{	
+		motionFlag_Pre = GetReg(mcRegParam.ProfileCtrl, PROF_MOTIONEN);
+		motionFlag = GetReg(usSRegHoldBuf[PROFILECTRL], PROF_MOTIONEN);
+		
+		if (motionFlag && !motionFlag_Pre)// MOTIONEN rising edge
+		{
+			Motor_SerialIn_Init();
+		}
+
+		// Stop motion
+		if (!motionFlag && motionFlag_Pre) // MOTIONEN falling edge
+		{
+			Motor_SerialIn_StartDeceleration();	
+		}
+	}
+}
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_SerialIn_Update
+ * Input	:	No
+ * Output	:	No
+ * Description:	Initialize serial velocity/serial current
+ *---------------------------------------------------------------------------*/
 void Motor_SerialIn_Init(void)
 {
 	memset(&mcSigGen, 0, sizeof(SigGenTypeDef));
 
-	// 串行速度环模式
+	// Serial velocity-loop mode
 	if (GetReg(usSRegHoldBuf[PROFILECTRL], PROF_VELJOG) 
 #if EXCTRL_ECAT_ENABLED || EXCTRL_CANOPEN_ENABLED
 		|| usSRegInBuf[FBOPMODE] == PROFILE_VELOCITY_MODE
@@ -40,18 +86,18 @@ void Motor_SerialIn_Init(void)
 		)
 	{
 		mcSigGen.WaveType = WAVE_CONST;
-		mcSigGen.Scale = 8;
+		mcSigGen.Scale = VEL_SCALE_SHIFT;
 		mcSigGen.TestCmd = (((int32)(int16)usSRegHoldBuf[WAVECMD]) << mcSigGen.Scale);
 		mcSigGen.TestInc = ((int32)usSRegHoldBuf[WAVEINC]);
 	}
 #if FUNC_FORCECTRL_ENABLED
-	else if (usSRegHoldBuf[FCMOD]) // 力控模式
+	else if (usSRegHoldBuf[FCMOD]) // Force control mode
 	{
 		if (mcRegParam.WorkMode == VELSERIAL)
-			mcSigGen.Scale = 8;
+			mcSigGen.Scale = VEL_SCALE_SHIFT;
 		else
 		{
-			mcSigGen.Scale = 12;
+			mcSigGen.Scale = FRC_SCALE_SHIFT;
 			mcSigGen.Value = (((int32)ForceCtrl.SwitchCurCmd) << mcSigGen.Scale);
 		}
 
@@ -61,13 +107,13 @@ void Motor_SerialIn_Init(void)
 	}
 #endif
 #if SPECIAL_ELESCREW_ENABLE
-	else if (usSRegHoldBuf[ESCMOD]) // 电批模式
+	else if (usSRegHoldBuf[ESCMOD]) // Electric screwdriver mode
 	{
 		if (mcRegParam.WorkMode == VELSERIAL)
-			mcSigGen.Scale = 8;
+			mcSigGen.Scale = VEL_SCALE_SHIFT;
 		else
 		{
-			mcSigGen.Scale = 12;
+			mcSigGen.Scale = FRC_SCALE_SHIFT;
 			mcSigGen.Value = (((int32)ScrewCtrl.SwitchCurCmd) << mcSigGen.Scale);
 		}
 
@@ -76,7 +122,7 @@ void Motor_SerialIn_Init(void)
 		mcSigGen.WaveType = WAVE_CONST;
 	}
 #endif // #if FUNC_FORCECTRL_ENABLED
-	else // 普通模式
+	else // Normal mode
 	{
 		mcSigGen.WaveType = usSRegHoldBuf[WAVETYPE];
 
@@ -92,23 +138,24 @@ void Motor_SerialIn_Init(void)
 #endif
 		else
 		{
-			if (mcRegParam.WorkMode == VELSERIAL) // 串行速度环模式
+			if (mcRegParam.WorkMode == VELSERIAL) // Serial velocity-loop mode
 			{
-				mcSigGen.Scale = 8;
+				mcSigGen.Scale = VEL_SCALE_SHIFT;
 				mcSigGen.DwellTime = (uint32)usSRegHoldBuf[WAVEDWELLTIME] * SERIAL_VELOCITY_FREQUENCY;
 				mcSigGen.PosConstTime = (uint32)usSRegHoldBuf[WAVEPOSTIME] * SERIAL_VELOCITY_FREQUENCY;
 				mcSigGen.NegConstTime = (uint32)usSRegHoldBuf[WAVENEGTIME] * SERIAL_VELOCITY_FREQUENCY;
 			}
-			else if (mcRegParam.WorkMode == CURSERIAL || mcRegParam.WorkMode == CURTUNE) // 串行电流模式
+			else if (mcRegParam.WorkMode == CURSERIAL || mcRegParam.WorkMode == CURTUNE) // Serial current mode
 			{
-				mcSigGen.Scale = 0;
-				mcSigGen.DwellTime = usSRegHoldBuf[WAVEDWELLTIME];
+				mcSigGen.Scale = CUR_SCALE_SHIFT;
+
+mcSigGen.DwellTime = usSRegHoldBuf[WAVEDWELLTIME];
 				mcSigGen.PosConstTime = usSRegHoldBuf[WAVEPOSTIME];
 				mcSigGen.NegConstTime = usSRegHoldBuf[WAVENEGTIME];
 			}
-			else	// 串行压力模式
+			else	// serial pressure mode
 			{
-				mcSigGen.Scale = 12;
+				mcSigGen.Scale = FRC_SCALE_SHIFT;
 				mcSigGen.DwellTime = usSRegHoldBuf[WAVEDWELLTIME];
 				mcSigGen.PosConstTime = usSRegHoldBuf[WAVEPOSTIME];
 				mcSigGen.NegConstTime = usSRegHoldBuf[WAVENEGTIME];
@@ -126,7 +173,7 @@ void Motor_SerialIn_Init(void)
 	else
 	{
 		mcSigGen.CycleCounter = ((int32)usSRegHoldBuf[WAVEREPTIMES]) << 1;
-		if (mcSigGen.CycleCounter == 0) // 无限循环
+		if (mcSigGen.CycleCounter == 0) // infinite loop
 		{
 			mcSigGen.CycleCounter = -1;
 		}
@@ -151,67 +198,69 @@ void Motor_SerialIn_Init(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_SerialIn_StartMove(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	VelSerial and CurSerial StartMove
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_SerialIn_StartMove
+ * Input	:	No
+ * Output	:	No
+ * Description:	Start serial speed/serial current
+ *---------------------------------------------------------------------------*/
 void Motor_SerialIn_StartMove(void)
 {
-	mcSigGen.Status = MS_MOVEING;
+	mcSigGen.Status = MS_MOVING;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_SerialIn_StartDeceleration(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	VelSerial and CurSerial StartDeceleration
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_SerialIn_StartSuspend
+ * Input	:	No
+ * Output	:	No
+ * Description:	Set running state of serial speed/serial current to suspend
+ *---------------------------------------------------------------------------*/
 void Motor_SerialIn_StartSuspend(void)
 {
 	mcSigGen.Status = MS_SUSPEND;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_SerialIn_StartDeceleration(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	VelSerial and CurSerial StartDeceleration
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_SerialIn_StartDeceleration
+ * Input	:	No
+ * Output	:	No
+ * Description:	Set running state of serial speed/serial current to deceleration
+ *---------------------------------------------------------------------------*/
 void Motor_SerialIn_StartDeceleration(void)
 {
 	mcSigGen.Status = MS_DECELERATION;
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	int16 Motor_SerialIn_Handler(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	VelSerial and CurSerial Control
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_SerialIn_Handler
+ * Input	:	No
+ * Output	:	No
+ * Description:	Run serial speed/serial current, call this function every cycle time.
+ *---------------------------------------------------------------------------*/
 int16 Motor_SerialIn_Handler(void)
 {
 	int16 waveOut = 0;
 
 	if (mcSigGen.WaveType == WAVE_SIN)
 	{
-		if (mcSigGen.Status == MS_MOVEING)
+		if (mcSigGen.Status == MS_MOVING)
 			waveOut = SinSweepFre();
 	}
 #if FUNC_SWEEP_ENABLED
 	else if (mcSigGen.WaveType == WAVE_CHIRP)
 	{
-		if (mcSigGen.Status == MS_MOVEING)
+		if (mcSigGen.Status == MS_MOVING)
 			waveOut = ChirpSweepFre();
 	}
 #endif
 	else
 	{
-		if (mcSigGen.Status == MS_MOVEING)
+		if (mcSigGen.Status == MS_MOVING)
 		{
-			if (mcSigGen.WaveType == WAVE_CONST && mcSigGen.WaveCmdLatch != usSRegHoldBuf[WAVECMD]) // 动态改变速度
+			if (mcSigGen.WaveType == WAVE_CONST && mcSigGen.WaveCmdLatch != usSRegHoldBuf[WAVECMD]) // dynamically change speed
 			{
 				mcSigGen.WaveCmdLatch = usSRegHoldBuf[WAVECMD];
 				mcSigGen.TestCmd = (((int32)(int16)usSRegHoldBuf[WAVECMD]) << mcSigGen.Scale);
@@ -234,7 +283,7 @@ int16 Motor_SerialIn_Handler(void)
 			
 			switch (mcSigGen.State)
 			{
-			case WSTEP_WAIT: // 等待
+			case WSTEP_WAIT: // Wait
 				if (++mcSigGen.TimeCounter >= mcSigGen.WaitTime)
 				{
 					mcSigGen.TimeCounter = 0;
@@ -250,7 +299,8 @@ int16 Motor_SerialIn_Handler(void)
 					if (mcSigGen.CycleCounter >= 0 && --mcSigGen.CycleCounter == 0)
 					{
 						mcSigGen.State = WSTEP_HOLD;
-					}
+
+}
 					else
 					{
 						mcSigGen.State = WSTEP_WAIT;
@@ -356,16 +406,16 @@ int16 Motor_SerialIn_Handler(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	SinSweepFreInit
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	正弦扫频初始化
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	SinSweepFreInit
+ * Input	:	No
+ * Output	:	No
+ * Description:	Sine (Sin) initialization
+ *---------------------------------------------------------------------------*/
 void SinSweepFreInit(uint16 workLoop)
 {
 	uint16 sinLoopFreq = 0;
-	if (workLoop == 0) // 速度环
+	if (workLoop == 0) // Velocity loop
 		sinLoopFreq = VELFILE_FREQUENCY;
 	else
 		sinLoopFreq = CURFILE_FREQUENCY;
@@ -376,12 +426,12 @@ void SinSweepFreInit(uint16 workLoop)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	SinSweepFre
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	正弦扫频输出
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	SinSweepFre
+ * Input	:	No
+ * Output	:	Sin signal
+ * Description:	Generate sine (Sin) signal, call this function every cycle time.
+ *---------------------------------------------------------------------------*/
 int16 SinSweepFre(void)
 {
 	SinSweep.Index = SinSweep.Index + SinSweep.SweepFrequencyStep + 1;
@@ -391,17 +441,17 @@ int16 SinSweepFre(void)
 }
 
 #if FUNC_SWEEP_ENABLED
-/*---------------------------------------------------------------------------*/
-/* Name		:	ChirpSweepFreInit
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Chirp扫频初始化
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	ChirpSweepFreInit
+ * Input	:	No
+ * Output	:	No
+ * Description:	Chirp sine sweep initialization
+ *---------------------------------------------------------------------------*/
 void ChirpSweepFreInit(uint16 workLoop)
 {
 	uint16 samFreq = 0;
 
-	if (workLoop == VELSERIAL) // 速度环
+if (workLoop == VELSERIAL) // velocity loop
 		samFreq = VELFILE_FREQUENCY;
 	else // CURSERIAL/VELFRF/CURFRF
 		samFreq = CURFILE_FREQUENCY;
@@ -426,12 +476,12 @@ void ChirpSweepFreInit(uint16 workLoop)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	ChirpSweepFre
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Chirp扫频输出
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	ChirpSweepFre
+ * Input	:	No
+ * Output	:	Chirp signal
+ * Description:	Run sinusoidal Chirp sweep, call this function every cycle time.
+ *---------------------------------------------------------------------------*/
 int16 ChirpSweepFre(void)
 {
 	int16 sweepOut, sweepTheta;
@@ -448,16 +498,17 @@ int16 ChirpSweepFre(void)
 #endif // #if FUNC_SWEEP_ENABLED
 
 #if FUNC_CURTUNE_ENABLED
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_TuningSignal_Handler(int16* id, int16* iq)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Current Loop Tuning Signal Handler, square wave for Id and Iq
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_TuningSignal_Handler
+ * Input	:	*id - output updated Id command
+ *				*iq - output updated Iq command
+ * Output	:	No
+ * Description:	Current Loop Tuning Signal Handler, square wave for Id and Iq
+ *---------------------------------------------------------------------------*/
 void Motor_TuningSignal_Handler(int16* id, int16* iq)
 {
 	int16 waveOut = 0;
-	if (mcSigGen.Status == MS_MOVEING)
+	if (mcSigGen.Status == MS_MOVING)
 	{
 		if (mcSigGen.State == 1 || mcSigGen.State == 3)
 		{

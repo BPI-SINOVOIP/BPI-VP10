@@ -144,39 +144,40 @@ void KTH71_WriteRegToMTP(EncKTHTypedef* p)
   	else
   		DESELECT_SPI2;
   	
-//  	Delay_ms(400); // MTP 烧写命令间隔必须大于
+//  	Delay_ms(400); // MTP write command interval must be greater than
 }
 
 
 
-/*=================================================================================
-Function Name	:	KTH71_Calibration(void)
-Description		:	Do Encoder_Calibration
-Parameter		:	SPISel - SPI or SPI2.
-					EncCalStart - Start/Stop calibration.
-					EncCalSave - Save parameter to encoder chip MTP.
-					EncRegWrite - Write encoder register.
-					EncRegRead - Read encoder register.
-					EncRegAddr - Register Address
-					pEncRegValue - Register Value
-=================================================================================*/
+/*---------------------------------------------------------------------------
+ * Name		:	KTH71_Calibration
+ * Input	:	*p - pointer to EncKTHTypedef instance.
+				EncCalStart - Start/Stop calibration.
+				EncCalSave - Save parameter to encoder chip MTP.
+				EncRegWrite - Write encoder register.
+				EncRegRead - Read encoder register.
+				EncRegAddr - Register Address
+				pEncRegValue - Register Value
+ * Output	:	No
+ * Description:	Do Encoder_Calibration
+ *---------------------------------------------------------------------------*/
 uint8 KTH71_Calibration(EncKTHTypedef* p, uint16 EncCalStart, uint16 EncSave, uint16 EncRegWrite,
 	uint16 EncRegRead, uint16 EncRegAddr, uint16 *pEncRegValue)
 {
 	uint8 calStatus;
 
-	if (!p->EncCalStart && EncCalStart) // 开始校准
+	if (!p->EncCalStart && EncCalStart) // start calibration
 	{
-		KTH71_UnlockReg(p); // 解锁
-		KTH71_WriteReg(p, 0x16, 0x08); // 重置非线性校准
-		KTH71_WriteReg(p, 0x16, 0x18); // 启动非线性校准
+		KTH71_UnlockReg(p); // unlock
+		KTH71_WriteReg(p, 0x16, 0x08); // reset nonlinear calibration
+		KTH71_WriteReg(p, 0x16, 0x18); // start nonlinear calibration
 
 		p->EncCalCounter = 0;
 		p->EncCalState = ENCCALSTA_DOING;
 	}
-	else if (p->EncCalState != ENCCALSTA_IDLE && !EncCalStart) // 结束校准
+	else if (p->EncCalState != ENCCALSTA_IDLE && !EncCalStart) // end calibration
 	{
-		KTH71_WriteReg(p, 0x16, 0x08); // 重置非线性校准
+		KTH71_WriteReg(p, 0x16, 0x08); // reset nonlinear calibration
 		p->EncCalState = ENCCALSTA_IDLE;
 	}
 	else if (p->EncCalState == ENCCALSTA_DOING)
@@ -184,35 +185,35 @@ uint8 KTH71_Calibration(EncKTHTypedef* p, uint16 EncCalStart, uint16 EncSave, ui
 		p->EncCalCounter++;
 		if (p->EncCalCounter > 19200000) // 20 minute
 		{
-			KTH71_WriteReg(p, 0x16, 0x08); // 重置非线性校准
+			KTH71_WriteReg(p, 0x16, 0x08); // reset nonlinear calibration
 			p->EncCalState = ENCCALSTA_FAIL;
 		}
-		else if (p->EncCalCounter > 160 && KTH71_ReadReg(p, 0x72, &calStatus)) // 检查校准状态
+		else if (p->EncCalCounter > 160 && KTH71_ReadReg(p, 0x72, &calStatus)) // check calibration status
 		{
 			calStatus = (calStatus >> 4) & 0x03;
 			if (calStatus != ENCCALSTA_DOING)
 			{
-				KTH71_WriteReg(p, 0x16, 0x08); // 重置非线性校准
+				KTH71_WriteReg(p, 0x16, 0x08); // reset nonlinear calibration
 				p->EncCalState = calStatus;
 			}
 		}
 	}
 
-	// 保存到MTP
+	// save to MTP
 	else if (!p->EncSave && EncSave)
 	{
-		KTH71_UnlockReg(p); // 解锁
+		KTH71_UnlockReg(p); // unlock
 		KTH71_WriteRegToMTP(p);
 	}
 
-	// 写寄存器
+	// write register
 	else if (!p->EncRegWrite && EncRegWrite)
 	{
-		KTH71_UnlockReg(p); // 解锁
+		KTH71_UnlockReg(p); // unlock
 		KTH71_WriteReg(p, EncRegAddr, *pEncRegValue);
 	}
 	
-	// 读寄存器
+	// read register
 	else if (!p->EncRegRead && EncRegRead)
 	{
 		KTH71_ReadReg(p, EncRegAddr, pEncRegValue);

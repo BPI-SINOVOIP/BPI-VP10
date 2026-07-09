@@ -1,4 +1,4 @@
-/********************************************************************************
+﻿/********************************************************************************
 /*
  * Copyright (c) 2025-2026 Fortior Technology Co., Ltd.
  *
@@ -7,7 +7,7 @@
  * File Name     : Temperature.c
  * Author        : Summer
  * Date          : 2025-09-05
- * Description   : 驱动器温度
+ * Description   : Driver temperature
  *
  * Record        :
  * V1.0, 2025-09-05, Summer: Created file
@@ -16,10 +16,46 @@
 
 #include <Myproject.h>
 
+
+/*--------------------------------------------------------------------------- 
+ * Name		:	UpdateTemperature
+ * Input	:	No
+ * Output	:	No
+ * Description:	Temperature update
+ *---------------------------------------------------------------------------*/
+void UpdateTemperature(void)
+{
+#ifdef ADC1_ENABLEMASK
+	if (!(mcRegParam.WorkMode == VELANALOG || mcRegParam.WorkMode == CURANALOG))
+	{
+		set_csr(ADC1_CR, ADCBSY);            // ADC sequential sampling
+		while (readbit_csr(ADC1_CR, ADCBSY));
+	}
+#endif
+
+#ifdef ADC2_ENABLEMASK
+	set_csr(ADC2_CR, ADCBSY);            // ADC2 sequential sampling
+	while (readbit_csr(ADC2_CR, ADCBSY));
+#endif
+
+	// Driver/MCU Temperature
+#if TEMPSRC_KNTC_ENABLED > 0
+	usSRegInBuf[DRIVETEMP] = TemperatureCalc(ADCDR_TEMP);
+#else
+	usSRegInBuf[DRIVETEMP] = TemperatureCalc(0);
+#endif
+
+	// Motor Temperature
+#ifdef ADCDR_MOTTEMP
+	usSRegInBuf[MOTORTEMP] = ADCDR_MOTTEMP;
+#endif
+
+}
+
+
 #if TEMPSRC_KNTC_ENABLED > 0
 
-// 热敏电阻- KNTC0603 - 100KF3950: 0 degree : 324.899 Kohm; 分压电阻: 22 Kohm
-// 324.899 / (324.899 + 22) * 4096 = 3836
+// Thermistor - KNTC0603 - 100KF3950: 0 degree : 324.899 Kohm; voltage divider resistor: 22 Kohm
 const uint16 TempTable_KNTC100[TEMPTABLE_LEN] =
 {
 //	0		5		10		15		20
@@ -35,13 +71,12 @@ const uint16 TempTable_KNTC100[TEMPTABLE_LEN] =
 };
 
 
-
-/*---------------------------------------------------------------------------*/
-/* Name		:	void TemperatureCalc(void)
-/* Input	:	InputTempAD from ADC
-/* Output	:	NO
-/* Description:	Calculate Temperature of NTC by lookup table.
-/*---------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------- 
+ * Name		:	TemperatureCalc
+ * Input	:	InputTempAD - temperature from ADC
+ * Output	:	No
+ * Description:	Calculate temperature of NTC by lookup table.
+ *---------------------------------------------------------------------------*/
 uint16 TemperatureCalc(uint16 InputTempAD)
 {
 	uint16* pTempTable;
@@ -49,13 +84,13 @@ uint16 TemperatureCalc(uint16 InputTempAD)
 	uint16 TempCelsius;
 	uint16 i, temp0, temp1;
 
-	// 温度曲线的选定
+	// Select temperature curve
 	pTempTable = (uint16*) TempTable_KNTC100;
 
-	// 硬件采样值修正
+	// Correct hardware sampling value
 	TempAD = (InputTempAD >> 3);
 
-	// 温度限幅
+	// Temperature clamping
 	if (TempAD >= pTempTable[0])
 	{
 		TempCelsius = 0;
@@ -66,7 +101,7 @@ uint16 TemperatureCalc(uint16 InputTempAD)
 	}
 	else
 	{
-		// 开始查询温度表
+		// Start querying temperature table
 		for (i = 0; i <= (TEMPTABLE_LEN - 1); i++)
 		{
 			if ((TempAD > pTempTable[i + 1]) && (TempAD <= pTempTable[i]))
@@ -75,7 +110,7 @@ uint16 TemperatureCalc(uint16 InputTempAD)
 			}
 		}
 
-		//通过温度曲线，反推温度
+		// Derive temperature from temperature curve
 		temp0 = pTempTable[i] - TempAD;
 		temp1 = pTempTable[i] - pTempTable[i + 1];
 
@@ -87,7 +122,7 @@ uint16 TemperatureCalc(uint16 InputTempAD)
 
 #else
 
-// MCU内置温度传感器
+// MCU internal temperature sensor
 const uint8 TempTable_TSD[TEMPTABLETSD_LEN] =
 {
 	//71   76    81    86    91
@@ -101,13 +136,12 @@ const uint8 TempTable_TSD[TEMPTABLETSD_LEN] =
 };
 
 
-
-/*---------------------------------------------------------------------------*/
-/* Name		:	void TemperatureTSDCalc(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Calculate Temperature of MCU TSD by lookup table.
-/*---------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------- 
+ * Name		:	TemperatureCalc
+ * Input	:	InputTempAD - Not used
+ * Output	:	No
+ * Description:	Calculate temperature of MCU TSD by lookup table.
+ *---------------------------------------------------------------------------*/
 uint16 TemperatureCalc(uint16 InputTempAD)
 {
 	uint8* pTempTable;
@@ -115,17 +149,17 @@ uint16 TemperatureCalc(uint16 InputTempAD)
 	uint16 TempCelsius;
 	uint16 i, temp0, temp1;
 
-	// 温度传感器使能
+	// Enable temperature sensor
 	set_csr(TSD_CR, TSEN_EN);
 	set_csr(TSD_CR, TSD_EN);
 	
-	// 温度曲线的选定
+	// Select temperature curve
 	pTempTable = (uint8*) TempTable_TSD;
 
-	// 硬件采样值
+	// Hardware sampling value
 	TempAD = read_csr(TSEN_DR);
 
-	// 温度限幅
+	// Temperature clamping
 	if (TempAD <= pTempTable[0])
 	{
 		TempCelsius = 710;
@@ -136,7 +170,7 @@ uint16 TemperatureCalc(uint16 InputTempAD)
 	}
 	else
 	{
-		// 开始查询温度表
+		// Start querying temperature table
 		for (i = 0; i <= (TEMPTABLETSD_LEN - 1); i++)
 		{
 			if ((TempAD < pTempTable[i + 1]) && (TempAD >= pTempTable[i]))
@@ -145,7 +179,7 @@ uint16 TemperatureCalc(uint16 InputTempAD)
 			}
 		}
 
-		//通过温度曲线，反推温度
+		// Derive temperature from temperature curve
 		temp0 = TempAD - pTempTable[i];
 		temp1 = pTempTable[i + 1] - pTempTable[i];
 

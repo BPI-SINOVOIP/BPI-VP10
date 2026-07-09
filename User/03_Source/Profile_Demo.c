@@ -13,22 +13,33 @@
  */
 
 
-/* Includes -------------------------------------------------------------------------------------*/
+/********************************************************************************
+* Header Definition
+********************************************************************************/
 #include "Profile_Demo.h"
 
 
+/********************************************************************************
+* Macro & Structure Definition
+*******************************************************************************/
 ProfileDemoTypeDef mcProfile;
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   DynTrap_Demo_Update
-/* Input    :   CurveType - 0 : T profile; 1 : S profile.
-/*				MoveDistance - Relative move distance, Negative MoveDistance means moving in the opposite direction, unit: count
-/*				MaxVel - Maximum Velocity, positive value, unit: mm/s or rpm
-/*				MaxAcc - Maximum Acceleration, positive value, unit: mm/s^2 or rps^2
-/*				MaxJerk - Maximum Jerk, positive value, unit: mm/s^3 or rps^3
-/* Output   :   NO
-/* Description: Initialize T profile variable，运动曲线离线规划，规划计算大约需要3ms
-/*---------------------------------------------------------------------------*/
+
+ /********************************************************************************
+* Internal Routine Prototypes
+********************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name     :   DynTrap_Demo_Update
+ * Input    :   CurveType - 0 : T profile; 1 : S profile.
+ *				MoveDistance - Relative move distance, Negative MoveDistance 
+ *					means moving in the opposite direction, unit: count
+ *				MaxVel - Maximum Velocity, positive value, unit: mm/s or rpm
+ *				MaxAcc - Maximum Acceleration, positive value, unit: mm/s^2 or rps^2
+ *				MaxJerk - Maximum Jerk, positive value, unit: mm/s^3 or rps^3
+ * Output   :   NO
+ * Description: Initialize T profile variable, Offline planning of motion curve, planning calculation takes about 3ms
+ *---------------------------------------------------------------------------*/
 void Motor_Profile_Init(int8 CurveType, int32 MoveDistance, int16 MaxVel, int32 MaxAcc, int32 MaxJerk)
 {
 	int32 encRes;
@@ -73,31 +84,31 @@ void Motor_Profile_Init(int8 CurveType, int32 MoveDistance, int16 MaxVel, int32 
 
 	mcProfile.Dwell_En = 0;
 	
-	Position_Profile_StartMove();
+	Position_Profile_StartMove(); // Start motion
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_Profile_Reset(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Reset profile variable
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Profile_Reset
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Reset profile variable
+ *---------------------------------------------------------------------------*/
 void Motor_Profile_Reset(void)
 {
 	Position_Profile_Reset();
 	Motor_Profile_Align();
 	Timer6_Reset(); // Reset pulse counter
-	Delay_us(250); // 最少要等2个位置环周期
+	Delay_us(250); // Must wait at least two position-loop cycles
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_Profile_Align(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Reset profile variable
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Profile_Align
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Set the planned position command to the current position value
+ *---------------------------------------------------------------------------*/
 void Motor_Profile_Align(void)
 {
 #if FUNC_FEEDBACKONLOAD_ENABLED
@@ -115,12 +126,12 @@ void Motor_Profile_Align(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	int32 Motor_Profile_Move(void)
-/* Input	:	NO
-/* Output	:	Target Angle
-/* Description:	Profile planning result, call this function every cycle time.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Profile_Move
+ * Input	:	No
+ * Output	:	Position command Target Angle
+ * Description:	Update profile planning result, call this function every cycle time.
+ *---------------------------------------------------------------------------*/
 int32 Motor_Profile_Move(void)
 {
 	int32 targetAngle;
@@ -143,21 +154,26 @@ int32 Motor_Profile_Move(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_Profile_Update(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	run serial position.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Profile_Update
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Operate serial position mode
+ *---------------------------------------------------------------------------*/
 void Motor_Profile_Update(void)
 {
-	int32 profileMovDis = 0;             // 运动距离
+	int32 profileMovDis = 0;             // movement distance
 	
-	// 所有三种模式下，上位机点开始运动Motion这位都会置一，点停止运动Motion都会清零
+	if (GetReg(usSRegInBuf[DIGINSTATUS], INSTATUS_STOPONINPUT))
+	{
+		ClrBit(usSRegHoldBuf[PROFILECTRL], PROF_MOTIONEN);
+	}
+	
+	// In all three modes, the host sets the Motion bit to start motion and clears it to stop motion
 	mcProfile.Flag_Pre = GetReg(mcRegParam.ProfileCtrl, PROF_MOTIONEN);
 	mcProfile.Flag = GetReg(usSRegHoldBuf[PROFILECTRL], PROF_MOTIONEN);
 
-	// 位置模式且开始运动
+	// Position mode and motion started
 	if ((mcRegParam.WorkMode == POSSERIAL) 
 #if EXCTRL_ECAT_ENABLED || EXCTRL_CANOPEN_ENABLED
 		|| (usSRegInBuf[FBOPMODE] == PROFILE_POSITION_MODE)
@@ -166,7 +182,7 @@ void Motor_Profile_Update(void)
 	{
 		if (mcProfile.Flag)
 		{
-			if (!mcProfile.Flag_Pre) // MOTIONEN 上升沿
+			if (!mcProfile.Flag_Pre) // MOTIONEN rising edge
 			{
 				mcProfile.ProfileAbsFlag = ReadBit(usSRegHoldBuf[PROFILECTRL], PROF_PROFILEABS);
 				mcProfile.ProfileRndFlag = ReadBit(usSRegHoldBuf[PROFILECTRL], PROF_PROFILERND);
@@ -237,8 +253,8 @@ void Motor_Profile_Update(void)
 		}
 
 
-		// 停止运动
-		if (!mcProfile.Flag)  // MOTIONEN 下降沿
+		// Stop motion
+		if (!mcProfile.Flag)  // MOTIONEN falling edge
 		{
 			if (mcProfile.Flag_Pre)
 			{
@@ -259,35 +275,36 @@ void Motor_Profile_Update(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_Profile_StartDeceleration(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	开始减速
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Profile_StartDeceleration
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Start deceleration
+ *---------------------------------------------------------------------------*/
 void Motor_Profile_StartDeceleration(void)
 {
 	Position_Profile_StartDeceleration();
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_Profile_StartDeceleration(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	开始减速
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Profile_Clr
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Reset position motion
+ *---------------------------------------------------------------------------*/
 void Motor_Profile_Clr(void)
 {
 	Position_Profile_Clr();
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Motor_Profile_TimeCount(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	位置运动的停顿时间判断，放在1ms循环里
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Profile_TimeCount
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Pause time check for position motion, placed in 1ms loop
+ *---------------------------------------------------------------------------*/
 void Motor_Profile_TimeCount(void)
 {
 	if (mcProfile.TimeCounter > 0)

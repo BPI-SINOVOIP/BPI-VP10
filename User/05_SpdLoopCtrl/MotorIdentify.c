@@ -6,7 +6,7 @@
  * File Name     : MotorIdentify.c
  * Author        : wynn.wang
  * Date          : 2024-12-02
- * Description   : 电机参数辨识和惯量识别初始化
+ * Description   : Motor parameter identification and inertia identification initialization
  *
  * Record        :
  * V1.0, 2024-12-02, wynn.wang: Created file
@@ -30,12 +30,12 @@ InFricIdCfgTypedef InFricIdCfg;
 void Motor_Identify_Init(void);
 void InFricId_Demo_Init(void);
 
-/*---------------------------------------------------------------------------*/
-/* Name		: Motor_Identify_Init()
-/* Input	:
-/* Output	:
-/* Description: Start Motor Identify and set related register.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		: Motor_Identify_Init()
+ * Input	:
+ * Output	:
+ * Description: Initial Motor Parameter Identify and set related register.
+ *---------------------------------------------------------------------------*/
 void Motor_Identify_Init(void)
 {
 	if (McStaSet.SetFlag.IdentifySetFlag == 0)
@@ -47,20 +47,15 @@ void Motor_Identify_Init(void)
 		usSRegInBuf[CMDCUR] = 0;
 		usSRegInBuf[MB_IDREF] = 0;
 
-		NFOC_QKP = usSRegHoldBuf[DQKP];
-		NFOC_QKI = usSRegHoldBuf[DQKI];
-		NFOC_DKP = usSRegHoldBuf[DQKP];
-		NFOC_DKI = usSRegHoldBuf[DQKI];
-
 		mcFocCtrl.CurLoopEnable = 1;
 		mcFocCtrl.VelLoopEnable = 0;
 		mcFocCtrl.PosLoopEnable = 0;
 
 		mcFocCtrl.RunMod = CURMOD;
 
-		OutputFilter_Init();  // 转矩滤波器初始化
+		OutputFilter_Init();  // Torque filter initialization
 		
-		// 辨识参数初始化
+		// Identification parameter initialization
 		mcEstCfg.Mode = usSRegHoldBuf[ESTMODE];
 		mcEstCfg.IAmp = usSRegHoldBuf[ESTIAMP];
 		mcEstCfg.RTime = usSRegHoldBuf[ESTRTIME];
@@ -68,7 +63,7 @@ void Motor_Identify_Init(void)
 		mcEstCfg.UMin = usSRegHoldBuf[ESTUMIN];
 		mcEstCfg.UMax = usSRegHoldBuf[ESTUMAX];
 		mcEstCfg.UDelta = usSRegHoldBuf[ESTUDELTA];
-		mcEstCfg.FreqMax = usSRegHoldBuf[ESTFMAX]; // 初始频率
+		mcEstCfg.FreqMax = usSRegHoldBuf[ESTFMAX]; // Initial frequency
 		mcEstCfg.FreqMin = usSRegHoldBuf[ESTFMIN];
 		mcEstCfg.FreqDelta = usSRegHoldBuf[ESTFDELTA];
 		mcEstCfg.IMinRatio = usSRegHoldBuf[ESTIMINRATIO];
@@ -86,14 +81,14 @@ void Motor_Identify_Init(void)
 			
 		Motor_Identify_ParamInit(&mcEstCfg);  
 
-		/* -----使能输出----- */
+		/* -----Enable output----- */
 #if (HW_UVW_POLARITY == UVWPOL_NORMAL)
-	write_csr(DRV1_CMR, 0x0abF);
+		write_csr(DRV1_CMR, 0x0abF);
 #else
-	write_csr(DRV1_CMR, 0x057F);
+		write_csr(DRV1_CMR, 0x057F);
 #endif
 		set_csr(DRV1_OUT, MOE);
-		set_csr(DRV1_CR, DRVOE);			// Driver输出使能	0-->Disable		1-->Enable
+		set_csr(DRV1_CR, DRVOE);			// Driver output enable: 0-->Disable, 1-->Enable
 
 		SetReg(usSRegInBuf[DRIVESTATUS], STATUS_ENABLE, STATUS_ENABLE);
 		usSRegInBuf[ESTSTATUS] = 0;
@@ -104,14 +99,12 @@ void Motor_Identify_Init(void)
 }
 
 
-
-
-/*---------------------------------------------------------------------------*/
-/* Name     :   InFricId_Demo_Init
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 惯量辨识初始化
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name     :   InFricId_Demo_Init
+ * Input    :   NO
+ * Output   :   NO
+ * Description: Inertia identification initialization
+ *---------------------------------------------------------------------------*/
 void InFricId_Demo_Init(void)
 {
 	int64 temp = 0;

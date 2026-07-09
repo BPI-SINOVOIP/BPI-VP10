@@ -12,14 +12,19 @@
  * V1.0, 2022-10-12, Jamie: Created file
  */
 
-/* Includes -------------------------------------------------------------------------------------*/
+/********************************************************************************
+* Header Definition
+********************************************************************************/
 #include <Myproject.h>
 #include "Hall.h"
 
+/********************************************************************************
+* Macro & Structure Definition
+*******************************************************************************/
 #if ENCODER_SEL_HALL_ENABLED
 HallTypeDef mcHall;
 
-/* 固定角度 */
+// Fixed angles
 const int16 Hall_Theta_Arr[6] =
 {
 	DEGREE_60,  //1
@@ -33,12 +38,17 @@ const int16 Hall_Theta_Arr[6] =
 // 5->1->3->2->6->4; e.g.5's next is 1,so Hall_Status_CW[5-1] = 1.
 const uint8 Hall_Status_CW[6] = { 3, 6, 2, 5, 1, 4 };
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void Hall_Init(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Initial Hall variable
-/*---------------------------------------------------------------------------*/
+
+/********************************************************************************
+* Internal Routine Prototypes
+********************************************************************************/
+
+/*---------------------------------------------------------------------------
+ * Name		:	Hall_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	Hall calculation initialization
+ *---------------------------------------------------------------------------*/
 void Hall_Init(void)
 {
 	memset(&mcHall, 0, sizeof(HallTypeDef));                   // reset hall variable
@@ -50,12 +60,12 @@ void Hall_Init(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void HallPinInit(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	updata hall offset theta
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	HallPinInit
+ * Input	:	No
+ * Output	:	No
+ * Description:	Hall hardware initialization
+ *---------------------------------------------------------------------------*/
 void HallPinInit(void)
 {
 	// HA
@@ -70,18 +80,18 @@ void HallPinInit(void)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void GetHallStatus(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	get hall status after hall learn
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	GetHallStatus
+ * Input	:	No
+ * Output	:	Hall status
+ * Description:	Read Hall status
+ *---------------------------------------------------------------------------*/
 uint8 GetHallStatus()
 {
 	uint8 HallStatus = 0;
 	uint8 ha, hb, hc;
-	uint8 MCDivFlag;                      // Hall方向颠倒
-	uint8 Mode;                           // Hall关系，对应6种Hall组合
+	uint8 MCDivFlag;                      // Hall direction reversed
+	uint8 Mode;                           // Hall relation, corresponding to 6 Hall combinations
 
 	HallStatus = read_csr(HA_GPIO);
 	ha = ReadBit(HallStatus, HA_PIN);
@@ -100,12 +110,12 @@ uint8 GetHallStatus()
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void UpdateHallTheta(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	更新Hall角度(初始角度)
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	UpdateHallTheta
+ * Input	:	No
+ * Output	:	No
+ * Description:	Update approximate electrical angle offset based on Hall status
+ *---------------------------------------------------------------------------*/
 void UpdateHallTheta(void)
 {
 	int16 ExpectTheta = 0;
@@ -125,12 +135,13 @@ void UpdateHallTheta(void)
 	}
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void UpdateHallTheta(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	更新Hall角度(精准角度)
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	UpdateHallTheta_Isr
+ * Input	:	No
+ * Output	:	No
+ * Description:	Update precise electrical angle offset based on Hall status change edge
+ *---------------------------------------------------------------------------*/
 void UpdateHallTheta_Isr(void)
 {
 	int16 ExpectTheta = 0;
@@ -155,12 +166,12 @@ void UpdateHallTheta_Isr(void)
 }
 
 #if ENCODER_SEL_HALLSONLY_ENABLED > 0
-/*---------------------------------------------------------------------------*/
-/* Name		:	void UpdateHallsOnlyAngle(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	更新Hall角度(插值)，仅用于Halls-Only
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	UpdateHallsOnlyAngle
+ * Input	:	No
+ * Output	:	Hall angle
+ * Description:	Update Hall angle (interpolated), only for Halls-Only
+ *---------------------------------------------------------------------------*/
 int32 UpdateHallsOnlyAngle(void)
 {
 	int32 Temp;
@@ -171,7 +182,7 @@ int32 UpdateHallsOnlyAngle(void)
 	{
 		mcHall.HallAngle = (int32)(Hall_Theta_Arr[mcHall.HallStatus - 1]) + (int16)usSRegHoldBuf[ELECANGSHIFT];
 		mcHall.HallTheta = mcHall.HallAngle;
-		if (Hall_Status_CW[mcHall.HallStatus - 1] == mcHall.HallStatusPre) // 暂时只考虑变化60度
+		if (Hall_Status_CW[mcHall.HallStatus - 1] == mcHall.HallStatusPre) // Currently only 60-degree change is considered
 		{
 			mcHall.HallAngle += DEGREE_60;
 		}
@@ -218,7 +229,7 @@ int32 UpdateHallsOnlyAngle(void)
 	}
 	else
 	{
-		if (mcHall.LowSpeedStatus == 1)  // 低速
+		if (mcHall.LowSpeedStatus == 1)  // Low speed
 		{
 			mcHall.ExcCnt = 0;
 			mcHall.StillPeriodLatch = 0;
@@ -241,8 +252,8 @@ int32 UpdateHallsOnlyAngle(void)
 			else
 			{
 				Temp = mcHall.HallAngle - mcHall.InterpltOutput;
-				if ((mcHall.InterpltDltRef > 0 && mcHall.InterpltDltRef - Temp > 0) || // 正方向
-					(mcHall.InterpltDltRef < 0 && mcHall.InterpltDltRef - Temp < 0)) // 负方向
+				if ((mcHall.InterpltDltRef > 0 && mcHall.InterpltDltRef - Temp > 0) || // Forward direction
+					(mcHall.InterpltDltRef < 0 && mcHall.InterpltDltRef - Temp < 0)) // Negative direction
 				{
 					mcHall.InterpltDltRef = Temp;
 				}
@@ -263,36 +274,37 @@ int32 UpdateHallsOnlyAngle(void)
 	mcHall.InterpltOutput += mcHall.InterpltOutputDelta;
 	mcHall.InterpltOutputLatch = Temp;
 
-	// 电角度计算
-	if (mcHall.LowSpeedStatus == 1)  // 低速
+	// Electrical angle calculation
+	if (mcHall.LowSpeedStatus == 1)  // Low speed
 	{
 		mcHall.HallThetaOut = mcHall.HallTheta + DEGREE_30;
 	}
 	else
 	{
-		if (mcHall.InterpltDltRef > 0) // 正方向
+		if (mcHall.InterpltDltRef > 0) // Forward direction
 		{
 			mcHall.HallThetaOut = mcHall.InterpltOutput + DEGREE_60;
 		}
-		else if (mcHall.InterpltDltRef < 0) // 负方向
+		else if (mcHall.InterpltDltRef < 0) // Negative direction
 		{
 			mcHall.HallThetaOut = mcHall.InterpltOutput - DEGREE_60;
 		}
 	}
 
-	// 位置滤波
+	// Position filtering
 	mcHall.InterpltOutputFlt_k += (int32)usSRegHoldBuf[HALLPOSLPFK] * (mcHall.InterpltOutput - mcHall.InterpltOutputFlt);
 	mcHall.InterpltOutputFlt = mcHall.InterpltOutputFlt_k >> 15;
 
 	return mcHall.InterpltOutputFlt;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void GetHallsOnlyElecAngle(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	获取Hall电角度
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	GetHallsOnlyElecAngle
+ * Input	:	No
+ * Output	:	Hall electrical angle
+ * Description:	Get Hall electrical angle, only for Halls-Only
+ *---------------------------------------------------------------------------*/
 int16 GetHallsOnlyElecAngle(void)
 {
 	return mcHall.HallThetaOut;
@@ -300,17 +312,17 @@ int16 GetHallsOnlyElecAngle(void)
 #endif // #if ENCODER_SEL_HALLSONLY_ENABLED > 0
 
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	void DoHallLearning(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	下位机收集Hall变化沿的电角度，上位机负责计算电角度偏置
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	DoHallLearning
+ * Input	:	No
+ * Output	:	No
+ * Description:	Hall learning: MCU collects electrical angles at Hall change edges, host calculates electrical angle offset
+ *---------------------------------------------------------------------------*/
 void DoHallLearning(void)
 {
 	switch (mcDoPhaseFind.State)
 	{
-	case 0:                     // 采集Hall序列
+	case 0:                     // Collect Hall sequence
 		if (mcDoPhaseFind.IdRef < mcDoPhaseFind.IdTarget)
 			mcDoPhaseFind.IdRef += mcDoPhaseFind.IdStep;
 		else
@@ -335,10 +347,10 @@ void DoHallLearning(void)
 	case 2: // search hall changing edge
 		mcHall.NowHallStatus = GetHallStatus();
 
-		/* 状态更新 */
+		/* Status update */
 		if (mcHall.NowHallStatus != mcHall.LastHallStatus)
 		{
-			/* 记录角度 */
+			/* Record angle */
 			if (usSRegHoldBuf[ENCTYPE] == ENCODER_SEL_HALLS_ONLY)
 			{
 				*mcHall.pLearnHallTheta++ = NFOC_THETAH;

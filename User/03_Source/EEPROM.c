@@ -16,12 +16,12 @@
 
 
 
-/*****************************************************************************
+/*---------------------------------------------------------------------------
  * Name          : DownloadDataToEEPROM
  * Input         : None
- * Output        : retValue-是否成功
- * Description   : 将Holding Register下载到EEPROM
- *****************************************************************************/
+ * Output        : retValue-Whether successful
+ * Description   : Download Holding Register to EEPROM
+ *---------------------------------------------------------------------------*/
 bool DownloadDataToEEPROM(void)
 {
 	uint8 ucAddress;
@@ -33,7 +33,7 @@ bool DownloadDataToEEPROM(void)
 		memcpy(usSRegHoldStartBuf, usSRegHoldStartArray, (S_REG_HOLDING_INDEX_MAX + 1) << 1);
 		retValue = EEPROM_WriteBytes(EEPROM_PNUM_ADDR_START, (uint8*) usSRegHoldStartBuf, EEPROM_PNUM_ADDR_SIZE);
 
-#if COMM_CAN_ENABLED > 0 // 单独再存储一下ID号
+#if COMM_CAN_ENABLED > 0 // Store ID number separately
 		retValue = EEPROM_WriteBytes(EEPROM_ID_ADDR_START, (uint8*) & usSRegHoldBuf[COMMADDR], EEPROM_ID_ADDR_SIZE);
 #endif
 	}
@@ -41,12 +41,12 @@ bool DownloadDataToEEPROM(void)
 	return retValue;
 }
 
-/*****************************************************************************
+/*---------------------------------------------------------------------------
  * Name          : UploadDataFromEEPROM
  * Input         : None
- * Output        : retValue-是否成功
- * Description   : 从EEPROM加载数据到Holding Register
- *****************************************************************************/
+ * Output        : retValue-Whether successful
+ * Description   : Load data from EEPROM to Holding Register
+ *---------------------------------------------------------------------------*/
 bool UploadDataFromEEPROM(void)
 {
 	uint8 i = 0;
@@ -55,12 +55,18 @@ bool UploadDataFromEEPROM(void)
 
 	if (retValue == 1)// EEPROM read no error
 	{
-		if (usSRegHoldStartBuf[1] == 0 && usSRegHoldStartBuf[2] == 0)
+		if ((usSRegHoldStartBuf[1] == 0 && usSRegHoldStartBuf[2] == 0) || usSRegHoldStartBuf[0] != 0 ||
+			usSRegHoldStartBuf[1] == 65535 || usSRegHoldStartBuf[2] == 65535)
+		{
 			retValue = EEPROM_ReadBytes(EEPROM_PARAM_ADDR_START, (uint8*) usSRegHoldBuf, EEPROM_PARAM_ADDR_SIZE);
+		}	
 		else
+		{
 			retValue = EEPROM_ReadRegister(EEPROM_PARAM_ADDR_START, usSRegHoldBuf, usSRegHoldStartArray, usSRegHoldStartBuf);
+		}	
 	}
 
+	// Clear some variables that use rising edges
 	usSRegHoldBuf[DRIVECTRL] = 0;
 	usSRegHoldBuf[FLASHCTRL] = 0;
 	usSRegHoldBuf[ENCCALCTRL] = 0;
@@ -68,21 +74,17 @@ bool UploadDataFromEEPROM(void)
 	ClrBit(usSRegHoldBuf[SCOPECTRL], SCOPE_START);
 	ClrBit(usSRegHoldBuf[PROFILECTRL], PROF_MOTIONEN);
 
-	//#if GETADDRID_FROMFLASH_ENABLED > 0
-	//	uint16* pFlashIDAddr = FLASH_ID_ADDR_START;
-	//	usSRegHoldBuf[COMMADDR] = *pFlashIDAddr;
-	//#endif
-
 	return retValue;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	I2C_Master_WriteBytes()
-/* Input	:	Addr-Device Address, *pData-pointer to data to write,
-/*				NumByte-Number of bytes to write
-/* Output	:	bool-false or true
-/* Description:	I2C_Master_WriteBytes to slave
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	I2C_Master_WriteBytes()
+ * Input	:	WordAddr - Start address for writing to EEPROM
+ *				Addr - Device Address, *pData-pointer to data to write,
+ *				NumByte - Number of bytes to write
+ * Output	:	bool - false or true
+ * Description:	I2C_Master_WriteBytes to slave
+ *---------------------------------------------------------------------------*/
 bool EEPROM_WriteBytes(uint16 WordAddr, uint8* pData, uint16 NumByte)
 {
 #if FUNC_SOFT_EEPROM_ENABLED
@@ -115,7 +117,7 @@ bool EEPROM_WriteBytes(uint16 WordAddr, uint8* pData, uint16 NumByte)
 		wordaddr += pagesize;
 		pdata += pagesize;
 		Delay_ms(6);
-		IWDT_Refresh(); // 及时喂狗
+		IWDT_Refresh(); // Promptly feed the watchdog timer
 	}
 	
 #if FUNC_EEPROM_24C16B_SWITCH
@@ -129,13 +131,14 @@ bool EEPROM_WriteBytes(uint16 WordAddr, uint8* pData, uint16 NumByte)
 #endif
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	EEPROM_ReadBytes()
-/* Input	:	Addr-Device Address, *pData-pointer to data to read,
-/*				NumByte-Number of bytes to read
-/* Output	:	bool-false or true
-/* Description:	I2C_Master_ReadBytes from slave
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	EEPROM_ReadBytes()
+ * Input	:	WordAddr - Start address for reading from EEPROM
+ *				Addr - Device Address, *pData-pointer to data to write,
+ *				NumByte - Number of bytes to read
+ * Output	:	bool-false or true
+ * Description:	I2C_Master_ReadBytes from slave
+ *---------------------------------------------------------------------------*/
 bool EEPROM_ReadBytes(uint16 WordAddr, uint8* pData, uint16 NumByte)
 {
 #if FUNC_SOFT_EEPROM_ENABLED
@@ -160,13 +163,15 @@ bool EEPROM_ReadBytes(uint16 WordAddr, uint8* pData, uint16 NumByte)
 #endif
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	EEPROM_ReadRegister()
-/* Input	:	Addr-Device Address, *pData-pointer to data to read,
-/*				NumByte-Number of bytes to read
-/* Output	:	bool-false or true
-/* Description:	Read Holding Register from EEPROM, 这里默认新总是比旧的长
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	EEPROM_ReadRegister()
+ * Input	:	Addr - Device Address, 
+ *				*pData - pointer to data to read,
+ *				*pRegStartNew - RegHoldStartArray defined in code
+ *				*pRegStartOld - RegHoldStartArray stored in EEPROM
+ * Output	:	bool-false or true
+ * Description:	Read Holding Register from EEPROM, here it is assumed that the new is always longer than the old
+ *---------------------------------------------------------------------------*/
 bool EEPROM_ReadRegister(uint16 WordAddr, uint16* pData, uint16* pRegStartNew, uint16* pRegStartOld)
 {
 #if FUNC_SOFT_EEPROM_ENABLED
@@ -254,12 +259,12 @@ bool EEPROM_ReadRegister(uint16 WordAddr, uint16* pData, uint16* pRegStartNew, u
 #endif
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name		:	bool EEPROM_Check(void)
-/* Input	:	NO
-/* Output	:	NO
-/* Description:	Check if EEPRPM read and write is correct.
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	bool EEPROM_Check(void)
+ * Input	:	NO
+ * Output	:	NO
+ * Description:	Check if EEPRPM read and write is correct, for test.
+ *---------------------------------------------------------------------------*/
 bool EEPROM_Check(void)
 {
 	bool retValue = false;

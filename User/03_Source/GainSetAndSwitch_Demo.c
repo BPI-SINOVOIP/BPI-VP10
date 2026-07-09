@@ -6,7 +6,7 @@
  * File Name     : GainSetAndSwitch_Demo.c
  * Author        : wynn.wang
  * Date          : 2023-08-11
- * Description   : 增益切换
+ * Description   : Gain switching
  *
  * Record        :
  * V1.0, 2023-08-11, wynn.wang: Created file
@@ -31,12 +31,12 @@ void GainSW_Demo_Init(void);
 void GainSW_Demo_realize(void);
 void GainSW_Demo_Update(void);
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 初始化
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ * Name		:	GainSW_Demo_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	Gain switching initialization
+ *---------------------------------------------------------------------------*/
 void GainSW_Demo_Init(void)
 {
 	GainSWCfg.pVp = &usSRegHoldBuf[VKP];
@@ -80,29 +80,30 @@ void GainSW_Demo_Init(void)
 	GainSW_Init(&GainSWCfg);
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 主循环函数调用
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	GainSW_Demo_Update
+ * Input	:	No
+ * Output	:	No
+ * Description:	Update gain switching related variables, called in main loop
+ *---------------------------------------------------------------------------*/
 void GainSW_Demo_Update(void)
 {
 	GainSW_Update(&GainSWCfg);
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 中断调用
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	GainSW_Demo_realize
+ * Input	:	No
+ * Output	:	No
+ * Description:	Update real-time variables such as current and speed, and gain switching status
+ *---------------------------------------------------------------------------*/
 void GainSW_Demo_realize(void)
 {	
 	GainSWCfg.GnSwitch = ReadBit(usSRegInBuf[DIGINSTATUS], INSTATUS_GAINSWITCH);
 	GainSWCfg.InPos = ReadBit(usSRegInBuf[DRIVESTATUS], STATUS_INPOS);
 	GainSW_realize(&GainSWCfg);
 }
-/********************************* END OF FILE *********************************/
 
 #endif // #if FUNC_GAINSW_ENABLED

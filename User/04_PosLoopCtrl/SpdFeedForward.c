@@ -30,25 +30,28 @@ SpdFFTypedef SpdFF = { 0 };
 void SpdFF_Init(void);
 int16 SpdFF_realize(int16 PosRefDiff);
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   SpdFF_Init(void)
-/* Input    :   NO
-/* Output   :   NO
-/* Description: 
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SpdFF_Init
+ * Input	:	No
+ * Output	:	No
+ * Description:	Initialize velocity feedforward
+ *---------------------------------------------------------------------------*/
 void SpdFF_Init(void)
 {
 	SpdFF.Coef = (int16)VELFEB_FREQUENCY / (int16)POSCTRL_FREQUENCY;
 	SpdFF.Output = 0;
-	SpdFF.Filter = LowPassFilt_Init(SpdFF.FilterMem, (int32)usSRegHoldBuf[PVFRLPFHZ], (int32)POSCTRL_FREQUENCY * 1000 *10);
+	SpdFF.Filter = LowPassFilt_Init(SpdFF.FilterMem, (int32)usSRegHoldBuf[PVFRLPFHZ], 
+		(int32)POSCTRL_FREQUENCY * 1000 * 10);
 }
 
-/*---------------------------------------------------------------------------*/
-/* Name     :   SpdFF_realize(void)
-/* Input    :   NO
-/* Output   :   SpdFFValue
-/* Description: 
-/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+ * Name		:	SpdFF_realize
+ * Input	:	PosRefDiff - position command increment
+ * Output	:	Output - velocity feedforward value
+ * Description:	Initialize velocity feedforward
+ *---------------------------------------------------------------------------*/
 int16 SpdFF_realize(int16 PosRefDiff)
 {	
 	int32 SpdFFValue = 0;
@@ -84,7 +87,7 @@ int16 SpdFF_realize(int16 PosRefDiff)
 			SpdFFValue = (int32)((int32) SpdFFValue >> 14);
 		}
 
-	    // 前馈输出限幅
+	    // Limit feedforward output
 		SpdFFValue = MAX_MIN_LMT(SpdFFValue, 32767, -32767);
 
 		SpdFF.Output = LowPassFilt_realize(SpdFF.Filter, SpdFFValue);
