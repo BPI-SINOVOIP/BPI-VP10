@@ -26,11 +26,11 @@ typedef struct
 	uint8 Flag;
 	uint8 Flag_Pre;
 	uint8 Dwell_En;
-	uint8 ProfileAbsStep;            // 绝对运动阶段
-	uint8 ProfileAbsFlag;            // 绝对运动标志
-	uint8 ProfileRndFlag;            // 往返运动标志
-	uint8 ProfileRepFlag;            // 重复运动标志
-	uint8 ProfileCurveType;			 // 规划曲线选择 0: T-Curve  1: S-Curve
+	uint8 ProfileAbsStep;            // Absolute motion phase
+	uint8 ProfileAbsFlag;            // Absolute motion flag
+	uint8 ProfileRndFlag;            // Reciprocating motion flag
+	uint8 ProfileRepFlag;            // Repeat motion flag
+	uint8 ProfileCurveType;			 // Profile curve selection 0: T-Curve  1: S-Curve
 } ProfileDemoTypeDef;
 
 
@@ -83,7 +83,7 @@ extern void Motor_Profile_Update(void);
 /* Name		:	void Motor_Profile_StartDeceleration(void)
 /* Input	:	NO
 /* Output	:	NO
-/* Description:	开始减速
+/* Description:	Start deceleration
 /*---------------------------------------------------------------------------*/
 extern void Motor_Profile_StartDeceleration(void);
 
@@ -91,7 +91,7 @@ extern void Motor_Profile_StartDeceleration(void);
 /* Name		:	void Motor_Profile_StartDeceleration(void)
 /* Input	:	NO
 /* Output	:	NO
-/* Description:	开始减速
+/* Description:	Start deceleration
 /*---------------------------------------------------------------------------*/
 extern void Motor_Profile_Clr(void);
 
@@ -99,7 +99,7 @@ extern void Motor_Profile_Clr(void);
 /* Name		:	void Motor_Profile_TimeCount(void)
 /* Input	:	NO
 /* Output	:	NO
-/* Description:	位置运动的停顿时间判断，放在1ms循环里
+/* Description:	Position movement pause time check; place in the 1 ms loop.
 /*---------------------------------------------------------------------------*/
 extern void Motor_Profile_TimeCount(void);
 

@@ -6,7 +6,7 @@
  * File Name     : MotorControl.h
  * Author        : Summer
  * Date          : 2023-05-11
- * Description   : 载波中断和位置环中断函数
+ * Description   : Carrier and position-loop interrupt functions
  *
  * Record        :
  * V1.0, 2023-05-11, Summer: Created file

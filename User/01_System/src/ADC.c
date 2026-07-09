@@ -103,7 +103,7 @@ void UpdateCurrentOffset(void)
 	NFOC_OSCNT = 0;
 	NFOC_OSSUM = 0;
 
-	set_csr(DRV1_FCR2, OFFSET_EN); // 电流基准自动校准使能
+	set_csr(DRV1_FCR2, OFFSET_EN); // Enable automatic current reference calibration
 	while (readbit_csr(DRV1_FCR2, OFFSET_EN)) {};
 
 #if (HW_ADC_SYNC == ADCSAM_SYNC)
@@ -112,22 +112,22 @@ void UpdateCurrentOffset(void)
 	NFOC2_OSCNT = 0;
 	NFOC2_OSSUM = 0;
 
-	set_csr(DRV2_FCR2, OFFSET_EN); // 电流基准自动校准使能
+	set_csr(DRV2_FCR2, OFFSET_EN); // Enable automatic current reference calibration
 	while (readbit_csr(DRV2_FCR2, OFFSET_EN)) {};
 
 	NFOC_IBREF = NFOC2_IBREF;
 #endif
 
-	Fault_CurrentOffset(); // 检查是否有报错
+	Fault_CurrentOffset(); // Check for errors
 	mcCurOffset.OffsetFlag = 1;
 
 #else
 
 	int16 OffsetCount = 0;
-	int16 IuOffset = 0; //Iu的偏置电压
-	int32 IuOffsetSum = 0;    //Iu的偏置电压总和
-	int16 IvOffset = 0; //Iv的偏置电压
-	int32 IvOffsetSum = 0; //Iv的偏置电压总和
+	int16 IuOffset = 0; //Iu bias offset
+	int32 IuOffsetSum = 0;    //Iu bias offset sum
+	int16 IvOffset = 0; //Iv bias offset
+	int32 IvOffsetSum = 0; //Iv bias offset sum
 
 	for (OffsetCount = 0; OffsetCount < 500; OffsetCount++)
 	{
@@ -145,7 +145,7 @@ void UpdateCurrentOffset(void)
 
 	if (IuOffset > 16384 + CuroffJitter || IuOffset < CuroffJitter)
 	{
-		Fault_Handler(FaultCurrentOffset, FLAG_CUROFF); // 报错
+		Fault_Handler(FaultCurrentOffset, FLAG_CUROFF); // Report fault
 	}
 
 	NFOC_IAREF = IuOffset;
@@ -157,4 +157,3 @@ void UpdateCurrentOffset(void)
 
 #endif // #if ADCOFFSET_HARDWARE_ENABLED > 0
 }
-

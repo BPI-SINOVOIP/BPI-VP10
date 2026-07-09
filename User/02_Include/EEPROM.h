@@ -19,23 +19,27 @@
 #include "fu7502.h"
 
 
-#define	EEPROM_DEV_ADDR						(0xA0)					// IIC写入时的地址字节数据
+#define	EEPROM_DEV_ADDR						(0xA0)					// Address byte used for I2C writes
 
 #define CHECK_KEY1							(0X55)
 #define CHECK_KEY2							(0XAA)
 #define CHECK_ADDR							(16380)
 
-#define EEPROM_ERR_ADDR_START				(0x0000)				// 故障存储开始地址
-#define EEPROM_ERR_ADDR_SIZE				((MAXERRHIST << 2))     // 报错历史的存储空间(byte)
+#define EEPROM_ERR_ADDR_START				(0x0000)				// Fault storage start address
+#define EEPROM_ERR_ADDR_SIZE				((MAXERRHIST << 2))     // Error history storage space (bytes)
 
-#define EEPROM_PARAM_ADDR_START				(0x0040)				// Holding Register存储开始地址
-#define EEPROM_PARAM_ADDR_SIZE				(S_REG_HOLDING_NREGS << 1)     // Holding Register的存储空间(byte)
+#define EEPROM_PARAM_ADDR_START				(0x0040)				// Holding Register storage start address
+#define EEPROM_PARAM_ADDR_SIZE				(S_REG_HOLDING_NREGS << 1)     // Holding Register storage space (bytes)
 
-#define EEPROM_ID_ADDR_START				(0x003E)				// ID存储开始地址
-#define EEPROM_ID_ADDR_SIZE					(2)						// ID的存储空间(byte)
+#define EEPROM_ID_ADDR_START				(0x003E)				// ID storage start address
+#define EEPROM_ID_ADDR_SIZE					(2)						// ID storage space (bytes)
 
-#define EEPROM_PNUM_ADDR_START				(0x07C0)				// 每组参数个数的存储开始地址
-#define EEPROM_PNUM_ADDR_SIZE				(64)					// 每组参数个数的存储空间(byte)
+#define EEPROM_PNUM_ADDR_START				(0x07C0)				// Start address for storing the number of parameters per group
+#define EEPROM_PNUM_ADDR_SIZE				(64)					// Storage space for parameter count per group (bytes)
+
+
+#define FLASH_ID_ADDR_START					(0xFFE8 & 0xFFFFFFF8)	// ID storage start address
+#define FLASH_ID_ADDR_SIZE					(8)						// ID storage space (bytes)
 
 // EEPROM
 typedef struct

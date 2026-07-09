@@ -27,12 +27,12 @@ extern "C" {
 
 
 // OnLoadFlag
-#define FEEDBACK_MOTOR				( 0 )	// 电机反馈
-#define FEEDBACK_LOAD				( 1 )   // 负载反馈
+#define FEEDBACK_MOTOR				( 0 )	// Motor feedback
+#define FEEDBACK_LOAD				( 1 )   // Load feedback
 
 
-// 按照外环的分辨率低于内环的分辨率确定的Q格式
-// 否则Q格式的位数要修改
+// Q-format determined by outer loop resolution being lower than inner loop resolution
+// otherwise the Q-format bit count must be modified
 #define LOADCOEF                    ( 20 )
 #define MOTORCOEF                   ( 10 )
 
@@ -40,38 +40,113 @@ extern "C" {
 /* ------ FeedBack Config Type ------ */
 typedef struct
 {
-	uint8  mcStateRunFlag;
-	const uint8* pMode;                   // 全闭环模式  0:内环 1:外环 2:内外环切换（功能码）
-	const uint8* pPosLoopEnable;		  // 位置环使能标志位
-
-	
-	const int16* pMixErrClrRpm;           // 混合偏差清0圈数（功能码）
-	const uint32* pLoadFeedPulse;         // 电机旋转一圈外部编码器的脉冲数（功能码）
-	const int32* pMixErrMaxValue;         // 内、外环偏差的差值超过该值时应该报警（功能码）
-	const int32* pLoadActualAngle;        // 外环实时位置
-	const int32* pMotorActualAngle;		  // 内环实时位置
+	const uint8* pMode;                   // Full closed-loop mode 0:inner 1:outer 2:switch (function code)
+	const uint8* pPosLoopEnable;		  // Position loop enable flag	
+	const int16* pMixErrClrRpm;           // Mix error clear turn count (function code)
+	const uint32* pLoadFeedPulse;         // External encoder pulse count per motor revolution (function code)
+	const int32* pMixErrMaxValue;         // Alarm when inner/outer loop deviation difference exceeds this value (function code)
+	const int32* pLoadActualAngle;        // Outer loop real-time position
+	const int32* pMotorActualAngle;		  // Inner loop real-time position
 	const int32* pTargetAngle;
 	const int32* pTargetRef;
 
-	int32 LoadEncRes;				// 外环分辨率
-	int32 EncRes;					// 内环分辨率
-	int16 PosCtrlFreq;				// 位置环控制频率
-	int16 LPFFreq;					// 外环抑振滤波器
+	int32 LoadEncRes;				// Outer loop resolution
+	int32 EncRes;					// Inner loop resolution
+	int16 PosCtrlFreq;				// Position loop control frequency
+	int16 LPFFreq;					// Outer loop vibration suppression filter
 
 } FeedBackCfgTypedef;
 
 
 /*************************************************************************************///External Function
+
+/*---------------------------------------------------------------------------
+ * Name		:	FeedBackOnLoad_Init
+ * Input	:	cfg - configuration parameters
+ * Output	:	No
+ * Description:	Initialize full closed-loop control
+ *---------------------------------------------------------------------------*/
 extern void FeedBackOnLoad_Init(const FeedBackCfgTypedef * cfg);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	FeedBackOnLoad_Clr
+ * Input	:	No
+ * Output	:	No
+ * Description:	Reset full closed-loop control
+ *---------------------------------------------------------------------------*/
 extern void FeedBackOnLoad_Clr(void);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	FeedBackOnLoad_Update
+ * Input	:	No
+ * Output	:	No
+ * Description:	Full closed-loop variable real-time update
+ *---------------------------------------------------------------------------*/
 extern void FeedBackOnLoad_Update();
+
+
+/*---------------------------------------------------------------------------
+ * Name     :   PosErrCalc_realize
+ * Input    :   No
+ * Output   :   position deviation
+ * Description: Calculate mixed deviation. This function is always used to calculate position deviation regardless of full closed-loop enable status
+ *---------------------------------------------------------------------------*/
 extern int32 PosErrCalc_realize();
+
+
+/*---------------------------------------------------------------------------
+ * Name     :   FeedBackMixErrCheck
+ * Input    :   No
+ * Output   :   Mix error, used only for fault protection, not for closed-loop control.
+ * Description: Mixed deviation monitoring. This function is always used to calculate position deviation regardless of full closed-loop enable status
+ *---------------------------------------------------------------------------*/
 extern int32 FeedBackMixErrCheck();
+
+
+/*---------------------------------------------------------------------------
+ * Name     :   LoadPosFdbCalc_realize
+ * Input    :   NO
+ * Output   :   outer loop velocity
+ * Description: Calculate outer loop position feedback increment
+ *---------------------------------------------------------------------------*/
 extern int32 LoadPosFdbCalc_realize();
 
+
+/*---------------------------------------------------------------------------
+ * Name     :   Feedback_GetOnLoadFlag
+ * Input    :   No
+ * Output   :   Working loop flag: 1:working in outer loop, 0:working in inner loop.
+ * Description: Get current working loop flag
+ *---------------------------------------------------------------------------*/
 extern uint8 Feedback_GetOnLoadFlag(void);
+
+
+/*---------------------------------------------------------------------------
+ * Name     :   Feedback_GetMixErrOverFlag
+ * Input    :   No
+ * Output   :   Mix error too large alarm flag
+ * Description: GetMix error too large alarm flag
+ *---------------------------------------------------------------------------*/
 extern uint8 Feedback_GetMixErrOverFlag(void);
+
+
+/*---------------------------------------------------------------------------
+ * Name     :   Feedback_GetLoadToMotorCoef
+ * Input    :   No
+ * Output   :   Outer-to-inner loop conversion coefficient 
+ * Description: GetOuter-to-inner loop conversion coefficient
+ *---------------------------------------------------------------------------*/
 extern int64 Feedback_GetLoadToMotorCoef(void);
+
+
+/*---------------------------------------------------------------------------
+ * Name     :   Feedback_GetMotorToLoadCoef
+ * Input    :   No
+ * Output   :   Inner-to-outer loop conversion coefficient
+ * Description: GetInner-to-outer loop conversion coefficient
+ *---------------------------------------------------------------------------*/
 extern int64 Feedback_GetMotorToLoadCoef(void);
 
 #ifdef __cplusplus

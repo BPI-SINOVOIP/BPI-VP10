@@ -25,9 +25,9 @@ extern "C" {
 #include "Filter.h"
 
 /* ------ Speed FeedForward Type ------ */
-#define VELFF_MODE_OFF					(0)			// 关闭
-#define VELFF_MODE_DIFF					(1)			// 位置指令差分
-#define VELFF_MODE_TRAJ					(2)			// 位置运动规划
+#define VELFF_MODE_OFF					(0)			// Off
+#define VELFF_MODE_DIFF					(1)			// Position command differential
+#define VELFF_MODE_TRAJ					(2)			// Position trajectory planning
 
 /*************************************************************************************///External Function
 typedef struct

@@ -100,7 +100,7 @@ void SetIRQ_DMA0(bool eIRQ)
 
 	if (eIRQ)
 	{
-		write_csr(IP12, DMA0_INT_PRI);			// DRV1中断(中断号8) 优先级别为4
+		write_csr(IP12, DMA0_INT_PRI);			// DRV1 interrupt (interrupt number 8) priority is 4
 	}
 }
 
@@ -114,7 +114,7 @@ void SetIRQ_DMA1(bool eIRQ)
 
 	if (eIRQ)
 	{
-		write_csr(IP12, DMA0_INT_PRI);			// DRV1中断(中断号8) 优先级别为4
+		write_csr(IP12, DMA0_INT_PRI);			// DRV1 interrupt (interrupt number 8) priority is 4
 	}
 }
 
@@ -123,7 +123,7 @@ void Set_DBG_DMA(void)
 	write_csr(DMA1_LEN, 7);
 	set_csr(DMA1_CR, DMAEN);
 
-	//	set_csr(DMA0_CR, ENDIAN);		//DMA数据传输顺序模式
+	//	set_csr(DMA0_CR, ENDIAN);		//DMA data transfer order mode
 
 	set_csr(DMA1_CR, DMACFG2);	//
 	clr_csr(DMA1_CR, DMACFG1);

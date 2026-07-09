@@ -6,7 +6,7 @@
  * File Name     : FieldWeaken.h
  * Author        : wynn.wang
  * Date          : 2025-03-18
- * Description   : 弱磁控制
+ * Description   : Field weakening control
  *
  * Record        :
  * V1.0, 2025-03-18, wynn.wang: Created file
@@ -26,10 +26,10 @@
 #define Weaken_KI_Q15               _Q15(0.06) // 983
 
 #define _2PI                        (3.1415926 * 2)                      // 2 PI value
-#define _Pole_Pairs                 ((int16)usSRegHoldBuf[POLES] / 2)    // 极对数
-#define _Ke                         ((int32)usSRegHoldBuf[BEMFCONST] * 1000.0 * _2PI / 128.0 / 60.0) // (V/KRPM) 反电动势常数 7.6
-#define _LQ                         ((int16)usSRegHoldBuf[INDUCTANCE] / 2)   // Q轴电感/2 (mH * 256)
-#define _LD                         ((int16)usSRegHoldBuf[DINDUCTANCE] / 2)  // D轴电感/2 (mH * 256)
+#define _Pole_Pairs                 ((int16)usSRegHoldBuf[POLES] / 2)    // number of pole pairs
+#define _Ke                         ((int32)usSRegHoldBuf[BEMFCONST] * 1000.0 * _2PI / 128.0 / 60.0) // (V/KRPM) back EMF constant 7.6
+#define _LQ                         ((int16)usSRegHoldBuf[INDUCTANCE] / 2)   // Q-axis inductance/2 (mH * 256)
+#define _LD                         ((int16)usSRegHoldBuf[DINDUCTANCE] / 2)  // D-axis inductance/2 (mH * 256)
 #define _Psi                        (float)((int32) _Ke * 207.84 * 1.414 / 1.732 / 1000.0 / 2.0 / 1.732 / _Pole_Pairs / _2PI) // sqrt(2/3)ke/pp 0.01185
 
 #define SAMP_FREQ                   (PWM_FREQUENCY * 1000)

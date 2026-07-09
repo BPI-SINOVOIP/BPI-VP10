@@ -20,10 +20,23 @@
 
 
 
-
+/*---------------------------------------------------------------------------
+ * Name		:	DeadTimeCompensationInit
+ * Input	:	DeadCompCurr - Current threshold to enable dead-time compensation
+ * Output	:	No
+ * Description:	Initialize dead-time compensation
+ *---------------------------------------------------------------------------*/
 extern void DeadTimeCompensationInit(int16 DeadCompCurr);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	DeadTimeCompensationController
+ * Input	:	Theta - Current electrical angle value
+ *				Id - Current D-axis current
+ * 				Iq - Current Q-axis current
+ * Output	:	No
+ * Description:	Calculate the dead-time compensation value
+ *---------------------------------------------------------------------------*/
 extern void DeadTimeCompensationController(int16 Theta, int16 Id, int16 Iq);
 
 #endif
-
-

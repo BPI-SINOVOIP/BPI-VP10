@@ -6,7 +6,7 @@
  * File Name     : ScrewCtrl.h
  * Author        : wynn.wang
  * Date          : 2025-01-18
- * Description   : 电批
+ * Description   : Electric screwdriver
  *
  * Record        :
  * V1.0, 2025-01-18, wynn.wang: Created file

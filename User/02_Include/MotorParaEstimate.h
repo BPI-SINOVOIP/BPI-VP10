@@ -6,7 +6,7 @@
  * File Name     : MotorParaEstimate.h
  * Author        : wynn.wang
  * Date          : 2024-12-02
- * Description   : 电机参数辨识
+ * Description   : Motor parameter identification
  *
  * Record        :
  * V1.0, 2024-12-02, wynn.wang: Created file
@@ -34,7 +34,7 @@ typedef struct
 	int16 UMin;
 	int16 UMax;
 	int16 UDelta;
-	int16 FreqMax; // 初始频率
+	int16 FreqMax; // Initial frequency
 	int16 FreqMin;
 	int16 FreqDelta;
 	int16 IMinRatio;
@@ -54,13 +54,66 @@ typedef struct
 
 
 
-
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Identify_ParamInit
+ * Input	:	cfg - configuration parameters
+ * Output	:	No
+ * Description:	Initialize motor parameter identification
+ *---------------------------------------------------------------------------*/
 extern void Motor_Identify_ParamInit(MotorEstCfgTypeDef* cfg);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Identify_realize
+ * Input	:	No
+ * Output	:	No
+ * Description:	Performs motor parameter identification; runs within 1 ms
+ *---------------------------------------------------------------------------*/
 extern void Motor_Identify_realize(void);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Resistance_Identify_OpenLoop_realize
+ * Input	:	No
+ * Output	:	No
+ * Description:	Resistance parameter identification (open-loop)
+ *---------------------------------------------------------------------------*/
 extern void Motor_Resistance_Identify_OpenLoop_realize(void);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Resistance_Identify_ClosedLoop_realize
+ * Input	:	No
+ * Output	:	No
+ * Description:	Resistance parameter identification (closed-loop)
+ *---------------------------------------------------------------------------*/
 extern void Motor_Resistance_Identify_ClosedLoop_realize(void);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Inductance_Identify_realize
+ * Input	:	No
+ * Output	:	No
+ * Description:	Inductance parameter identification
+ *---------------------------------------------------------------------------*/
 extern void Motor_Inductance_Identify_realize(void);
-extern void Motor_Inductance_Identify_realize_Isr(void);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Identify_realize_Isr
+ * Input	:	No
+ * Output	:	No
+ * Description:	Performs motor parameter identification; to be placed in the carrier interrupt
+ *---------------------------------------------------------------------------*/
+extern void Motor_Identify_realize_Isr(void);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	Motor_Identify_GetFinishFlag
+ * Input	:	No
+ * Output	:	No
+ * Description:	Returns the identification complete flag
+ *---------------------------------------------------------------------------*/
 extern uint8 Motor_Identify_GetFinishFlag(void);
 
 #ifdef __cplusplus
@@ -68,4 +121,3 @@ extern uint8 Motor_Identify_GetFinishFlag(void);
 #endif
 
 #endif
-

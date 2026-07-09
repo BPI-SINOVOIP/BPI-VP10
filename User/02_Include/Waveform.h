@@ -20,12 +20,12 @@
 
 // WAVETYPE
 #define WAVE_CONST										( 0 )          // constant value
-#define WAVE_TRAP										( 1 )          // trap wave: 没有停止段
+#define WAVE_TRAP										( 1 )          // trap wave: no dwell segment
 #define WAVE_SIN										( 2 )          // sin wave
 #define WAVE_CHIRP										( 3 )          // chirp wave
-#define WAVE_TRAPEXT									( 4 )          // trap wave extended: 有停止段
+#define WAVE_TRAPEXT									( 4 )          // trap wave extended: has dwell segment
 
-// 状态机
+// State machine
 #define WSTEP_POSACC                                    ( 0 )
 #define WSTEP_POSDEC                                    ( 1 )
 #define WSTEP_NEGACC                                    ( 2 )
@@ -33,11 +33,15 @@
 #define WSTEP_WAIT										( 4 )
 #define WSTEP_HOLD										( 5 )
 
+// SCALE SHIFT
+#define VEL_SCALE_SHIFT									( 8 )
+#define CUR_SCALE_SHIFT									( 0 )
+#define FRC_SCALE_SHIFT									( 12 )
 
 // SerialIn Velocity/Current
 typedef struct
 {
-	uint8 State;	// 0-加速段  1-加速后匀速段  2-减速段  3-减速后匀速段  4-无匀速段
+	uint8 State;	// 0-acceleration phase  1-constant speed after acceleration  2-deceleration phase  3-constant speed after deceleration  4-no constant speed segment
 	uint8 NextState;
 	uint8 Status;
 	uint8 Scale;
@@ -47,31 +51,31 @@ typedef struct
 	int32 Value;
 	int32 TestCmd;
 	int32 TestInc;
-	uint32 WaitTime; // 等待时间
-	uint32 DwellTime; // 停顿时间
-	uint32 PosConstTime; // 正向匀速时间
-	uint32 NegConstTime; // 反向匀速时间
-	int32 CycleCounter; // 重复次数
+	uint32 WaitTime; // Waiting time
+	uint32 DwellTime; // Dwell time
+	uint32 PosConstTime; // Forward constant-speed time
+	uint32 NegConstTime; // Reverse constant-speed time
+	int32 CycleCounter; // Repeat count
 } SigGenTypeDef;
 
 
 typedef struct
 {
-	uint16 SweepFrequencyStep;			// 扫频步进角
-	uint16 SweepFrequencyValue;			// 正弦波输出频率
-	uint16 Index;						// 实际输入正弦波角度
-	uint16 Vs;							// 实际输入正弦波幅值
-	int16 Out;							// 计算结果
+	uint16 SweepFrequencyStep;			// Sweep step angle
+	uint16 SweepFrequencyValue;			// Sine wave output frequency
+	uint16 Index;						// Actual input sine wave angle
+	uint16 Vs;							// Actual input sine wave amplitude
+	int16 Out;							// Calculated result
 } SINSWEEP_Typedef;
 
 
 typedef struct
 {
-	uint32 LinCoe;						// 一次项系数
-	uint32 QuadCoe;						// 二次项系数
-	uint16 Index;						// 时间计数
-	uint16 Amp;							// Chirp幅值
-	uint16 Point;						// Chirp点数
+	uint32 LinCoe;						// Linear coefficient
+	uint32 QuadCoe;						// Quadratic coefficient
+	uint16 Index;						// Time counter
+	uint16 Amp;							// Chirp amplitude
+	uint16 Point;						// Chirp point count
 } CHIRPSWEEP_Typedef;
 
 extern SigGenTypeDef mcSigGen;
@@ -79,6 +83,7 @@ extern SINSWEEP_Typedef SinSweep;
 extern CHIRPSWEEP_Typedef ChirpSweep;
 
 
+extern void Motor_SerialIn_Update(void);
 extern void Motor_SerialIn_Init(void);
 extern void Motor_SerialIn_StartMove(void);
 extern void Motor_SerialIn_StartSuspend(void);

@@ -6,7 +6,7 @@
  * File Name     : Math.h
  * Author        : wynn.wang
  * Date          : 2023-08-11
- * Description   : 数学库
+ * Description   : Math library
  *
  * Record        :
  * V1.0, 2023-08-11, wynn.wang: Created file
@@ -40,7 +40,7 @@ extern "C" {
 #define PI_Q12                          (12868L)
 
 
-/* 电角度定义 */
+/* Electrical angle definitions */
 #define DEGREE_0                        (short)(0)
 #define DEGREE_30                       (short)(5461)
 #define DEGREE_60                       (short)(10922)
@@ -52,25 +52,25 @@ extern "C" {
 #define DEGREE_480                      (long)(87831)
 
 
-//求取绝对值
+//Get absolute value
 #define ABS(A)      (((A)>=0) ? (A) : (-(A)))
 
-//取参数A、B的最小值
+//Get minimum of parameters A and B
 #define MIN(A,B)    (((A)<(B))? (A) : (B))
 
-//取参数A、B的最大值
+//Get maximum of parameters A and B
 #define MAX(A,B)    (((A)>(B))? (A) : (B))
 
-//下限幅
+//Lower limit
 #define MINLMT(A,Min) (((A)<(Min))? (Min) : (A))
 
-//上限幅
+//Upper limit
 #define MAXLMT(A,Max) (((A)>(Max))? (Max) : (A))
 
-//上下限幅
+//Upper and lower limits
 #define MAX_MIN_LMT(A,Pos,Neg)  MAX(MIN(A,Pos),Neg)
 
-//取符号
+//Get sign
 #define Sign_NP(A)  (((A)>=0) ? 1 : -1)
 
 

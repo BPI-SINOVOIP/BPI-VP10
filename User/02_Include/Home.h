@@ -17,17 +17,17 @@
 #define __HOME_H_
 /* Define to prevent recursive inclusion -------------------------------------*/
 
-#define DisengagNLimitToIndex          (1)             // 离开负限位后，第一个index标记回零。
-#define DisengagPLimitToIndex          (2)             // 离开正限位后，第一个index标记回零。
-#define DisengagHomeSwitchPToIndex     (3)             // 离开回零开关后，第一个index标记回零（正行程回零开关）。
-#define DisengagHomeSwitchNToIndex     (5)             // 离开回零开关后，第一个index标记回零（负行程回零开关）。
-#define NToIndex                       (33)            // index标记为零位，负方向移动。
-#define PToIndex                       (34)            // index标记为零位，正方向移动。
-#define NowPositionAsHome              (35)            // 声明当前位置为零位。
-#define HardStopNToIndex               (-33)           // 撞硬限位后找第一个index回零（负硬限位）。
-#define HardStopPToIndex               (-34)           // 撞硬限位后找第一个index回零（正硬限位）。
-#define HardStopN                      (-125)          // 撞硬限位后停止（负硬限位）。
-#define HardStopP                      (-126)          // 撞硬限位后停止（正硬限位）。
+#define DisengagNLimitToIndex          (1)             // After leaving the negative limit, the first index mark is reset to zero.
+#define DisengagPLimitToIndex          (2)             // After leaving the positive limit, the first index mark is reset to zero.
+#define DisengagHomeSwitchPToIndex     (3)             // After leaving the home switch, the first index mark is reset to zero (positive travel home switch).
+#define DisengagHomeSwitchNToIndex     (5)             // After leaving the home switch, the first index mark is reset to zero (negative travel home switch).
+#define NToIndex                       (33)            // Index mark set as zero position, move in negative direction.
+#define PToIndex                       (34)            // Index mark set as zero position, move in positive direction.
+#define NowPositionAsHome              (35)            // Declare current position as zero.
+#define HardStopNToIndex               (-33)           // After hitting the hard negative limit, find the first index to reset to zero (negative hard limit).
+#define HardStopPToIndex               (-34)           // After hitting the hard positive limit, find the first index to reset to zero (positive hard limit).
+#define HardStopN                      (-125)          // Stop after hitting hard negative limit (negative hard limit).
+#define HardStopP                      (-126)          // Stop after hitting hard positive limit (positive hard limit).
 
 // Home state machine
 #define HOME_IDLE						(0)             //
@@ -54,13 +54,13 @@ typedef struct
     int32  MoveDistance;
     int32  EncThetaBuffer;
     int32  LoadEncThetaBuffer;
-    uint8  ZCapturedFlag;
     uint16 HomeSpeed;
     uint16 ZeroSpeed;
     uint16 HomeAcc;
-    uint8  SkipFaultOverPosErr;
-    uint16 LimitButton;
     
+    uint16 LimitButton;
+    int16  IqRefLimit;
+    uint8  SkipFaultOverPosErr;
     uint8  EnableStatus;
 }HomeTypeDef;
 

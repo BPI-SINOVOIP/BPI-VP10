@@ -47,7 +47,6 @@
 
 
 // Definition of register SCOPECTRL
-#define SCOPE_SPEC									   0x8000          // rw-- 0 = Special; 1 = normal mode
 #define SCOPE_TRIGEN								   0x0040          // rw-- 0 = trigger disable; 1 = trigger enable
 #define SCOPE_TRIGDIR								   0x0030          // rw-- 0 = trigger when above Threshold; 1 = trigger when below Threshold
 #define SCOPE_TRIGBITS		                           0x0008          // rw-- 0 = trigger variable 16 bit; 1 = trigger variable 32 bit
@@ -65,11 +64,11 @@
 
 
 #ifndef GetReg
-#define GetReg(reg, val1)               ((reg) & (val1))						// 获取reg中val1的值
+#define GetReg(reg, val1)               ((reg) & (val1))						// Get the value of val1 in reg
 #endif
 
 #ifndef ReadBit
-#define ReadBit(reg, val)               (((reg) & (val)) != 0)                  // 判断reg中val对应的位是否为1
+#define ReadBit(reg, val)               (((reg) & (val)) != 0)                  // Check whether the bit corresponding to val in reg is 1
 #endif
 
 
@@ -92,9 +91,9 @@ typedef struct
 
 /*---------------------------------------------------------------------------
  * Name		:	Scope_UpdateMode
- * Input	:	cfg - 示波器配置参数
- *				pTrigStatus - 示波器触发采样状态
- * Output	:	示波器采样状态
+ * Input	:	cfg - scope configuration parameters
+ *				pTrigStatus - scope trigger sampling status
+ * Output	:	scope sampling status
  * Description:	Initialize Scope.
  *---------------------------------------------------------------------------*/
 extern uint16 Scope_UpdateMode(ScopeCfgTypeDef* cfg, uint16* pTrigStatus);
@@ -102,18 +101,18 @@ extern uint16 Scope_UpdateMode(ScopeCfgTypeDef* cfg, uint16* pTrigStatus);
 
 /*---------------------------------------------------------------------------
  * Name		:	Scope_DoSample
- * Input	:	pTrigStatus - 示波器触发采样状态
- * Output	:	示波器采样状态
- * Description:	每隔固定的时间更新示波器采样
+ * Input	:	pTrigStatus - scope trigger sampling status
+ * Output	:	scope sampling status
+ * Description:	Update scope sampling at fixed intervals
  *---------------------------------------------------------------------------*/
 extern uint16 Scope_DoSample(uint16* pTrigStatus);
 
 
 /*---------------------------------------------------------------------------
  * Name		:	Scope_GetDataReadyFlag
- * Input	:	usRegAddress - 示波器采样的起始位置
- * Output	:	示波器采样完成状态
- * Description:	判断示波器采样是否完成
+ * Input	:	usRegAddress - starting position of scope sampling
+ * Output	:	scope sampling completion status
+ * Description:	Determine whether scope sampling is complete
  *---------------------------------------------------------------------------*/
 extern uint8 Scope_GetDataReadyFlag(uint16 usRegAddress);
 

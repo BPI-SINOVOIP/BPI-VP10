@@ -27,33 +27,74 @@ extern "C" {
 
 
 /* ------ FeedBack Type ------ */
-/* ------ 外部输入的变量 ------ */
+/* ------ External input variables ------ */
 typedef struct
 {
-	int32 Tdelay;                        // 峰值电流延迟时间 ms
-	int32 Tc;                            // 时间常数 ms
-	int16 DriveVal;                      // 持续电流值
-	int16 PeakVal;                       // 峰值电流值
-	int16 WarnThresHoldVal;              // 警告电流阈值
-	int16 FaultThresHoldVal;             // 故障电流阈值
-	int16 CurrMax;						// 电流阈值上限
-	int16 CurrMin;						// 电流阈值下限
-	uint16 CurCtrlFreq;					// 电流环频率
-	const int16* pActualCurrent;              // 当前电流值
-	const uint8* pFoldbackSon;				// 电流折返使能状态- 1：使能 0：禁止
-	const uint8* pLoopEnable;                 // 电流环使能状态- 1：使能 0：禁止
+	int32 Tdelay;                        // Peak current delay time ms
+	int32 Tc;                            // Time constant ms
+	int16 DriveVal;                      // Sustained current value
+	int16 PeakVal;                       // Peak current value
+	int16 WarnThresHoldVal;              // Warning current threshold value
+	int16 FaultThresHoldVal;             // Fault current threshold value
+	int16 CurrMax;						// Current threshold upper limit
+	int16 CurrMin;						// Current threshold lower limit
+	uint16 CurBackFreq;					// Update frequency
+	const int16* pActualCurrent;              // Actual current value
+	const uint8* pFoldbackSon;				// Foldback enable status - 1: enabled 0: disabled
+	const uint8* pLoopEnable;                 // Current loop enable status - 1: enabled 0: disabled
 } CurrBackCfgTypedef;
 
 
 typedef struct CurrBackTypedf_t CurrBackTypedf;
 
-/*************************************************************************************///External Function
 extern CurrBackTypedf MotorCurrBack;
 
+/*************************************************************************************///External Function
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	CurrBackProtect_Init
+ * Input	:	p - Pointer to CurrBackTypedf instance
+ *				cfg - Configuration parameters
+ * Output	:	No
+ * Description:	Initialize current foldback
+ *---------------------------------------------------------------------------*/
 extern void CurrBackProtect_Init(CurrBackTypedf* p, CurrBackCfgTypedef * cfg);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	CurrBackProtect_Clr
+ * Input	:	p - Pointer to CurrBackTypedf instance
+ * Output	:	No
+ * Description:	Reset current foldback
+ *---------------------------------------------------------------------------*/
 extern void CurrBackProtect_Clr(CurrBackTypedf* p);
+
+
+ /*---------------------------------------------------------------------------
+ * Name		:	CurrBackProtect_realize
+ * Input	:	p - Pointer to CurrBackTypedf instance
+ * Output	:	No
+ * Description:	Execute current foldback function, updating current limits IQMAX/IQMIN
+ *---------------------------------------------------------------------------*/
 extern void CurrBackProtect_realize(CurrBackTypedf* p);
+
+
+/*---------------------------------------------------------------------------
+ * Name     :   CurrBackProtect_Fault
+ * Input    :   p - Pointer to CurrBackTypedf instance
+ * Output   :   Current foldback fault flag
+ * Description: Get current foldback fault flag
+ *---------------------------------------------------------------------------*/
 extern uint8 CurrBackProtect_Fault(CurrBackTypedf* p);
+
+
+/*---------------------------------------------------------------------------
+ * Name     :   CurrBackProtect_Warn
+ * Input    :   p - Pointer to CurrBackTypedf instance
+ * Output   :   Current foldback warning flag
+ * Description: Get current foldback warning flag
+ *---------------------------------------------------------------------------*/
 extern uint8 CurrBackProtect_Warn(CurrBackTypedf* p);
 
 #ifdef __cplusplus

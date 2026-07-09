@@ -24,25 +24,26 @@
 
 typedef struct
 {
-	int32 StartPos;							//开始位置
-	int32 Interval;							//间隔距离
-	int32 Protaty;							//位置循环周期
-	int16 NumPoints;						//点数
-	int8 En;							    //使能
-	const int16* pPosErr;					//误差表地址
+	int32 StartPos;							//Start position
+	int32 Interval;							//Interval distance
+	int32 Protaty;							//Position cycle period
+	int16 NumPoints;						//Number of points
+	int8 En;							    //Enable
+	const int16* pPosErr;					//Pointer to error table
 } ErrCorCfgTypedef;
 
 
 
 /*---------------------------------------------------------------------------
  * Name		:	ErrorCorrection_Init
- * Input	:	cfg - 配置参数
+ * Input	:	cfg - configuration parameters
  * Output	:	NO
  * Description:	Initial ErrorCorrection.
  *---------------------------------------------------------------------------*/
 extern void ErrorCorrection_Init(const ErrCorCfgTypedef* cfg);
 
 
+ 
 /*---------------------------------------------------------------------------
  * Name		:	ErrorCorrection_realize
  * Input	:	position before ErrorCorrection

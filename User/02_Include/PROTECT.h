@@ -48,67 +48,67 @@
 
 #define FaultNoSource				(0x00)
 
-// 运动相关报错
-#define FaultHardOVCurrent			(0xA00 + 1)
-#define FaultPeakOVCurrent			(0xA00 + 2)
-#define FaultRMSOVCurrent			(0xA00 + 3)
-#define FaultPhaseLoss				(0xA00 + 4)
-#define FaultOverSpeed				(0xA00 + 5)
-#define FaultOverPosErr				(0xA00 + 6)
-#define FaultOverVelErr				(0xA00 + 7)
-#define FaultStall					(0xA00 + 8)
-#define FaultPhaseFindFailed		(0xA00 + 9)
-#define FaultHomeFailed				(0xA00 + 10)
-#define FaultParamError				(0xA00 + 11)
-#define FaultPulseFreqTooHigh		(0xA00 + 12)
-#define FaultCommutation			(0xA00 + 13)
-#define FaultEmergencyStop			(0xA00 + 14)
-#define FaultPositiveLimit			(0xA00 + 15)
-#define FaultNegativeLimit			(0xA00 + 16)
-#define FaultNotPhaseFind			(0xA00 + 17)
-#define FaultMixErrOver  			(0xA00 + 18)
-#define FaultFoldBackCurrent  	    (0xA00 + 19)
-#define FaultGantryMaster  			(0xA00 + 20)
-#define FaultGantrySlave            (0xA00 + 21)
-#define FaultGantryErrOver          (0xA00 + 22)
+// Motion related errors
+#define FaultHardOVCurrent			(0xA00 + 1) // Hardware overcurrent
+#define FaultPeakOVCurrent			(0xA00 + 2) // Software overcurrent
+#define FaultRMSOVCurrent			(0xA00 + 3) // RMS overcurrent
+#define FaultPhaseLoss				(0xA00 + 4) // Phase loss
+#define FaultOverSpeed				(0xA00 + 5) // Overspeed
+#define FaultOverPosErr				(0xA00 + 6) // Position over error
+#define FaultOverVelErr				(0xA00 + 7) // Velocity over error
+#define FaultStall					(0xA00 + 8) // Stall
+#define FaultPhaseFindFailed		(0xA00 + 9) // Phase alignment failed
+#define FaultHomeFailed				(0xA00 + 10) // Homing failed
+#define FaultParamError				(0xA00 + 11) // Unreasonable parameter setting
+#define FaultPulseFreqTooHigh		(0xA00 + 12) // Pulse frequency too high (not used)
+#define FaultCommutation			(0xA00 + 13) // Commutation failed (not used)
+#define FaultEmergencyStop			(0xA00 + 14) // Emergency stop  (not used)
+#define FaultPositiveLimit			(0xA00 + 15) // Positive overtravel
+#define FaultNegativeLimit			(0xA00 + 16) // Negative overtravel
+#define FaultNotPhaseFind			(0xA00 + 17) // Phase not aligned
+#define FaultMixErrOver  			(0xA00 + 18) // Dual-encoder mixed deviation too large
+#define FaultFoldBackCurrent  	    (0xA00 + 19) // Foldback current warning
+#define FaultGantryMaster  			(0xA00 + 20) // Gantry master axis error
+#define FaultGantrySlave            (0xA00 + 21) // Gantry slave axis error
+#define FaultGantryErrOver          (0xA00 + 22) // Master-slave mixed deviation too large
 
-// 驱动器相关报错
-#define FaultUnderVoltage			(0xB00 + 1)
-#define FaultOverVoltage			(0xB00 + 2)
-#define FaultOverTemp				(0xB00 + 3)
-#define FaultSTO					(0xB00 + 4)
-#define FaultCurrentOffset			(0xB00 + 5)
-#define FaultMainIntTimeOut 		(0xB00 + 6)
-#define FaultAuxIntDelayTimeOut 	(0xB00 + 7)
-#define FaultECatTimeOut 			(0xB00 + 8)
-#define Fault485CRC 			    (0xB00 + 9)
+// Driver related errors
+#define FaultUnderVoltage			(0xB00 + 1) // Undervoltage
+#define FaultOverVoltage			(0xB00 + 2) // Overvoltage
+#define FaultOverTemp				(0xB00 + 3) // Overtemperature
+#define FaultSTO					(0xB00 + 4) // STO not connected
+#define FaultCurrentOffset			(0xB00 + 5) // Current offset abnormal
+#define FaultMainIntTimeOut 		(0xB00 + 6) // Main interrupt timeout
+#define FaultAuxIntDelayTimeOut 	(0xB00 + 7) // Sub-interrupt delay timeout
+#define FaultECatTimeOut 			(0xB00 + 8) // EtherCAT communication timeout
+#define Fault485CRC 			    (0xB00 + 9) // 485 communication CRC error
 
-// 编码器相关报错
-#define FaultEncTimeOut				(0xC00 + 1)
-#define FaultEncCRC					(0xC00 + 2)
-#define FaultEncComError			(0xC00 + 3)
-#define FaultEncBatteryErr			(0xC00 + 4)
-#define FaultEncBatteryWarn			(0xC00 + 5)
-#define FaultEncInternal			(0xC00 + 6)
-#define FaultBiSSErr				(0xC00 + 7)
-#define FaultBiSSWarn				(0xC00 + 8)
-#define FaultHallsInvalid			(0xC00 + 9)
-#define FaultEncOutFreqTooHigh		(0xC00 + 10)
-#define FaultABLineBreak			(0xC00 + 11)
-#define FaultSFBEncCRC				(0xC00 + 12)
-#define FaultSFBEncInternal			(0xC00 + 13)
+// Encoder related errors
+#define FaultEncTimeOut				(0xC00 + 1) // Encoder communication timeout
+#define FaultEncCRC					(0xC00 + 2) // Encoder CRC communication alarm
+#define FaultEncComError			(0xC00 + 3) // Encoder other communication alarm
+#define FaultEncBatteryErr			(0xC00 + 4) // Encoder battery error
+#define FaultEncBatteryWarn			(0xC00 + 5) // Encoder battery alarm
+#define FaultEncInternal			(0xC00 + 6) // Encoder internal error alarm
+#define FaultBiSSErr				(0xC00 + 7) // BiSS data frame error
+#define FaultBiSSWarn				(0xC00 + 8) // BiSS data frame warning
+#define FaultHallsInvalid			(0xC00 + 9) // Hall fault
+#define FaultEncOutFreqTooHigh		(0xC00 + 10) // Encoder output pulse frequency too high
+#define FaultABLineBreak			(0xC00 + 11) // Encoder AB wiring disconnected (not used)
+#define FaultSFBEncCRC				(0xC00 + 12) // Load-side encoder CRC communication alarm
+#define FaultSFBEncInternal			(0xC00 + 13) // Load-side encoder internal error alarm
 
-// 堵转判断范围	
-#define ETHETA_60						(10922) // 60度电角度对应的值
-#define ETHETA_160						(29127) // 160度电角度对应的值
+// Constants
+#define MS_PER_MINUTE					(60000) // how many ms per minute
 
-// 载波中断超时判断阈值
+// Carrier interrupt timeout judgment threshold
 #define VELLOOPTHRESHOLD				(375 / VELCTRL_FREQUENCY + 5)
 	
-// 报错历史存储		
+// Error history storage		
 #define MAXERRHIST						(11)
 #define MAXERRHISTPOINTER				(MAXERRHIST << 1)
 
+// Encoder errors
 #define ENCERRSIZE						(10)
 #define BISSERRSIZE						(4)
 #if ENCODER_SEL_BISS_ENABLED && ENCODER_SEL_TMG_ENABLED
@@ -121,75 +121,75 @@
 #define ENCERRARRAYSIZE					(0)
 #endif
 
-// 警告报错位
-#define FLAGBIT_PARAMERR				(0) // 参数设置不合理
-#define FLAGBIT_POSLIM					(1) // 正向超程
-#define FLAGBIT_NEGLIM					(2) // 负向超程
-#define FLAGBIT_STOERR					(3) // STO没接
-#define FLAGBIT_CUROFF					(4) // 电流偏置异常
-#define FLAGBIT_MAININTOT				(5) // 主中断超时
-#define FLAGBIT_AUXINTOT				(6) // 子中断延时超时
-#define FLAGBIT_BISSWARN				(7) // BiSS数据帧警告
-#define FLAGBIT_BATWARN					(8) // 编码器电池报警
-#define FLAGBIT_ENCCRC					(9) // 编码器CRC通信报警
-#define FLAGBIT_ENCCOM					(10) // 编码器其他通信报警
-#define FLAGBIT_ENCINT					(11) // 编码器内部错误报警
-#define FLAGBIT_ECAT					(12) // EtherCAT通信超时
-#define FLAGBIT_BISSERR					(13) // BiSS数据帧错误
-#define FLAGBIT_BATERR					(14) // 编码器电池报错
-#define FLAGBIT_HARDOVC					(15) // 硬件过流
-#define FLAGBIT_HALLERR					(16) // Hall故障
-#define FLAGBIT_ENCOT					(17) // 编码器通信超时
-#define FLAGBIT_FOLDBACK                (18) // 折返电流警告
-#define FLAGBIT_SFBENCCRC				(19) // 负载侧编码器CRC通信报警
-#define FLAGBIT_SFBENCINT				(20) // 负载侧编码器内部错误报警
+// Warning/Error bits
+#define FLAGBIT_PARAMERR				(0) // Unreasonable parameter setting
+#define FLAGBIT_POSLIM					(1) // Positive overtravel
+#define FLAGBIT_NEGLIM					(2) // Negative overtravel
+#define FLAGBIT_STOERR					(3) // STO not connected
+#define FLAGBIT_CUROFF					(4) // Current offset abnormal
+#define FLAGBIT_MAININTOT				(5) // Main interrupt timeout
+#define FLAGBIT_AUXINTOT				(6) // Sub-interrupt delay timeout
+#define FLAGBIT_BISSWARN				(7) // BiSS data frame warning
+#define FLAGBIT_BATWARN					(8) // Encoder battery alarm
+#define FLAGBIT_ENCCRC					(9) // Encoder CRC communication alarm
+#define FLAGBIT_ENCCOM					(10) // Encoder other communication alarm
+#define FLAGBIT_ENCINT					(11) // Encoder internal error alarm
+#define FLAGBIT_ECAT					(12) // EtherCAT communication timeout
+#define FLAGBIT_BISSERR					(13) // BiSS data frame error
+#define FLAGBIT_BATERR					(14) // Encoder battery error
+#define FLAGBIT_HARDOVC					(15) // Hardware overcurrent
+#define FLAGBIT_HALLERR					(16) // Hall fault
+#define FLAGBIT_ENCOT					(17) // Encoder communication timeout
+#define FLAGBIT_FOLDBACK                (18) // Foldback current warning
+#define FLAGBIT_SFBENCCRC				(19) // Load-side encoder CRC communication alarm
+#define FLAGBIT_SFBENCINT				(20) // Load-side encoder internal error alarm
 
-// 警告报错位
-#define FLAG_PARAMERR					(0x00000001) // 参数设置不合理
-#define FLAG_POSLIM						(0x00000002) // 正向超程
-#define FLAG_NEGLIM						(0x00000004) // 负向超程
-#define FLAG_STOERR						(0x00000008) // STO没接
-#define FLAG_CUROFF						(0x00000010) // 电流偏置异常
-#define FLAG_MAININTOT					(0x00000020) // 主中断超时
-#define FLAG_AUXINTOT					(0x00000040) // 子中断延时超时
-#define FLAG_BISSWARN					(0x00000080) // BiSS数据帧警告
-#define FLAG_BATWARN					(0x00000100) // 编码器电池报警
-#define FLAG_ENCCRC						(0x00000200) // 编码器CRC通信报警
-#define FLAG_ENCCOM						(0x00000400) // 编码器其他通信报警
-#define FLAG_ENCINT						(0x00000800) // 编码器内部错误报警
-#define FLAG_ECAT						(0x00001000) // EtherCAT通信超时
-#define FLAG_BISSERR					(0x00002000) // BiSS数据帧错误
-#define FLAG_BATERR						(0x00004000) // 编码器电池报错
-#define FLAG_HARDOVC					(0x00008000) // 硬件过流
-#define FLAG_HALLERR					(0x00010000) // Hall故障
-#define FLAG_ENCOT						(0x00020000) // 编码器通信超时
-#define FLAG_FOLDBACK                   (0x00040000) // 折返电流警告
-#define FLAG_SFBENCCRC					(0x00080000) // 负载侧编码器CRC通信报警
-#define FLAG_SFBENCINT					(0x00100000) // 负载侧编码器内部错误报警
+// Warning/Error bits
+#define FLAG_PARAMERR					(0x00000001) // Unreasonable parameter setting
+#define FLAG_POSLIM						(0x00000002) // Positive overtravel
+#define FLAG_NEGLIM						(0x00000004) // Negative overtravel
+#define FLAG_STOERR						(0x00000008) // STO not connected
+#define FLAG_CUROFF						(0x00000010) // Current offset abnormal
+#define FLAG_MAININTOT					(0x00000020) // Main interrupt timeout
+#define FLAG_AUXINTOT					(0x00000040) // Sub-interrupt delay timeout
+#define FLAG_BISSWARN					(0x00000080) // BiSS data frame warning
+#define FLAG_BATWARN					(0x00000100) // Encoder battery alarm
+#define FLAG_ENCCRC						(0x00000200) // Encoder CRC communication alarm
+#define FLAG_ENCCOM						(0x00000400) // Encoder other communication alarm
+#define FLAG_ENCINT						(0x00000800) // Encoder internal error alarm
+#define FLAG_ECAT						(0x00001000) // EtherCAT communication timeout
+#define FLAG_BISSERR					(0x00002000) // BiSS data frame error
+#define FLAG_BATERR						(0x00004000) // Encoder battery error
+#define FLAG_HARDOVC					(0x00008000) // Hardware overcurrent
+#define FLAG_HALLERR					(0x00010000) // Hall fault
+#define FLAG_ENCOT						(0x00020000) // Encoder communication timeout
+#define FLAG_FOLDBACK                   (0x00040000) // Foldback current warning
+#define FLAG_SFBENCCRC					(0x00080000) // Load-side encoder CRC communication alarm
+#define FLAG_SFBENCINT					(0x00100000) // Load-side encoder internal error alarm
 
 
 
 typedef struct
 {
 	//Current protect
-	uint8 OverCurCnt;         // 软件峰值过流计数
-	uint16 RMSCurCnt;          // RMS软件过流计数
+	uint8 OverCurCnt;				// Software peak overcurrent count
+	uint16 RMSCurCnt;				// RMS software overcurrent count
 
-	uint16 Abs_ia;				      // IA的绝对值
-	uint16 Abs_ib;				      // IB的绝对值
-	uint16 Abs_ic;				      // IC的绝对值
+	uint16 Abs_ia;					// Absolute value of IA
+	uint16 Abs_ib;				    // Absolute value of IB
+	uint16 Abs_ic;				    // Absolute value of IC
 
-	uint16 Max_ia;				      // IA的绝对值
-	uint16 Max_ib;				      // IB的绝对值
-	uint16 Max_ic;				      // IC的绝对值
+	uint16 Max_ia;				    // IA absolute value max
+	uint16 Max_ib;				    // IB absolute value max
+	uint16 Max_ic;				    // IC absolute value max
 
-	uint32 Sum_ia;				      // IA的sum
-	uint32 Sum_ib;				      // IB的sum
-	uint32 Sum_ic;				      // IC的sum
+	uint32 Sum_ia;				    // Sum of IA
+	uint32 Sum_ib;				    // Sum of IB
+	uint32 Sum_ic;				    // Sum of IC
 
-	uint32 RMSSumThreshold;      // RMS Current Sum Threshold
+	uint32 RMSSumThreshold;			// RMS Current Sum Threshold
 	
-	uint16 PeakCurArr;				  // 芯片软件过流计数
+	uint16 PeakCurArr;				// Chip software overcurrent count
 	uint16 PeakCurCnt;
 	uint16 PeakCurLatch;
 } CurrentVarible;
@@ -197,40 +197,27 @@ typedef struct
 
 typedef struct
 {
-	uint16 OverVoltDetecCnt; // 过压检测计数
-	uint16 UnderVoltDetecCnt;// 欠压检测计数
-//	uint16 VoltRecoverCnt;	  // 过压恢复计数
+	uint16 OverVoltDetecCnt;		// Overvoltage detection count
+	uint16 UnderVoltDetecCnt;		// Undervoltage detection count
 
-	//OVER Current protect recover
-//	uint16 CurrentRecoverCnt;  // 过流保护恢复计数
-	uint16 SoftOVCurrentTimes; // 过流保护次数
-
-	uint16 OverPosErrCnt; // 位置跟随误差过大计数
-	uint16 OverGanTryPosErrCnt; // 龙门误差过大计数
-	uint16 OverVelErrCnt; // 速度跟随误差过大计数
-	uint16 OverSpeedCnt; // 速度过超计数
-	uint16 DriveThermCnt;  // 过温计数
-	uint16 StallCnt;		// 堵转计数
-	uint16 HallCnt;  // Hall计数
-	uint16 CurIntCnt; // 载波中断超时计数
-	uint8  PosLmtPosCnt; // 正向超程计数
-	uint8  PosLmtNegCnt; // 负向超程计数
+	uint16 OverPosErrCnt;			// Position following error too large count
+	uint16 OverGanTryPosErrCnt;		// Gantry error too large count
+	uint16 OverVelErrCnt;			// Velocity following error too large count
+	uint16 OverSpeedCnt;			// Overspeed count
+	uint16 DriveThermCnt;			// Overtemperature count
+	uint16 StallCnt;				// Stall count
+	uint16 HallCnt;					// Hall count
+	uint16 CurIntCnt;				// Carrier interrupt timeout count
+	uint8  PosLmtPosCnt;			// Positive overtravel count
+	uint8  PosLmtNegCnt;			// Negative overtravel count
 	
-	//Loss Phase protect
-//	uint16 Lphasecnt;          // 缺相保护计时
-	uint16 AOpencnt;          // A缺相计数
-//	uint16 BOpencnt;          // B缺相计数
-//	uint16 COpencnt;          // C缺相计数
-//	uint16 mcLossPHRecCount;   // 缺相恢复计数
+	uint16 AOpencnt;				// Phase A loss count
 	int32 ThetaNow;
 	int32 ThetaPre;
 	uint16 ThetaSingle;
 	uint16 ThetaSingleLatch;
 	int16 ThetaMulti;
 	
-
-//	uint16 TemperatureRecoverCount;    // Delay time after over temperature protect
-
 	uint16 CurrentTimeCount;
 	uint16 CurrentMinute;
 
@@ -282,4 +269,3 @@ extern void Fault_TimeCount();
 
 
 #endif
-

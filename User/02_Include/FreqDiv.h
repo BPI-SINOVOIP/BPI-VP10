@@ -6,7 +6,7 @@
  * File Name     : FreqDiv.h
  * Author        : Victor.jin
  * Date          : 2024-04-07
- * Description   : 分频输出
+ * Description   : Frequency division output
  *
  * Record        :
  * V1.0, 2024-04-07, Victor.jin: Created file
@@ -30,20 +30,22 @@ extern "C"{
 typedef struct
 {
 	// QEPOUT
-	uint8	OUT_SourceSel;			// 伺服脉冲输出来源选择
-	uint8	OUT_PhaseSel;			// 输出相位选择
-	int8	OUT_PhaseFlag;			// 输出相位标志位
-	uint8	OUT_Z_ModeSel;			// Z信号输出模式选择
-	uint8	OUT_Z_PolaritySel;		// Z信号极性选择
+	uint8	OUT_SourceSel;			// Servo pulse output source selection
+	uint8	OUT_PhaseSel;			// Output phase selection
+	int8	OUT_PhaseFlag;			// Output phase flag
+	uint8	OUT_Z_ModeSel;			// Z signal output mode selection
+	uint8	OUT_Z_PolaritySel;		// Z signal polarity selection
 	
-	uint32	OUT_FreqDivPulse;		// 编码器分频输出脉冲数，即一圈/极距输出的脉冲数
-	int32	OUT_PulseDelta;			// 每个中断周期内分频输出的脉冲数
+	uint32	OUT_FreqDivPulse;		// Encoder divided output pulse count, i.e., pulses output per revolution/pole pitch
+	int32	OUT_PulseDelta;			// Number of divided output pulses per interrupt cycle
 
-	int32	OUT_PulseRemain;		// 每个中断周期内分频输出的脉冲余数
-	int64	OUT_PulseDecimal;		// 每个中断周期内分频输出的包含小数部分的脉冲数
-	int32	OUT_PulseSum;			// 编码器分频输出脉冲总数
+	int32	OUT_PulseRemain;		// Remainder of divided output pulses per interrupt cycle
+	int64	OUT_PulseDecimal;		// Divided output pulses per interrupt cycle including fractional part
+	int32	OUT_PulseSum;			// Total number of encoder divided output pulses
 
-	uint32	OUT_Z_PulseInterval;	// Z信号输出脉冲间隔数
+	uint32	OUT_Z_PulseInterval;	// Interval count between Z signal output pulses
+	int32   EncPos;
+	int32   EncPosLatch;
 	
 } FreqDivTypedef;
 

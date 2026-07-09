@@ -6,7 +6,7 @@
  * File Name     : ModeSwitch.h
  * Author        : Victor.jin
  * Date          : 2024-01-18
- * Description   : 模式切换
+ * Description   : Mode switching
  *
  * Record        :
  * V1.0, 2024-01-18, Victor.jin: Created file
@@ -27,10 +27,10 @@ extern "C"{
 /*************************************************************************************///External Function
 typedef struct
 {
-	uint8 FirOnPower;             // 第一次上电标志位
-	uint8 SwitchFlag;             // 模式切换标志位
-	uint16 RunMod;                 // 运行模式
-	uint16 RunModLatch;            // 运行模式锁存
+	uint8 FirOnPower;             // First power-on flag
+	uint8 SwitchFlag;             // Mode switch flag
+	uint16 RunMod;                 // Run mode
+	uint16 RunModLatch;            // Run mode latch
 } ModeSWPTypedef;
 
 

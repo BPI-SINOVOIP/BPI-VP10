@@ -6,7 +6,7 @@
  * File Name     : InertiaFrictionIdentify.h
  * Author        : wynn.wang
  * Date          : 2023-07-26
- * Description   : 惯量识别
+ * Description   : Inertia identification
  *
  * Record        :
  * V1.0, 2023-07-26, wynn.wang: Created file
@@ -39,9 +39,21 @@ typedef struct
 } InFricIdCfgTypedef;
 
 
-
+/*---------------------------------------------------------------------------
+ * Name		:	InFricId_Init
+ * Input	:	cfg - configuration parameters
+ * Output	:	No
+ * Description:	Initialize inertia identification
+ *---------------------------------------------------------------------------*/
 extern void InFricId_Init(InFricIdCfgTypedef* cfg);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	InFricId_realize
+ * Input	:	*pJm - inertia identification result
+ * Output	:	Inertia identification status
+ * Description:	Performs inertia identification; should be placed in the position-loop interrupt.
+ *---------------------------------------------------------------------------*/
 extern uint8 InFricId_realize(uint32* pJm);
 
 #endif
-

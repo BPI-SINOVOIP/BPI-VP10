@@ -21,7 +21,7 @@
 /*==================================================================================================*/
 /***************************************        MACRO         ***************************************/
 /*==================================================================================================*/
-/* 数字输入数量 */
+/* Number of digital inputs */
 #if (HARDWARE_VERSION == HARDWARE_LOWVOL_DELTAROBOT_SWITCH)
 #define DIGITAL_INPUT_MAX				(1)
 #elif(HARDWARE_VERSION == HARDWARE_LOWVOL_ARM_SWITCH)
@@ -30,7 +30,7 @@
 #define DIGITAL_INPUT_MAX				(8)
 #endif
 
-/* 数字输出数量 */
+/* Number of digital outputs */
 #if (HARDWARE_VERSION == HARDWARE_FPGA_HIGHVOL_SWITCH || HARDWARE_VERSION == HARDWARE_HIGHVOL_SWITCH)
 #define DIGITAL_OUTPUT_MAX				(6)
 #elif(HARDWARE_VERSION == HARDWARE_LOWVOL_DELTAROBOT_SWITCH)
@@ -148,6 +148,7 @@
 
 /* ------ other Pins ------ */
 #define FAN_GPIO        (PD)
+
 #define FAN_PIN         (PIN1)
 #define FAN_OE			(PD_OE)
 #define FAN_PU			(PD_PU)

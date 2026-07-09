@@ -6,7 +6,7 @@
  * File Name     : FrictionComp.h
  * Author        : wynn.wang
  * Date          : 2024-08-01
- * Description   : 重力/摩擦力补偿
+ * Description   : Gravity/Friction Compensation
  *
  * Record        :
  * V1.0, 2024-08-01, wynn.wang: Created file
@@ -51,9 +51,30 @@ typedef struct
 } FriCmpCfgTypedef;
 
 
-
+/*---------------------------------------------------------------------------
+ * Name		:	FricCmp_Init
+ * Input	:	cfg - configuration parameters
+ * Output	:	No
+ * Description:	Initialize friction compensation
+ *---------------------------------------------------------------------------*/
 extern void FricCmp_Init(FriCmpCfgTypedef* cfg);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	FricCmp_realize
+ * Input	:	No
+ * Output	:	Friction compensation current
+ * Description:	Calculate the friction compensation current
+ *---------------------------------------------------------------------------*/
 extern int16 FricCmp_realize(void);
+
+
+/*---------------------------------------------------------------------------
+ * Name		:	FricCmp_Clr
+ * Input	:	No
+ * Output	:	No
+ * Description:	Reset friction compensation
+ *---------------------------------------------------------------------------*/
 extern int16 FricCmp_Clr(void);
 
 #ifdef __cplusplus

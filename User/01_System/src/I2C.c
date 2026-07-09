@@ -16,21 +16,23 @@
 
 
 /********************************************************************/
-/*								I2C初始化							*/
+/*								I2C Initialization						*/
 /********************************************************************/
-/* 函数名称：I2C_Init
- * 函数功能：I2C模块设置
- * 参数说明：
- * 注意事项：
+/* Function Name: I2C_Init
+ * Function: I2C module configuration
+ * Parameters:
+ * Notes:
  */
 void I2C_Init(void)
 {
 	I2CConfiguration I2CConfig;
-
+	
 #if (SCL_GPIO == PA && SCL_PIN == PIN1)
-	I2CConfig.PortSel = InitialPort; //功能转移，0-->PA0:SDA, PA1:SCL; 1-->不复用
-#else
-	I2CConfig.PortSel = TransferPort;
+	clr_csr(PH_SEL, I2CCT); //Function remap: 0-->PA1:SCL, PA0:SDA;  1-->no remap
+	clr_csr(CMP_CR1, I2CCT2);
+#else  (SCL_GPIO == PA && SCL_PIN == PIN15)
+	clr_csr(PH_SEL, I2CCT);
+	set_csr(CMP_CR1, I2CCT2); //Function remap: 1--> PA15:SCL; PA14:SDA (7502BC)	
 #endif
 	
 	I2CConfig.Mode = Master;
@@ -62,8 +64,8 @@ void I2C_Configuration(uint8 I2CSel, I2CConfiguration* Config)
 		write_csr(I2C1_ID, (Config->ID & 0x7F) << 1);
 		set_csr(I2C1_ID, Config->GCSel);
 
-		clr_csr(PH_SEL, 1 << 20);
-		set_csr(PH_SEL, (uint32)Config->PortSel << 20);
+//		clr_csr(PH_SEL, 1 << 20);
+//		set_csr(PH_SEL, (uint32)Config->PortSel << 20);
 
 		set_csr(I2C1_CR, I2CEN);
 	}
@@ -82,8 +84,8 @@ void I2C_Configuration(uint8 I2CSel, I2CConfiguration* Config)
 		write_csr(I2C2_ID, (Config->ID & 0x7F) << 1);
 		set_csr(I2C2_ID, Config->GCSel);
 
-		clr_csr(PH_SEL, 1 << 20);
-		set_csr(PH_SEL, (uint32)Config->PortSel << 20);
+//		clr_csr(PH_SEL, 1 << 20);
+//		set_csr(PH_SEL, (uint32)Config->PortSel << 20);
 
 		set_csr(I2C2_CR, I2CEN);
 	}
@@ -125,19 +127,19 @@ bool I2C_Master_WriteBytes(uint8 DevAddr, uint8* pData, uint16 NumByte)
 			{
 				set_csr(I2C1_SR, I2CSTP);
 				clr_csr(I2C1_SR, STR);
-				return retValue;									//接收数据异常
+				return retValue;									//Data reception error
 			}
 		}
 
 		if (readbit_csr(I2C1_SR, NACK))
 		{
-			break;										//接收数据异常
+			break;										//Data reception error
 		}
 	}
 
-	set_csr(I2C1_SR, NACK);					//停止接收数据
+	set_csr(I2C1_SR, NACK);					//Stop receiving data
 	set_csr(I2C1_SR, I2CSTP);
-	clr_csr(I2C1_SR, STR);					//释放IIC总线
+	clr_csr(I2C1_SR, STR);					//Release I2C bus
 
 	retValue = true;
 	return retValue;
@@ -176,7 +178,7 @@ bool I2C_Master_WriteBytes_Ext(uint8 DevAddr, uint16 WordAddr, uint8* pData, uin
 #if FUNC_EEPROM_24C16B_SWITCH
 		else if (I2C_Counter == 1)
 		{
-			write_csr(I2C1_DR, WordAddr & 0xFF);		//EEPROM16k的时序
+			write_csr(I2C1_DR, WordAddr & 0xFF);		//EEPROM16k timing
 			clr_csr(I2C1_SR, STR);
 		}
 #else
@@ -204,19 +206,19 @@ bool I2C_Master_WriteBytes_Ext(uint8 DevAddr, uint16 WordAddr, uint8* pData, uin
 			{
 				set_csr(I2C1_SR, I2CSTP);
 				clr_csr(I2C1_SR, STR);
-				return retValue;									//接收数据异常
+				return retValue;									//Data reception error
 			}
 		}
 
 		if (readbit_csr(I2C1_SR, NACK))
 		{
-			break;										//接收数据异常
+			break;										//Data reception error
 		}
 	}
 
-	set_csr(I2C1_SR, NACK);					//停止接收数据
+	set_csr(I2C1_SR, NACK);					//Stop receiving data
 	set_csr(I2C1_SR, I2CSTP);
-	clr_csr(I2C1_SR, STR);					//释放IIC总线
+	clr_csr(I2C1_SR, STR);					//Release I2C bus
 
 	retValue = true;
 	return retValue;
@@ -226,8 +228,8 @@ bool I2C_Master_WriteBytes_Ext(uint8 DevAddr, uint16 WordAddr, uint8* pData, uin
 /* Name		:	I2C_Master_ReadBytes()
 /* Input	:	Addr-Device Address, *pData-pointer to data to read,
 /*				NumByte-Number of bytes to read
- *				isStart: 0-没有DevAddr帧，1-有DevAddr帧；
- *				isEnd: 0-没有NACK, 1-有NACK
+ *				isStart: 0- no DevAddr frame, 1- has DevAddr frame;
+ *				isEnd: 0- no NACK, 1- has NACK
 /* Output	:	bool-false or true
 /* Description:	I2C_Master_ReadBytes from slave
 /*---------------------------------------------------------------------------*/
@@ -259,13 +261,13 @@ bool I2C_Master_ReadBytes(uint8 DevAddr, uint8* pData, uint16 NumByte, uint8 isS
 			{
 				set_csr(I2C1_SR, I2CSTP);
 				clr_csr(I2C1_SR, STR);
-				return retValue;					//接收数据异常
+				return retValue;					//Data reception error
 			}
 		}
 
 		if (readbit_csr(I2C1_SR, NACK))
 		{
-			break;										//接收数据异常
+			break;										//Data reception error
 		}
 		if (I2C_Counter > 0)
 			*pData++ = read_csr(I2C1_DR);
@@ -275,9 +277,9 @@ bool I2C_Master_ReadBytes(uint8 DevAddr, uint8* pData, uint16 NumByte, uint8 isS
 
 	if (isEnd == 1)
 	{
-		set_csr(I2C1_SR, NACK);					//停止接收数据
+		set_csr(I2C1_SR, NACK);					//Stop receiving data
 		set_csr(I2C1_SR, I2CSTP);
-		clr_csr(I2C1_SR, STR);					//释放IIC总线
+		clr_csr(I2C1_SR, STR);					//Release I2C bus
 		clr_csr(I2C1_SR, DMOD);
 	}
 

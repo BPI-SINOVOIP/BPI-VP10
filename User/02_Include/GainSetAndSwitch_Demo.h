@@ -6,7 +6,7 @@
  * File Name     : GainSetAndSwitch_Demo.h
  * Author        : wynn.wang
  * Date          : 2023-08-11
- * Description   : 增益切换
+ * Description   : Gain switching
  *
  * Record        :
  * V1.0, 2023-08-11, wynn.wang: Created file

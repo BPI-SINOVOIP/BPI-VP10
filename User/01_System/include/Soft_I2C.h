@@ -19,13 +19,13 @@
 //IIC
 typedef enum
 {
-	I2C_IDLE,						//空闲
-	I2C_START,					//开始操作
-	I2C_SEND_BIT,			//发送数据
-	I2C_READ_BIT,				//读数据
-	I2C_ACK,						//应答位
-	I2C_NACK,					//报错位
-	I2C_STOP					//结束为
+	I2C_IDLE,						//idle
+	I2C_START,					//start operation
+	I2C_SEND_BIT,			//send data
+	I2C_READ_BIT,				//read data
+	I2C_ACK,						//acknowledge bit
+	I2C_NACK,					//not-acknowledge bit
+	I2C_STOP					//stop
 } I2C_State;
 
 

@@ -16,29 +16,29 @@
 
 void AMP_Init(void)
 {
-	set_csr(PB_AN, PIN5);               //AMP0 Pin设置为模拟模式  +
-	set_csr(PB_AN, PIN6);               //AMP0 Pin设置为模拟模式  -
-	set_csr(PB_AN, PIN7);               //AMP0 Pin设置为模拟模式  O
+	set_csr(PB_AN, PIN5);               //AMP0 Pin set to analog mode  +
+	set_csr(PB_AN, PIN6);               //AMP0 Pin set to analog mode  -
+	set_csr(PB_AN, PIN7);               //AMP0 Pin set to analog mode  O
 
-	clr_csr(AMP_CR0, AMP0MGND);         // 禁止运放反向输入端内部接地
-	clr_csr(PB_OE, PIN6);               //PB_OE[6]强制为0，让PB6进入模拟模式
+	clr_csr(AMP_CR0, AMP0MGND);         //Disable internal grounding of the amplifier negative input
+	clr_csr(PB_OE, PIN6);               //Force PB_OE[6] to 0 to put PB6 into analog mode
 
-	set_csr(PB_AN, PIN8);               //AMP1 Pin设置为模拟模式  +
-	set_csr(PB_AN, PIN9);               //AMP1 Pin设置为模拟模式  -
-	set_csr(PB_AN, PIN10);              //AMP1 Pin设置为模拟模式  O
+	set_csr(PB_AN, PIN8);               //AMP1 Pin set to analog mode  +
+	set_csr(PB_AN, PIN9);               //AMP1 Pin set to analog mode  -
+	set_csr(PB_AN, PIN10);              //AMP1 Pin set to analog mode  O
 
-	clr_csr(AMP_CR0, AMP12MGND);        // 禁止运放反向输入端内部接地
-	clr_csr(PB_OE, PIN9);               //PB_OE[9]强制为0，让PB9进入模拟模式
+	clr_csr(AMP_CR0, AMP12MGND);        //Disable internal grounding of the amplifier negative input
+	clr_csr(PB_OE, PIN9);               //Force PB_OE[9] to 0 to put PB9 into analog mode
 
-	set_csr(PB_AN, PIN11);              //AMP2 Pin设置为模拟模式  +
-	set_csr(PB_AN, PIN12);              //AMP2 Pin设置为模拟模式  -
-	set_csr(PB_AN, PIN13);              //AMP2 Pin设置为模拟模式  O
+	set_csr(PB_AN, PIN11);              //AMP2 Pin set to analog mode  +
+	set_csr(PB_AN, PIN12);              //AMP2 Pin set to analog mode  -
+	set_csr(PB_AN, PIN13);              //AMP2 Pin set to analog mode  O
 
-	clr_csr(AMP_CR0, AMP12MGND);		// 禁止运放反向输入端内部接地
-	clr_csr(PB_OE, PIN12);              //PB_OE[12]强制为0，让PB12进入模拟模式
+	clr_csr(AMP_CR0, AMP12MGND);		//Disable internal grounding of the amplifier negative input
+	clr_csr(PB_OE, PIN12);              //Force PB_OE[12] to 0 to put PB12 into analog mode
 	
 
-#if (HW_AMP_MODE == AMP_NOMAL)      //外部放大
+#if (HW_AMP_MODE == AMP_NOMAL)      //External amplification
 	
 	//000-->Genaral AMP 001-->2X 010-->4X 011-->8X 100-->16X 101-->32X Others-->32X
 	/**********AMP0 PGA SET************/
@@ -126,8 +126,8 @@ void VREFConfigInit(void)
 #endif
 
 #if (VREF_OUT_EN)
-	set_csr(PD_AN, PIN5);                      //VREF Voltage -->PD5 Output 是否输出到PD5引脚，需同步配置输出
-	set_csr(PD_OE, PIN5);                      //VREF Voltage -->PD5 Output 是否输出到PD5引脚
+	set_csr(PD_AN, PIN5);                      //VREF Voltage -->PD5 Output: whether to output to PD5 pin; output must be configured accordingly
+	set_csr(PD_OE, PIN5);                      //VREF Voltage -->PD5 Output: whether to output to PD5 pin
 	set_csr(VREF_VHALF_CR, VREFEN);
 #endif
 #if (VHALF_OUT_EN)

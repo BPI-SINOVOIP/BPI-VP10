@@ -6,7 +6,7 @@
  * File Name     : Gantry.h
  * Author        : wynn.wang
  * Date          : 2025-12-05
- * Description   : 龙门控制
+ * Description   : Gantry control
  *
  * Record        :
  * V1.0, 2025-12-05, wynn.wang: Created file
@@ -25,16 +25,16 @@ extern "C" {
 
 
 
-// 功能码更新
+// Function code update
 
 /* ------ FeedBack Type ------ */
-/* ------ 静态结构体用于固定值的变量，不清除 ------ */
+/* ------ Static structure used for variables with fixed values; not cleared ------ */
 typedef struct
 {
 	
 } GanTryStaticTypedf;
 
-/* ------ 动态结构体用于实时变化的变量，需要清除 ------ */
+/* ------ Dynamic structure used for variables that change in real-time; need to be cleared ------ */
 typedef struct
 {	
 	

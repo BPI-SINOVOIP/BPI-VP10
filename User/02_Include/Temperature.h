@@ -7,7 +7,7 @@
  * File Name     : Temperature.h
  * Author        : Summer
  * Date          : 2025-09-05
- * Description   : 驱动器温度
+ * Description   : Driver temperature
  *
  * Record        :
  * V1.0, 2025-09-05, Summer: Created file
@@ -29,7 +29,7 @@
 #define TEMPTABLETSD_LEN							( 16 )
 
 
-
+extern void UpdateTemperature(void);
 extern uint16 TemperatureCalc(uint16 InputTempAD);
 
 

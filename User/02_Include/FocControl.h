@@ -20,17 +20,16 @@
 
 /* Exported types ------------------------------------------------------------*/
 
-// 中断优先级
-#define FO_INT_PRI			( 7 ) // 硬件过流保护中断
-#define FO_CMP3_INT_PRI		( 7 ) // 硬件过流保护中断
-#define EXTERN1_INT_PRI		( 6 ) // 外部中断
-#define DRVPIF_INT_PRI		( 4 ) // 保护中断
-#define FOC_INT_PRI			( 5 ) // 载波中断
-#define DMA0_INT_PRI		( 3 ) // 串口DMA中断
-#define TIM2_INT_PRI		( 2 ) // Z信号中断
-#define TIM3_INT_PRI		( 4 ) // 位置环中断
-#define MEFSM_INT_PRI		( 6 ) // ME中断
-#define CAN_INT_PRI			( 2 ) // CAN接收中断
+// Interrupt priorities
+#define FO_INT_PRI			( 7 ) // Hardware overcurrent protection interrupt
+#define FO_CMP3_INT_PRI		( 7 ) // Hardware overcurrent protection interrupt
+#define EXTERN1_INT_PRI		( 6 ) // External interrupt
+#define DRVPIF_INT_PRI		( 4 ) // Protection interrupt
+#define FOC_INT_PRI			( 5 ) // Carrier interrupt
+#define DMA0_INT_PRI		( 3 ) // Serial port DMA interrupt
+#define TIM3_INT_PRI		( 4 ) // Position loop interrupt
+#define MEFSM_INT_PRI		( 6 ) // ME interrupt
+#define CAN_INT_PRI			( 2 ) // CAN receive interrupt
 
 
 typedef enum
@@ -42,7 +41,6 @@ typedef enum
 	mcHome = 4,
 	mcStart = 5,
 	mcRun = 6,
-	mcStop = 7,
 	mcFault = 8,
 	mcUpFlash = 9,
 	mcDownFlash = 10,
@@ -51,17 +49,17 @@ typedef enum
 
 typedef union
 {
-	uint8 SetMode;                                     // 整个配置模式使能位
+	uint8 SetMode;                                     // Overall configuration mode enable bits
 	struct
 	{
-		uint8 ChargeSetFlag : 1;                 // 预定位配置标志位
+		uint8 ChargeSetFlag : 1;                 // Pre-positioning configuration flag bit
 		uint8 PhaseFindSetFlag : 1;                 //
 		//    	uint8 HomeSetFlag : 1;                 //
 		uint8 AutoPhaseFindSetFlag : 1;
 		uint8 AutoHomeSetFlag : 1;                 //
 		uint8 AutoEnableSetFlag : 1;                 //
-		uint8 StopSetFlag : 1;                 //
-		uint8 BrakeFlag : 1;                 // 启动停车标志位
+		uint8 StopSetFlag : 1;                 // 
+		uint8 BrakeFlag : 1;                 // Start/Stop flag bit
 		uint8 IdentifySetFlag : 1;
 	} SetFlag;
 } MotStaM;

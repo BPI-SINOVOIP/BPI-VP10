@@ -38,7 +38,7 @@
 #define HC_PU							(PB_PU)
 
 
-/* 电角度定义 */
+/* Electrical angle definitions */
 #define DEGREE_SUM                      (uint32)(163840) // DEGREE_60 * 15
 
 
@@ -52,46 +52,46 @@
 typedef struct
 {
 #if HALL_LEARN_CALCULATION_ENABLED	
-	uint16 LearnHallTheta[6];              // 记录Hall变化沿的电角度
-	uint8 LearnHallStatus[6];             // Hall学习状态
-	int16 OffsetThetaPos;                 // 补偿角的偏置角(正向运动)
-	int16 OffsetThetaNeg;                 // 补偿角的偏置角(反向运动)
-	uint8 LearnMoveDirFlag;               // 运动方向标志
+	uint16 LearnHallTheta[6];              // Record electrical angle at Hall transition edges
+	uint8 LearnHallStatus[6];             // Hall learning status
+	int16 OffsetThetaPos;                 // Compensation angle offset (forward motion)
+	int16 OffsetThetaNeg;                 // Compensation angle offset (reverse motion)
+	uint8 LearnMoveDirFlag;               // Motion direction flag
 #else	
-	uint16 *pLearnHallTheta;              // 记录Hall变化沿的电角度
-	uint8* pLearnHallStatus;              // Hall学习状态
+	uint16 *pLearnHallTheta;              // Record electrical angle at Hall transition edges
+	uint8* pLearnHallStatus;              // Hall learning status
 #endif
 	
-	uint8 Error;                          // 故障类型 1:存在全零情况
-	uint8 HallStepCnt;                    // 计数
-	uint8 MCDivFlag;                      // Hall方向颠倒
-	uint8 Mode;                           // Hall关系，对应6种Hall组合
-	uint8 ThetaCalcFlag;                  // 启动角度校准标志
-	uint8 LastHallStatus;                 // 上次角度Hall状态
-	uint8 NowHallStatus;                  // 此次角度Hall状态
-	int16 FOCThetaStart;                  // 初始电角度
-	int16 OffsetTheta;                    // 叠加补偿角的偏置角
+	uint8 Error;                          // Fault type 1: all-zero condition detected
+	uint8 HallStepCnt;                    // counter
+	uint8 MCDivFlag;                      // Hall direction reversed
+	uint8 Mode;                           // Hall relationship, corresponds to 6 Hall combinations
+	uint8 ThetaCalcFlag;                  // Startup angle calibration flag
+	uint8 LastHallStatus;                 // Previous angle Hall status
+	uint8 NowHallStatus;                  // Current angle Hall status
+	int16 FOCThetaStart;                  // Initial electrical angle
+	int16 OffsetTheta;                    // Offset angle with compensation added
 	
 #if ENCODER_SEL_HALLSONLY_ENABLED > 0
-	uint8 HallStatusPre;                 // 上次角度Hall状态
-	uint8 HallStatus;					 // 此次角度Hall状态
-	uint8 LowSpeedStatus;				 // 低速状态，对应Hall定时器计数溢出时和方向切换时，这时候都无法计算正确的角速度
-	int16 HallTheta;					 // 当前Hall原始电角度
-	int16 HallThetaOut;					 // 当前Hall加上偏置后的电角度
-	int16 HallAngle;					 // Hall插值角度中间值
-	int32 HallAngleOut;					 // Hall插值角度
-	int16 InterpltDltRef;				 // Hall插值角度增量
-	int16 InterpltDltRefLatch;			 // Hall插值角度增量锁存
-	uint16 StillCounter;				 // Hall出现变化的时间计数
-	uint16 StillPeriod;					 // Hall出现变化的时间总和
-	uint16 StillPeriodLatch;			 // Hall出现变化的时间缓存
-	int16 InterpltInputLatch;			 // Hall插值输入缓存
-	uint16 ExcCnt;						 // Hall插值的时间计数
-	int32 InterpltOutput;				 // Hall插值输出结果
-	int32 InterpltOutputLatch;			 // Hall插值输出结果缓存
-	int32 InterpltOutputFlt;			 // Hall插值输出结果滤波后
-	int64 InterpltOutputFlt_k;			 // 低通滤波器中间值
-	int16 InterpltOutputDelta;			 // 低通滤波器输入，即插值位置的差分值
+	uint8 HallStatusPre;                 // Previous angle Hall status
+	uint8 HallStatus;					 // Current angle Hall status
+	uint8 LowSpeedStatus;				 // Low speed status; corresponds to Hall timer counter overflow or direction change, where correct angular velocity cannot be calculated
+	int16 HallTheta;					 // Current Hall raw electrical angle
+	int16 HallThetaOut;					 // Current Hall electrical angle with offset applied
+	int16 HallAngle;					 // Hall interpolated angle intermediate value
+	int32 HallAngleOut;					 // Hall interpolated angle
+	int16 InterpltDltRef;				 // Hall interpolated angleincrement
+	int16 InterpltDltRefLatch;			 // Hall interpolated angleincrement latch
+	uint16 StillCounter;				 // Hall state change time counter
+	uint16 StillPeriod;					 // Hall transition time sum
+	uint16 StillPeriodLatch;			 // Hall transition time buffer
+	int16 InterpltInputLatch;			 // Hall interpolation input buffer
+	uint16 ExcCnt;						 // Hall interpolation time counter
+	int32 InterpltOutput;				 // Hall interpolation output result
+	int32 InterpltOutputLatch;			 // Hall interpolation output resultbuffer
+	int32 InterpltOutputFlt;			 // Hall interpolation output resultfiltered
+	int64 InterpltOutputFlt_k;			 // Low-pass filter intermediate value
+	int16 InterpltOutputDelta;			 // Low-pass filter input, i.e. interpolated position differential
 #endif
 	
 } HallTypeDef;

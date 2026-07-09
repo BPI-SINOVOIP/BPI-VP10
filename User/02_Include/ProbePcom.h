@@ -6,7 +6,7 @@
  * File Name     : ProbePcom.h
  * Author        : Summer
  * Date          : 2024-08-21
- * Description   : 探针和位置比较输出
+ * Description   : Probe and position compare output
  *
  * Record        :
  * V1.0, 2024-08-21, Summer: Created file
@@ -29,15 +29,15 @@ extern "C"{
 #define FUNC_PROBE_ENABLED							(FUNC_PROBE1_ENABLED | FUNC_PROBE2_ENABLED)
 
 
-#define PCOM_DELAY									( 4 )                               // 位置比较输出延时，4个时钟周期
+#define PCOM_DELAY									( 4 )                               // Position compare output delay, 4 clock cycles
 
 
 // Definition of PROBECONFIG
-#define PROBE1EN									(0x0001) // 0 - 探针1不使能; 1 - 探针1使能;
-#define PROBE1MODE									(0x0002) // 0 - 单次触发; 1 - 连续触发;
-#define PROBE1SIGNAL								(0x0004) // 0 - DI信号; 1 - Z信号;
-#define PROBE1RISEEN								(0x0010) // 0 - 上升沿不锁存; 1 - 上升沿锁存;
-#define PROBE1FALLEN								(0x0020) // 0 -下降沿不锁存; 1 -下降沿锁存;
+#define PROBE1EN									(0x0001) // 0 - probe 1 disabled; 1 - probe 1 enabled;
+#define PROBE1MODE									(0x0002) // 0 - single trigger; 1 - continuous trigger;
+#define PROBE1SIGNAL								(0x0004) // 0 - DI signal; 1 - Z signal;
+#define PROBE1RISEEN								(0x0010) // 0 - rising edge not latched; 1 - rising edge latched;
+#define PROBE1FALLEN								(0x0020) // 0 - falling edge not latched; 1 - falling edge latched;
 #define PROBE2EN									(0x0100)
 #define PROBE2MODE									(0x0200)
 #define PROBE2SIGNAL								(0x0400)
@@ -46,30 +46,30 @@ extern "C"{
 
 
 // Definition of PCOM1CNTRL
-#define PCOM1EN										(0x0001) // 0 - PCOM不使能;1 - PCOM使能;
-#define PCOM1MODE									(0x0002) // 0 - 固定间隔; 1 - 表格位置;
-#define PCOM1DIR									(0x000C) // 0 - 反向运动; 1 - 正向运动; 2 - 正反向运动; 
+#define PCOM1EN										(0x0001) // 0 - PCOM disabled; 1 - PCOM enabled;
+#define PCOM1MODE									(0x0002) // 0 - fixed interval; 1 - table position;
+#define PCOM1DIR									(0x000C) // 0 - reverse motion; 1 - forward motion; 2 - bidirectional motion; 
 
 
 // Definition of PCOM1DIR
-#define PCOMDIR1SHIFT								( 2 ) // 右移2位
-#define PCOMDIRNEG									(0x0001) // 反向运动
-#define PCOMDIRPOS									(0x0002) // 正向运动
-#define PCOMDIRBOTH									(0x0003) // 正反向运动;
+#define PCOMDIR1SHIFT								( 2 ) // Right shift by 2 bits
+#define PCOMDIRNEG									(0x0001) // Reverse motion
+#define PCOMDIRPOS									(0x0002) // Forward motion
+#define PCOMDIRBOTH									(0x0003) // Bidirectional motion;
 
 
 // Definition of PROBESTATUS
-#define PROBE1ENSTA									(0x0001) // 0 - 探针1不使能; 1 - 探针1使能;
-#define PROBE1RISESTA								(0x0002) // 0 - 探针1上升沿未执行; 1 - 探针1上升沿已执行;
-#define PROBE1FALLSTA								(0x0004) // 0 - 探针1下降沿未执行; 1 - 探针1下降沿已执行;
-#define PROBE1TRIGTIMES								(0x00C0) // 探针1的触发总次数
-#define PROBE2ENSTA									(0x0100) // 0 - 探针2不使能; 1 - 探针2使能;
-#define PROBE2RISESTA								(0x0200) // 0 - 探针2上升沿未执行; 1 - 探针2上升沿已执行;
-#define PROBE2FALLSTA								(0x0400) // 0 - 探针2下降沿未执行; 1 - 探针2下降沿已执行;
-#define PROBE2TRIGTIMES								(0xC000) // 探针2的触发总次数
+#define PROBE1ENSTA									(0x0001) // 0 - probe 1 disabled; 1 - probe 1 enabled;
+#define PROBE1RISESTA								(0x0002) // 0 - probe 1 rising edge not executed; 1 - probe 1 rising edge executed;
+#define PROBE1FALLSTA								(0x0004) // 0 - probe 1 falling edge not executed; 1 - probe 1 falling edge executed;
+#define PROBE1TRIGTIMES								(0x00C0) // Total trigger count of probe 1
+#define PROBE2ENSTA									(0x0100) // 0 - probe 2 disabled; 1 - probe 2 enabled;
+#define PROBE2RISESTA								(0x0200) // 0 - probe 2 rising edge not executed; 1 - probe 2 rising edge executed;
+#define PROBE2FALLSTA								(0x0400) // 0 - probe 2 falling edge not executed; 1 - probe 2 falling edge executed;
+#define PROBE2TRIGTIMES								(0xC000) // Total trigger count of probe 2
 
-#define PROBE1TRIGTIMESSHIFT						(0x0006) // 探针1的触发总次数左移位数
-#define PROBE2TRIGTIMESSHIFT						(0x000E) // 探针2的触发总次数左移位数
+#define PROBE1TRIGTIMESSHIFT						(0x0006) // Left shift amount for probe 1 total trigger count
+#define PROBE2TRIGTIMESSHIFT						(0x000E) // Left shift amount for probe 2 total trigger count
 	
 	
 typedef struct

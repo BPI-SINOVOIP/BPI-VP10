@@ -19,129 +19,129 @@ void GPIO_Init(void)
 {
 	// IN1
 #ifdef IN1_PIN
-    clr_csr(IN1_OE, IN1_PIN);  // 输入使能	/* 0: Disable digital output */
+    clr_csr(IN1_OE, IN1_PIN);  // Input enable	/* 0: Disable digital output */
     set_csr(IN1_PU, IN1_PIN);  				/* 0: Disable internal pull up */
 #endif
 
     // IN2
 #ifdef IN2_PIN
-    clr_csr(IN2_OE, IN2_PIN);  // 输入使能	/* 0: Disable digital output */
+    clr_csr(IN2_OE, IN2_PIN);  // Input enable	/* 0: Disable digital output */
     set_csr(IN2_PU, IN2_PIN);  				/* 0: Disable internal pull up */
 #endif
     
     // IN3
 #ifdef IN3_PIN
-    clr_csr(IN3_OE, IN3_PIN);  // 输入使能	/* 0: Disable digital output */
+    clr_csr(IN3_OE, IN3_PIN);  // Input enable	/* 0: Disable digital output */
     set_csr(IN3_PU, IN3_PIN);  				/* 0: Disable internal pull up */
 #endif
     
     // IN4
 #ifdef IN4_PIN
-    clr_csr(IN4_OE, IN4_PIN);  // 输入使能	/* 0: Disable digital output */
+    clr_csr(IN4_OE, IN4_PIN);  // Input enable	/* 0: Disable digital output */
     set_csr(IN4_PU, IN4_PIN);  				/* 0: Disable internal pull up */
 #endif
     
     // IN5
 #ifdef IN5_PIN
-    clr_csr(IN5_OE, IN5_PIN);  // 输入使能	/* 0: Disable digital output */
+    clr_csr(IN5_OE, IN5_PIN);  // Input enable	/* 0: Disable digital output */
     set_csr(IN5_PU, IN5_PIN);  				/* 0: Disable internal pull up */
 #endif
     
     // IN6
 #ifdef IN6_PIN
-    clr_csr(IN6_OE, IN6_PIN);  // 输入使能	/* 0: Disable digital output */
+    clr_csr(IN6_OE, IN6_PIN);  // Input enable	/* 0: Disable digital output */
     set_csr(IN6_PU, IN6_PIN);  				/* 0: Disable internal pull up */
 #endif
     
     // IN7
 #ifdef IN7_PIN
-    clr_csr(IN7_OE, IN7_PIN);  // 输入使能	/* 0: Disable digital output */
+    clr_csr(IN7_OE, IN7_PIN);  // Input enable	/* 0: Disable digital output */
     set_csr(IN7_PU, IN7_PIN);  				/* 0: Disable internal pull up */
 #endif
     
     // IN8
 #ifdef IN8_PIN
-    clr_csr(IN8_OE, IN8_PIN);  // 输入使能	/* 0: Disable digital output */
+    clr_csr(IN8_OE, IN8_PIN);  // Input enable	/* 0: Disable digital output */
     set_csr(IN8_PU, IN8_PIN);  				/* 0: Disable internal pull up */
 #endif
     
 	// OUT1
 #ifdef OUT1_PIN
     clr_csr(OUT1_GPIO, OUT1_PIN);
-    set_csr(OUT1_OE, OUT1_PIN);		// 输出使能 /* 0: Enable digital output */
+    set_csr(OUT1_OE, OUT1_PIN);		// Output enable /* 0: Enable digital output */
 #endif
     
     // OUT2
 #ifdef OUT2_PIN
     clr_csr(OUT2_GPIO, OUT2_PIN);
-    set_csr(OUT2_OE, OUT2_PIN);		// 输出使能 /* 0: Enable digital output */
+    set_csr(OUT2_OE, OUT2_PIN);		// Output enable /* 0: Enable digital output */
 #endif   
     
     // OUT3
 #ifdef OUT3_PIN
     clr_csr(OUT3_GPIO, OUT3_PIN);
-    set_csr(OUT3_OE, OUT3_PIN);		// 输出使能 /* 0: Enable digital output */
+    set_csr(OUT3_OE, OUT3_PIN);		// Output enable /* 0: Enable digital output */
 #endif
     
     // OUT4
 #ifdef OUT4_PIN
     clr_csr(OUT4_GPIO, OUT4_PIN);
-    set_csr(OUT4_OE, OUT4_PIN);		// 输出使能 /* 0: Enable digital output */
+    set_csr(OUT4_OE, OUT4_PIN);		// Output enable /* 0: Enable digital output */
 #endif
     
     // OUT5
 #ifdef OUT5_PIN
     clr_csr(OUT5_GPIO, OUT5_PIN);
-    set_csr(OUT5_OE, OUT5_PIN);		// 输出使能 /* 0: Enable digital output */
+    set_csr(OUT5_OE, OUT5_PIN);		// Output enable /* 0: Enable digital output */
 #endif
     
     // OUT6
 #ifdef OUT6_PIN
     clr_csr(OUT6_GPIO, OUT6_PIN);
-    set_csr(OUT6_OE, OUT6_PIN);		// 输出使能 /* 0: Enable digital output */
+    set_csr(OUT6_OE, OUT6_PIN);		// Output enable /* 0: Enable digital output */
 #endif
 
-    // FAN风扇 
+    // FAN 
 #ifdef FAN_PIN
-    set_csr(FAN_GPIO, FAN_PIN);		// 输出使能 /* 0: Enable digital output */
+    set_csr(FAN_GPIO, FAN_PIN);		// Output enable /* 0: Enable digital output */
     set_csr(FAN_OE, FAN_PIN);
 #endif
 
-    // RELAY软启动
+    // RELAY soft start
 #ifdef RELAY_PIN
-    set_csr(RELAY_GPIO, RELAY_PIN);		// 输出使能 /* 0: Enable digital output */
+    set_csr(RELAY_GPIO, RELAY_PIN);		// Output enable /* 0: Enable digital output */
     set_csr(RELAY_OE, RELAY_PIN);
 #endif
     
     // STO
 #ifdef STO_PIN
-    clr_csr(STO_OE, STO_PIN);		// 输入使能 /* 0: Disable digital output */
+    clr_csr(STO_OE, STO_PIN);		// Input enable /* 0: Disable digital output */
     clr_csr(STO_PU, STO_PIN);  					/* 0: Disable internal pull up */
 #endif
     
     // Error
 #ifdef ERR_PIN
-    clr_csr(ERR_GPIO, ERR_PIN);		// 输出使能 /* 0: Enable digital output */
+    clr_csr(ERR_GPIO, ERR_PIN);		// Output enable /* 0: Enable digital output */
     set_csr(ERR_OE, ERR_PIN);
 #endif
     
-   // 上电显示 
+   // Power-on display 
 #ifdef PWD_PIN 
-    set_csr(PWD_GPIO, PWD_PIN);		// 输出使能 /* 0: Enable digital output */
+    set_csr(PWD_GPIO, PWD_PIN);		// Output enable /* 0: Enable digital output */
     set_csr(PWD_OE, PWD_PIN);
 #endif
 
 
 #if TESTPIN_ENABLED
-    // 测试脚输出：载波中断
+    // Test pin output: carrier interruption
     set_csr(TEST_GPIO, TEST_PIN);
     set_csr(TEST_OE, TEST_PIN);
 
-	// 测试脚1：1ms循环
+	// Test pin 1: 1ms loop
     set_csr(TEST_GPIO1, TEST_PIN1);
     set_csr(TEST_OE1, TEST_PIN1);
 
-	// 测试脚2：位置环中断
+	// Test pin 2: position loop interruption
     set_csr(TEST_GPIO2, TEST_PIN2);
     set_csr(TEST_OE2, TEST_PIN2);
 #endif // #if TESTPIN_ENABLED
@@ -150,7 +150,7 @@ void GPIO_Init(void)
 
 /*******************************************************************************
  * Function Name  : GPIO_PU_Init
- * Description    : 为提高芯片的抗干扰能力，降低芯片功耗，请在具体项目时，将不需要用的GPIO默认都配置为输入上拉。
+ * Description    : To improve the chip's anti-interference ability and reduce power consumption, please configure all unused GPIOs to input pull-up by default in specific projects.
  * Input          : None
  * Output         : None
  * Return         : None
@@ -171,51 +171,51 @@ void GPIO_PU_Init(void)
 #if ((HardwareCurrent_Protect == Hardware_FO_Protect) || (HardwareCurrent_Protect == Hardware_FO_CMP_Protect))
 /*******************************************************************************
  * Function Name  : EXTI0_Init
- * Description    : FO硬件过流
+ * Description    : FO hardware overcurrent
  * Input          : None
  * Output         : None
  * Return         : None
  *******************************************************************************/
 void EXTI0_Init(void)
 {
-	clr_csr(HOV_OE, HOV_PIN);				// 配置PD0为输入，硬件过流FO端口
-	set_csr(HOV_PU, HOV_PIN);				// 使能上拉
+	clr_csr(HOV_OE, HOV_PIN);				// Configure PD0 as input, hardware overcurrent FO port
+	set_csr(HOV_PU, HOV_PIN);				// Enable pull-up
 
-	write_csr(EXT0IE, EX0IE13);			// 使能PD0作为外部中断0端口
-	clr_csr(EXT0IF, EX0IF13);			// 清除PD0外部中断0标志
+	write_csr(EXT0IE, EX0IE13);			// Enable PD0 as external interrupt 0 port
+	clr_csr(EXT0IF, EX0IF13);			// Clear PD0 external interrupt 0 flag
 
 	clr_csr(TCON, IT01);				// 00-->Rising	01-->Falling
 	set_csr(TCON, IT00);				// 1x-->Rising&Falling
 
-	write_csr(IP1, FO_INT_PRI);				// 外部中断0(中断号1) 优先级别为7
+	write_csr(IP1, FO_INT_PRI);				// External interrupt 0 (interrupt number 1) priority level is 7
 
-	set_csr(PIE, EX0);					// INT0中断使能
+	set_csr(PIE, EX0);					// INT0 interrupt enable
 }
 #endif
 
 /*******************************************************************************
  * Function Name  : EXTI1_Init
- * Description    : EtherCAT同步信号中断
+ * Description    : EtherCAT synchronization signal interrupt
  * Input          : None
  * Output         : None
  * Return         : None
  *******************************************************************************/
 void EXTI1_Init(void)
 {
-	set_csr(ME_CR, INTCD);	// 外部中断1清零DRV计数，用于EtherCAT同步
+	set_csr(ME_CR, INTCD);	// External interrupt 1 clears DRV count, used for EtherCAT synchronization
 	
-	clr_csr(PA_OE, PIN8);				// 配置PA8为输入，ECAT同步信号SYNC0
-	set_csr(PA_PU, PIN8);				// 使能上拉
+	clr_csr(PA_OE, PIN8);				// Configure PA8 as input, ECAT synchronization signal SYNC0
+	set_csr(PA_PU, PIN8);				// Enable pull-up
 
-	write_csr(EXT1IE, EX1IE8);			// 使能PA8作为外部中断1端口
-	clr_csr(EXT1IF, EX1IF8);			// 清除PA8外部中断1标志
+	write_csr(EXT1IE, EX1IE8);			// Enable PA8 as external interrupt 1 port
+	clr_csr(EXT1IF, EX1IF8);			// Clear PA8 external interrupt 1 flag
 
 	clr_csr(TCON, IT11);				// 00-->Rising	01-->Falling
 	set_csr(TCON, IT10);				// 1x-->Rising&Falling
 
-	write_csr(IP2, EXTERN1_INT_PRI);				// 外部中断1(中断号2) 优先级别为6
+	write_csr(IP2, EXTERN1_INT_PRI);				// External interrupt 1 (interrupt number 2) priority level is 6
 
-	set_csr(PIE, EX1);					// INT1中断使能
+	set_csr(PIE, EX1);					// INT1 interrupt enable
 }
 
 
@@ -228,32 +228,32 @@ void EXTI1_Init(void)
  *******************************************************************************/
 void EXTI1_Clear(void)
 {
-	write_csr(EXT1IE, 0x00);		// 取消PA8作为外部中断1端口
-	clr_csr(PIE, EX1);				// INT1中断去使能
+	write_csr(EXT1IE, 0x00);		// Disable PA8 as external interrupt 1 port
+	clr_csr(PIE, EX1);				// INT1 interrupt disable
 }
 
 #if ((HardwareCurrent_Protect == Hardware_FO_Protect) || (HardwareCurrent_Protect == Hardware_FO_CMP_Protect))
 /*******************************************************************************
  * Function Name  : EXTI2_Init
- * Description    : FO硬件过流
+ * Description    : FO hardware overcurrent
  * Input          : None
  * Output         : None
  * Return         : None
  *******************************************************************************/
 void EXTI2_Init(void)
 {
-	clr_csr(HOV_OE, HOV_PIN);				// 配置PC2为输入，硬件过流FO端口
-	set_csr(HOV_PU, HOV_PIN);				// 使能上拉
+	clr_csr(HOV_OE, HOV_PIN);				// Configure PC2 as input, hardware overcurrent FO port
+	set_csr(HOV_PU, HOV_PIN);				// Enable pull-up
 
-	write_csr(EXT2IE, EX2IE10);			// 使能PC2作为外部中断2端口
-	clr_csr(EXT2IF, EX2IE10);			// 清除PC2外部中断2标志
+	write_csr(EXT2IE, EX2IE10);			// Enable PC2 as external interrupt 2 port
+	clr_csr(EXT2IF, EX2IE10);			// Clear PC2 external interrupt 2 flag
 
 	clr_csr(TCON, IT21);				// 00-->Rising	01-->Falling
 	set_csr(TCON, IT20);				// 1x-->Rising&Falling
 
-	write_csr(IP3, FO_INT_PRI);				// 外部中断2(中断号3) 优先级别为7
+	write_csr(IP3, FO_INT_PRI);				// External interrupt 2 (interrupt number 3) priority level is 7
 
-	set_csr(PIE, EX2);					// INT2中断使能
+	set_csr(PIE, EX2);					// INT2 interrupt enable
 }
 #endif
 

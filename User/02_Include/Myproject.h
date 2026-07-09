@@ -38,7 +38,6 @@
 #include "fu7502_flash.h"
 #include "PIControl.h"
 #include "Encoder.h"
-#include "Customer_Debug.h"
 #include "PhaseFind.h"
 #include "Profile.h"
 #include "Profile_Demo.h"

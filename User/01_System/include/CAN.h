@@ -24,20 +24,20 @@ CAN controler     |        |    CAN transcevier |            |      CAN transcev
 
 
 /* IDEs */
-#define IDE_STD					(0)   // 标准格式(11位)
-#define IDE_EXT                 (IDE) // 扩展格式(29位)
+#define IDE_STD					(0)   // Standard format (11-bit)
+#define IDE_EXT                 (IDE) // Extended format (29-bit)
 
 /* RTRs */
-#define RTR_DAT					(0)   // 数据帧
-#define RTR_RMT					(RTR) // 远程帧(节点守护)
+#define RTR_DAT					(0)   // Data frame
+#define RTR_RMT					(RTR) // Remote frame (node guarding)
 
 /* FDF */
-#define FDF_CAN					(0)   // 常规帧(标准帧或扩展帧）
-#define FDF_CANFD               (FDF) // CANFD 帧
+#define FDF_CAN					(0)   // Regular frame (standard or extended frame)
+#define FDF_CANFD               (FDF) // CAN FD frame
 
 /* BRS */
-#define BRS_Disable				(0)   // 不转换速率
-#define BRS_Enable				(BRS) // 转换可变速率
+#define BRS_Disable				(0)   // No bitrate switching
+#define BRS_Enable				(BRS) // Enable bitrate switching
 
 /* DLCs */
 #define DLC_0                   (0)
@@ -58,30 +58,30 @@ CAN controler     |        |    CAN transcevier |            |      CAN transcev
 #define DLC_64                  (15)
 
 typedef struct {
-	uint8	CAN_CFDPEX;		//FD模式下是否接收正常CAN报文
-	uint8	CAN_ISO;		//是否开启ISO
-	uint8	CAN_FD;			//CANFD模式使能
+	uint8	CAN_CFDPEX;		//Whether to receive normal CAN frames in FD mode
+	uint8	CAN_ISO;		//Whether ISO is enabled
+	uint8	CAN_FD;			//Enable CAN FD mode
 
-	/*CANFD非数据域波特率设置*/
+	/*CAN FD nominal (non-data) bit rate settings*/
 	uint16	CAN_NData_BRP;
 	uint8	CAN_NData_Seg1;
 	uint8	CAN_NData_Seg2;
 	uint8	CAN_NData_RESYN;
 	
-	/*CANFD数据域波特率设置*/
+	/*CAN FD data field bit rate settings*/
 	uint16	CAN_Data_BRP;
 	uint8	CAN_Data_Seg1;
 	uint8	CAN_Data_Seg2;
 	uint8	CAN_Data_RESYN;
 	
-	/*CANFD数据域二次采样设置*/
+	/*CAN FD data field secondary sampling settings*/
 	uint8 CAN_TDCEnable;
 	uint8 CAN_TTCM;
 	uint8 CAN_TDC_SEL;
 	uint8 CAN_SSPDIS;
 	uint8 CAN_TDC_SSPoffset;
 	
-	/*CANFD邮箱及时间戳设置*/
+	/*CAN FD mailbox and timestamp settings*/
 	uint8	CAN_MailMod;
 	uint8	CAN_TimeTrigger;
 	uint8	CAN_TimeSource;

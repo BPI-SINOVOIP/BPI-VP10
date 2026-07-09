@@ -31,14 +31,12 @@ extern void Timer_1ms_Init(void);
 extern void Timer2_Enable(void);
 extern void Timer2_Disable(void);
 extern void Timer2_Filter_Update(unsigned short AqbFilt);
-extern void Timer2_ZIndexInt_Enable(void);
-extern void Timer2_ZIndexInt_Disable(void);
+extern void Timer2_ZIndexCap_Enable(void);
 
 extern void Timer5_Enable(void);
 extern void Timer5_Disable(void);
 extern void Timer5_Filter_Update(unsigned short AqbFilt);
-extern void Timer5_ZIndexInt_Enable(void);
-extern void Timer5_ZIndexInt_Disable(void);
+extern void Timer5_ZIndexCap_Enable(void);
 
 extern void Timer3_Enable(void);
 extern void Timer3_Disable(void);

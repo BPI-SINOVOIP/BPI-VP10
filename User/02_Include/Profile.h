@@ -28,7 +28,7 @@
 typedef enum {
 	MS_IDLE = 0,
 	MS_READY = 1,
-	MS_MOVEING = 2,
+	MS_MOVING = 2,
 	MS_FINISH = 3,
 	MS_DECELERATION = 4,
 	MS_SUSPEND = 5,
@@ -138,7 +138,7 @@ extern int32 Position_Profile_GetVel(int16 qepSpeedCoe);
  * Name     :   Position_Profile_GetMotionStatus
  * Input    :   No
  * Output   :   MotionStatus
- * Description: Get MotionStatus, 当前的状态
+ * Description: Get MotionStatus, current status
  *---------------------------------------------------------------------------*/
 extern int8 Position_Profile_GetMotionStatus(void);
 
@@ -148,7 +148,7 @@ extern int8 Position_Profile_GetMotionStatus(void);
  * Name     :   Position_Profile_SetMotionStatus
  * Input    :   MotionStatus
  * Output   :   No
- * Description: Set MotionStatus, 当前的状态
+ * Description: Set MotionStatus, current status
  *---------------------------------------------------------------------------*/
 extern void Position_Profile_SetMotionStatus(int8 motionStatus);
 

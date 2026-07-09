@@ -18,48 +18,48 @@
 
 void SPI1_Init(void)
 {
-	clr_csr(SPI1_CR, SPIEN);				//关SPI使能
+	clr_csr(SPI1_CR, SPIEN);				//Disable SPI enable
 
 	/*------------------------------------------------------------------------------
-	SPI从方式选择配置
-	00：3线从方式或3线主方式，NSS信号不连到端口管脚
-	01：4线从方式或4线多主方式，NSS配置为输入
-	1x：4线单主方式，NSS配置为输出，NSS信号输出x电平
+	SPI slave mode selection configuration
+	00: 3-wire slave mode or 3-wire master mode, NSS signal not connected to port pins
+	01: 4-wire slave mode or 4-wire multi-master mode, NSS configured as input
+	1x: 4-wire single-master mode, NSS configured as output, NSS signal output level x
 	------------------------------------------------------------------------------*/
-	set_csr(SPI1_CR, NSSMOD1);				// 不要问为什么，照做就是
+	set_csr(SPI1_CR, NSSMOD1);				// Don't ask why, just do it
 	set_csr(SPI1_CR, NSSMOD0);
 	/*------------------------------------------------------------------------------
-	SPI时钟相位/极性配置
-	CPHA = 0, CPOL = 0:上升沿接收，下降沿发送，空闲电平为低
-	CPHA = 0, CPOL = 1:上升沿发送，下降沿接收，空闲电平为高
-	CPHA = 1, CPOL = 0:上升沿发送，下降沿接收，空闲电平为低
-	CPHA = 1, CPOL = 1:上升沿接收，下降沿发送，空闲电平为高
+	SPI clock phase/polarity configuration
+	CPHA = 0, CPOL = 0: Receive on rising edge, transmit on falling edge, idle level low
+	CPHA = 0, CPOL = 1: Transmit on rising edge, receive on falling edge, idle level high
+	CPHA = 1, CPOL = 0: Transmit on rising edge, receive on falling edge, idle level low
+	CPHA = 1, CPOL = 1: Receive on rising edge, transmit on falling edge, idle level high
 	------------------------------------------------------------------------------*/
 	set_csr(SPI1_CR, CPHA);
 	set_csr(SPI1_CR, CPOL);
 
-	clr_csr(SPI1_SR, SPIIF);				// 此位需要软件清0，FTC6901W BUG
-	clr_csr(SPI1_CR, SPIIE);				// SPI中断使能0-->Disable  1-->Enable
+	clr_csr(SPI1_SR, SPIIF);				// This bit needs to be software cleared, FTC6901W BUG
+	clr_csr(SPI1_CR, SPIIE);				// SPI interrupt enable 0-->Disable  1-->Enable
 
-	set_csr(SPI1_CR, SCKRQ);				// 单线主机请求从机数据使能位 0-->不使能   1-->使能
-	set_csr(SPI1_CR, SAMSEL);				// SPI沿边采样选择 0-->slave     1-->master
+	set_csr(SPI1_CR, SCKRQ);				// Single-wire master request slave data enable bit 0-->Disable   1-->Enable
+	set_csr(SPI1_CR, SAMSEL);				// SPI edge sampling selection 0-->slave     1-->master
 
 	set_csr(SPI1_CR, SPIMS);				// 0-->slave     1-->master
-	write_csr(SPI1_CLK, 5);					// fsck = sysclk/2*(SPI_CLK[7:0]+1)，此处为8MHz 48M/[2*(1+1)] == 12M（目前可设的最大值）
-//	set_csr(SPI1_CR, SPIEN);				// SPI使能 0-->Disable 1-->Enable
+	write_csr(SPI1_CLK, 5);					// fsck = sysclk/2*(SPI_CLK[7:0]+1), here it is 8MHz 48M/[2*(1+1)] == 12M (maximum value currently settable)
+//	set_csr(SPI1_CR, SPIEN);				// SPI enable 0-->Disable 1-->Enable
 }
 
 void SPI2_Init(void)
 {
-	clr_csr(SPI2_CR, SPIEN);				//关SPI使能
+	clr_csr(SPI2_CR, SPIEN);				//Disable SPI enable
 
 	/*------------------------------------------------------------------------------
-	SPI从方式选择配置
-	00：3线从方式或3线主方式，NSS信号不连到端口管脚
-	01：4线从方式或4线多主方式，NSS配置为输入
-	1x：4线单主方式，NSS配置为输出，NSS信号输出x电平
+	SPI slave mode selection configuration
+	00: 3-wire slave mode or 3-wire master mode, NSS signal not connected to port pins
+	01: 4-wire slave mode or 4-wire multi-master mode, NSS configured as input
+	1x: 4-wire single-master mode, NSS configured as output, NSS signal output level x
 	------------------------------------------------------------------------------*/
-	clr_csr(SPI2_CR, NSSMOD1);				// 不要问为什么，照做就是
+	clr_csr(SPI2_CR, NSSMOD1);				// Don't ask why, just do it
 	clr_csr(SPI2_CR, NSSMOD0);
 	
 #ifdef NSS2_PIN
@@ -73,23 +73,23 @@ void SPI2_Init(void)
 //	clr_csr(PA_PU, PIN13);
 	
 	/*------------------------------------------------------------------------------
-	SPI时钟相位/极性配置
-	CPHA = 0, CPOL = 0:上升沿接收，下降沿发送，空闲电平为低
-	CPHA = 0, CPOL = 1:上升沿发送，下降沿接收，空闲电平为高
-	CPHA = 1, CPOL = 0:上升沿发送，下降沿接收，空闲电平为低
-	CPHA = 1, CPOL = 1:上升沿接收，下降沿发送，空闲电平为高
+	SPI clock phase/polarity configuration
+	CPHA = 0, CPOL = 0: Receive on rising edge, transmit on falling edge, idle level low
+	CPHA = 0, CPOL = 1: Transmit on rising edge, receive on falling edge, idle level high
+	CPHA = 1, CPOL = 0: Transmit on rising edge, receive on falling edge, idle level low
+	CPHA = 1, CPOL = 1: Receive on rising edge, transmit on falling edge, idle level high
 	------------------------------------------------------------------------------*/
 	set_csr(SPI2_CR, CPHA);
 	set_csr(SPI2_CR, CPOL);
 
-	clr_csr(SPI2_SR, SPIIF);				// 此位需要软件清0，FTC6901W BUG
-	clr_csr(SPI2_CR, SPIIE);				// SPI中断使能0-->Disable  1-->Enable
+	clr_csr(SPI2_SR, SPIIF);				// This bit needs to be software cleared, FTC6901W BUG
+	clr_csr(SPI2_CR, SPIIE);				// SPI interrupt enable 0-->Disable  1-->Enable
 
-	set_csr(SPI2_CR, SCKRQ);				// 单线主机请求从机数据使能位 0-->不使能   1-->使能
-	set_csr(SPI2_CR, SAMSEL);				// SPI沿边采样选择 0-->slave     1-->master
+	set_csr(SPI2_CR, SCKRQ);				// Single-wire master request slave data enable bit 0-->Disable   1-->Enable
+	set_csr(SPI2_CR, SAMSEL);				// SPI edge sampling selection 0-->slave     1-->master
 
 	set_csr(SPI2_CR, SPIMS);				// 0-->slave     1-->master
-	write_csr(SPI2_CLK, 5);					// fsck = sysclk/2*(SPI_CLK[7:0]+1)，此处为8MHz 48M/[2*(1+1)] == 12M（目前可设的最大值）
+	write_csr(SPI2_CLK, 5);					// fsck = sysclk/2*(SPI_CLK[7:0]+1), here it is 8MHz 48M/[2*(1+1)] == 12M (maximum value currently settable)
 	
 }
 
@@ -97,35 +97,37 @@ void SPI2_Init(void)
 
 void SPI_ECAT_Init(void)
 {
-	clr_csr(SPI1_CR, SPIEN);				//关SPI使能
+	clr_csr(SPI1_CR, SPIEN);				//Disable SPI enable
+	
+	clr_csr(PH_SEL, SPICT);		// 1: PA15-SCLK PA14-MOSI PA13-MISO PA7-NSS (7502BC)
 
 	/*------------------------------------------------------------------------------
-	SPI从方式选择配置
-	00：3线从方式或3线主方式，NSS信号不连到端口管脚
-	01：4线从方式或4线多主方式，NSS配置为输入
-	1x：4线单主方式，NSS配置为输出，NSS信号输出x电平
+	SPI slave mode selection configuration
+	00: 3-wire slave mode or 3-wire master mode, NSS signal not connected to port pins
+	01: 4-wire slave mode or 4-wire multi-master mode, NSS configured as input
+	1x: 4-wire single-master mode, NSS configured as output, NSS signal output level x
 	------------------------------------------------------------------------------*/
-	set_csr(SPI1_CR, NSSMOD1);				// 不要问为什么，照做就是
+	set_csr(SPI1_CR, NSSMOD1);				// Don't ask why, just do it
 	set_csr(SPI1_CR, NSSMOD0);
 	/*------------------------------------------------------------------------------
-	SPI时钟相位/极性配置
-	CPHA = 0, CPOL = 0:上升沿接收，下降沿发送，空闲电平为低
-	CPHA = 0, CPOL = 1:上升沿发送，下降沿接收，空闲电平为高
-	CPHA = 1, CPOL = 0:上升沿发送，下降沿接收，空闲电平为低
-	CPHA = 1, CPOL = 1:上升沿接收，下降沿发送，空闲电平为高
+	SPI clock phase/polarity configuration
+	CPHA = 0, CPOL = 0: Receive on rising edge, transmit on falling edge, idle level low
+	CPHA = 0, CPOL = 1: Transmit on rising edge, receive on falling edge, idle level high
+	CPHA = 1, CPOL = 0: Transmit on rising edge, receive on falling edge, idle level low
+	CPHA = 1, CPOL = 1: Receive on rising edge, transmit on falling edge, idle level high
 	------------------------------------------------------------------------------*/
 	set_csr(SPI1_CR, CPHA);
 	set_csr(SPI1_CR, CPOL);
 
-	clr_csr(SPI1_SR, SPIIF);				// 此位需要软件清0，FTC6901W BUG
-	clr_csr(SPI1_CR, SPIIE);				// SPI中断使能0-->Disable  1-->Enable
+	clr_csr(SPI1_SR, SPIIF);				// This bit needs to be software cleared, FTC6901W BUG
+	clr_csr(SPI1_CR, SPIIE);				// SPI interrupt enable 0-->Disable  1-->Enable
 	
-	set_csr(SPI1_CR, SCKRQ);				// 单线主机请求从机数据使能位 0-->不使能   1-->使能
-	set_csr(SPI1_CR, SAMSEL);				// SPI沿边采样选择 0-->slave     1-->master
+	set_csr(SPI1_CR, SCKRQ);				// Single-wire master request slave data enable bit 0-->Disable   1-->Enable
+	set_csr(SPI1_CR, SAMSEL);				// SPI edge sampling selection 0-->slave     1-->master
 
 	set_csr(SPI1_CR, SPIMS);				// 0-->slave     1-->master
-	write_csr(SPI1_CLK, 3);					// fsck = sysclk/2*(SPI_CLK[7:0]+1)，此处为8MHz 48M/[2*(1+1)] == 12M（目前可设的最大值）
-	set_csr(SPI1_CR, SPIEN);				// SPI使能 0-->Disable 1-->Enable
+	write_csr(SPI1_CLK, 3);					// fsck = sysclk/2*(SPI_CLK[7:0]+1), here it is 8MHz 48M/[2*(1+1)] == 12M (maximum value currently settable)
+	set_csr(SPI1_CR, SPIEN);				// SPI enable 0-->Disable 1-->Enable
 }
 
 
@@ -145,7 +147,7 @@ uint8 WR_CMD(uint8 cmd)
 
 	clr_csr(SPI1_SR, SPIIF);
 	/* Wait for SPI1 Tx buffer empty */
-//	while (!readbit_csr(SPI1_SR, TXBMT));  // 7502B加了这句后NSS会异常
+//	while (!readbit_csr(SPI1_SR, TXBMT));  // NSS will be abnormal after adding this line in 7502B
 	/* Send SPI1 data */
 	write_csr(SPI1_DR, cmd);
 	/* Wait for SPI1 data reception */
@@ -176,7 +178,7 @@ uint8 WR_CMD2(uint8 cmd)
 
 	clr_csr(SPI2_SR, SPIIF);
 	/* Wait for SPI2 Tx buffer empty */
-	//	while (!readbit_csr(SPI2_SR, TXBMT));  // 7502B加了这句后NSS会异常
+	//	while (!readbit_csr(SPI2_SR, TXBMT));  // NSS will be abnormal after adding this line in 7502B
 	/* Send SPI2 data */
 	write_csr(SPI2_DR, cmd);
 	/* Wait for SPI1 data reception */

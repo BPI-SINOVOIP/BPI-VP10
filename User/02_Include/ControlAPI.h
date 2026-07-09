@@ -46,42 +46,44 @@ extern ElecAngCalTypedef ElecAngCal;
 
 /*---------------------------------------------------------------------------
  * Name		:	ElecAngCal_realize
- * Input	:	PosSingle - 编码器值低32位
- *				PosMulti - 编码器值高32位
- * Output	:	电角度值
- * Description:	根据当前编码器计算电角度值
+ * Input	:	PosSingle - Encoder value low 32 bits
+ *				PosMulti - Encoder value high 32 bits
+ * Output	:	Electrical angle value
+ * Description:	Calculate the electrical angle based on the current encoder value
  *---------------------------------------------------------------------------*/
 extern int16 ElecAngCal_realize(int32 PosSingle, int32 PosMulti);
 
 
 /*---------------------------------------------------------------------------
  * Name		:	PI_Control_realize
- * Input	:	p - PIControlSimple 类型的有效PI控制实例指针
- *				Cmd - 目标控制值
- *				Act - 实际反馈值
- * Output	:	本次控制周期计算出的PI控制输出值
- * Description:	执行位置式PI控制算法：根据目标值与实际值的偏差计算比例项、
- *				积分项，累加后输出控制量
+ * Input	:	p - Valid PI control instance pointer of type PIControlSimple
+ *				Cmd - Target control value
+ *				Act - Actual feedback value
+ * Output	:	PI control output value calculated for this control cycle
+ * Description:	Execute positional PI control algorithm: calculate proportional and 
+ *				integral terms based on the deviation between target and actual values, 
+ *				then output the control quantity after accumulation
  *---------------------------------------------------------------------------*/
 extern int16 PI_Control_realize(PIControlSimple* p, int16 Cmd, int16 Act);
 
 
 /*---------------------------------------------------------------------------
  * Name		:	PI_Control_Clear
- * Input	:	p - PIControlSimple 类型的有效PI控制实例指针
+ * Input	:	p - Valid PI control instance pointer of type PIControlSimple
  * Output	:	No
- * Description:	PI控制变量清零
+ * Description:	Clear PI control variables
  *---------------------------------------------------------------------------*/
 extern void PI_Control_Clear(PIControlSimple* p);
 
 
 /*---------------------------------------------------------------------------
  * Name		:	PI_Control_SetKiSum
- * Input	:	p - PIControlSimple 类型的有效PI控制实例指针
- *				kiSum - 要强制覆盖的PI控制内部积分累计项新值
+ * Input	:	p - Valid PI control instance pointer of type PIControlSimple
+ *				kiSum - New value of internal integral accumulation term for PI control to be forcibly overwritten
  * Output	:	No
- * Description:	外部干预位置式PI控制的积分状态：主要用于控制过程中紧急
- *				复位/切换目标时消除积分饱和遗留值、调试阶段手动预加载合理积分量
+ * Description:	Externally intervene in the integral state of positional PI control: mainly used to eliminate 
+ *				residual integral saturation values when emergency reset/switching targets during the control process, 
+ *				or to manually preload reasonable integral amounts during the debugging stage
  *---------------------------------------------------------------------------*/
 extern void PI_Control_SetKiSum(PIControlSimple* p, int16 kiSum);
 

@@ -32,7 +32,7 @@ typedef struct
 } I2CConfiguration;
 
 
-/***********************I2C´úÂë´¦Àí******************/
+/***********************I2CÂ´ÃºÃ‚Ã«Â´Â¦Ã€Ã­******************/
 
 #define I2C_Speed_100K				(MCU_CLOCK * 1000 / 100 - 1)
 #define I2C_Speed_400K				(MCU_CLOCK * 1000 / 400 - 1)

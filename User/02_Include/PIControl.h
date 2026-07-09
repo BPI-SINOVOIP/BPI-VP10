@@ -6,10 +6,10 @@
  * File Name     : PIControl.h
  * Author        : wynn.wang
  * Date          : 2025-04-20
- * Description   : 实现PI控制器核心功能，包括参数初始化、控制量计算、积分限幅等
+ * Description   : Implements the core functionality of the PI controller, including parameter initialization, control calculation, integral limiting, etc.
  *
  * Record        :
- * V1.0, 2025-04-20, wynn.wang: 初始版本，实现基本PI控制算法
+ * V1.0, 2025-04-20, wynn.wang: Initial version, implements the basic PI control algorithm
  */
 
 
@@ -32,29 +32,30 @@ typedef struct GnSWPIGainTypedef_t GnSWPIGainTypedef;
 
 typedef struct
 {
-	int16 ActualValue;             // 实际值
-	int16 PreCmdValue;			   // 上次目标速度
-	int16 ErrValue;                // 差值E(k)
-	int16 PreErrValue;             // 上一次差值E(k-1)
+	int16 ActualValue;             // Actual value
+	int16 PreCmdValue;			   // Previous target speed
+	int16 ErrValue;                // Error value E(k)
+	int16 PreErrValue;             // Previous error value E(k-1)
 	uint16 PreKi;
-	uint16 Kp;                     // 比例Kp
-	uint16 Ki;                     // 比例Ki
-	uint16 Kp1;                    // 比例Kp
-	uint16 Ki1;                    // 比例Ki
+	uint16 Kp;                     // Proportional Kp
+	uint16 Ki;                     // Integral Ki
+	uint16 Kp1;                    // Proportional Kp
+	uint16 Ki1;                    // Integral Ki
 	uint16 Kvf;
-	uint16 Kvf1;		           // PDFF kvf 参数
+	uint16 Kvf1;		           // PDFF kvf parameter
 	uint16 Kvf2;
-	uint16 Kp2;                    // 比例Kp2
-	uint16 Ki2;                    // 比例Ki
+	uint16 Kp2;                    // Proportional Kp2
+	uint16 Ki2;                    // Integral Ki
 	uint16 LimitFlag;
 	uint16 KiLimitFlag;
 	uint32 Kf;		               // PDFF kvf
 	
-	// 硬件速度PI可以不需要以下几个变量
-	int16 ValueMin;                // 限幅最小值
-	int16 ValueMax;                // 限幅最大值
-	int32 ValueMin32;              // 限幅最小值
-	int32 ValueMax32;              // 限幅最大值
+	// The following variables may not be needed for hardware speed PI
+	// The hardware speed PI may not need the following variables
+	int16 ValueMin;                // Minimum saturation value
+	int16 ValueMax;                // Maximum saturation value
+	int32 ValueMin32;              // Minimum saturation value
+	int32 ValueMax32;              // Maximum saturation value
 	int32 Valuetemp1;
 	int32 Valuetemp3;
 	int32 Valuetemp4;
@@ -66,38 +67,35 @@ typedef struct
 
 	int32 KiValueMax;
 	int32 KiValueMin;	
-	int32 GnKfCoef;                // 增益切换kf系数
+	int32 GnKfCoef;                // Gain switch kf coefficient
 	
-	uint16 GnSWTmAccCnt;  // 增益切换计数器（第一增益向第二增益切换）
-	uint16 GnSWTmDecCnt;  // 增益切换计数器（第二增益向第一增益切换）
-	uint16 GnSWDlyTmCnt;  // 增益切换延迟计数器
-	uint16 GnSWState;     // 增益切换状态机
+	uint16 GnSWTmAccCnt;  // Gain switch counter (first gain to second gain)
+	uint16 GnSWTmDecCnt;  // Gain switch counter (second gain to first gain)
+	uint16 GnSWDlyTmCnt;  // Gain switch delay counter
+	uint16 GnSWState;     // Gain switch state machine
 	uint16 GnSWStateLatch;
 	uint16 AutoFlag;
 //#endif //#if FUNC_GAINSW_ENABLED
 
-	int16 ValueMinBuffer;			//限幅最小值缓存
-	int16 ValueMaxBuffer;			//限幅最大值缓存
-	int16 SetLimitEn;				//限幅开关
-	uint16 KpQSel;                  // 比例Kp的Q值选项
-	uint16 KiQSel;			        // 比例Ki的Q值选项
-	int8 KpQVal;			        // 比例Kp的Q值
-	int8 KiQVal;			        // 比例Ki的Q值
+	uint16 KpQSel;                  // Q value option for proportional Kp
+	uint16 KiQSel;			        // Q value option for integral Ki
+	int8 KpQVal;			        // Q value of proportional Kp
+	int8 KiQVal;			        // Q value of integral Ki
 } PIControl;
 
 
 typedef struct
 {
-	const uint16* pKp;             // 比例Kp
-	const uint16* pKi;             // 比例Ki
+	const uint16* pKp;             // Proportional Kp
+	const uint16* pKi;             // Integral Ki
 	uint16 LimitFlag;
-	int16 DeSatur;				   // 积分饱和值
-	int16 ErrValue;                // 差值E(k)
+	int16 DeSatur;				   // Integral saturation value
+	int16 ErrValue;                // Error value E(k)
 	uint8 KpRank;                  // 
-	uint8 KiRank;                  //
+	uint8 KiRank;                  // 
 
-	int32 ValueMin32;              // 限幅最小值
-	int32 ValueMax32;              // 限幅最大值
+	int32 ValueMin32;              // Minimum saturation value
+	int32 ValueMax32;              // Maximum saturation value
 	int32 Valuetemp1;
 	int32 Valuetemp3;
 	int32 Valuetemp4;
@@ -113,15 +111,9 @@ extern PIControlSimple PID_Force;
 
 extern void PI_Init(void);
 extern void PI_Clear(void);
-extern int16 PI_Spd_realize(int16 Cmd, int16 Act);
-extern int16 PI_Pos_realize(int32 ErrValue);
-extern void PI_Spd_UpdateLimit(int16 Max, int16 Min);
-extern void PI_Spd_ResetLimit();
 extern void PI_Update();
-extern void Hard_PI_Init(void);
-extern void Hard_PI_Clear(void);
-extern int16 Hard_PI_Spd_realize(int16 Cmd, int16 Act);
-extern void Hard_PI_Gain_Update();
+extern void PI_Spd_Gain_Update();
+extern int16 PI_Pos_realize(int32 ErrValue);
 
 extern void PI_Toq_Clear(void);
 extern void PI_Spd_Clear(void);

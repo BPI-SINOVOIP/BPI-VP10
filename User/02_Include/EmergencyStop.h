@@ -18,16 +18,16 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
 
 // Definition of register DISMODE
-#define DYNBRK_OFF                                    (0x0000)          // rw-- 动态制动模式-无动态制动
-#define DYNBRK_FAULT								  (0x0001)          // rw-- 动态制动模式-只有报错时动态制动
-#define DYNBRK_ALWAYS								  (0x0002)          // rw-- 动态制动模式-任何时候都动态制动
+#define DYNBRK_OFF                                    (0x0000)          // rw-- Dynamic brake mode - no dynamic braking
+#define DYNBRK_FAULT								  (0x0001)          // rw-- Dynamic brake mode - dynamic braking only on fault
+#define DYNBRK_ALWAYS								  (0x0002)          // rw-- Dynamic brake mode - dynamic braking at all times
 
-#define DISSTOP_COAST                                 (0x0000)          // rw-- 停车方式-自由停车
-#define DISSTOP_RAMP                                  (0x0004)          // rw-- 停车方式-斜坡停车
-#define DISSTOP_ZERO                                  (0x0008)          // rw-- 停车方式-零速停车
+#define DISSTOP_COAST                                 (0x0000)          // rw-- Stop method - coast
+#define DISSTOP_RAMP                                  (0x0004)          // rw-- Stop method - ramp stop
+#define DISSTOP_ZERO                                  (0x0008)          // rw-- Stop method - zero-speed stop
 
-#define DYNBRKMODE                                    (0x0003)          // rw-- 动态制动模式
-#define DISSTOPMODE                                   (0x000C)          // rw-- 停车方式
+#define DYNBRKMODE                                    (0x0003)          // rw-- Dynamic brake mode
+#define DISSTOPMODE                                   (0x000C)          // rw-- Stop method
 
 
 // Emergencystop state machine
@@ -38,18 +38,18 @@
 #define EMER_FINISH						(4)             //
 
 
-#define DISDECSCALE						(6)             // 减速度放大
+#define DISDECSCALE						(6)             // Deceleration scale
 		
 typedef struct
 {
-	uint8 State;				// 状态机
-	uint8 StateLatch;			// 状态机锁存
-	uint8 StartStopFlag;        // 开始减速标志
-	uint8 DecStopFlag;			// 速度命令切换标志
-	uint8 StartBrakeFlag;       // 开始动态制动标志
-	uint16 TimeCounter;			// 停机计数
-	uint16 TimeOutCounter;		// 停机超时计数
-	int16 DisSpeed;				// 停机速度阈值
+	uint8 State;				// State machine
+	uint8 StateLatch;			// State machine latch
+	uint8 StartStopFlag;        // Start deceleration flag
+	uint8 DecStopFlag;			// Speed command switch flag
+	uint8 StartBrakeFlag;       // Start dynamic brake flag
+	uint16 TimeCounter;			// Stop counter
+	uint16 TimeOutCounter;		// Stop timeout counter
+	int16 DisSpeed;				// Stop speed threshold
 	int16 BrakeArrMax;
 	int32 BrakeArr;
 	int32 VelValue;

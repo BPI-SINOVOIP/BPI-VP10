@@ -6,7 +6,7 @@
  * File Name     : ForceCtrl.h
  * Author        : Victor.jin
  * Date          : 2024-01-18
- * Description   : 力控
+ * Description   : Force control
  *
  * Record        :
  * V1.0, 2024-01-18, Victor.jin: Created file
@@ -24,11 +24,11 @@ extern "C"{
 #include "fu7502.h"
 
 // Force control mode switch
-#define FCMODE_DISABLE					(0)             // 关闭力控功能
-#define FCMODE_OPENLOOP_ONCE			(1)             // 开环力控单次模式
-#define FCMODE_OPENLOOP_REPEAT			(2)             // 开环力控循环模式
-#define FCMODE_CLOSEDLOOP_ONCE			(3)             // 闭环力控单次模式
-#define FCMODE_CLOSEDLOOP_REPEAT		(4)             // 闭环力控循环模式
+#define FCMODE_DISABLE					(0)             // Disable force control function
+#define FCMODE_OPENLOOP_ONCE			(1)             // Open-loop force control single-run mode
+#define FCMODE_OPENLOOP_REPEAT			(2)             // Open-loop force control repeat mode
+#define FCMODE_CLOSEDLOOP_ONCE			(3)             // Closed-loop force control single-run mode
+#define FCMODE_CLOSEDLOOP_REPEAT		(4)             // Closed-loop force control repeat mode
 
 #define READY                           (0)
 #define START                           (1)

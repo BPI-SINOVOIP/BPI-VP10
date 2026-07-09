@@ -25,8 +25,8 @@
 
 
 #if (HARDWARE_VERSION == HARDWARE_FPGA_HIGHVOL_SWITCH || HARDWARE_VERSION == HARDWARE_FPGA_LOWVOL_SWITCH)
-#define ADCDR_ANAIN			(ADC1_DR6)				// 模拟量输入
-#define ADCDR_TEMP			(ADC1_DR3)				// NTC温度测量
+#define ADCDR_ANAIN			(ADC1_DR6)				// Analog input
+#define ADCDR_TEMP			(ADC1_DR3)				// NTC temperature measurement
 
 #define ADC1_ENABLEMASK		(CH6EN | CH3EN)
 
@@ -37,8 +37,8 @@
 #define TEMP_PIN			(PIN14)
 
 #elif (HARDWARE_VERSION == HARDWARE_LOWVOL_SWITCH)
-#define ADCDR_ANAIN			(ADC1_DR11)				// 模拟量输入
-#define ADCDR_TEMP			(ADC1_DR3)				// NTC温度测量
+#define ADCDR_ANAIN			(ADC1_DR11)				// Analog input
+#define ADCDR_TEMP			(ADC1_DR3)				// NTC temperature measurement
 
 #define ADC1_ENABLEMASK		(CH11EN | CH3EN)
 
@@ -60,13 +60,13 @@
 #define TEMP_AN				(PB_AN)
 #define TEMP_PIN			(PIN14)
 
-#else // 没有NTC和模拟量输入
+#else // No NTC or analog input
 #define ADC1_ENABLEMASK		(0)
 #endif
 
 typedef struct
 {
-	bool OffsetFlag;                  //偏置电压结束标志位
+	bool OffsetFlag;                  // Offset voltage completion flag
 } CurrentOffset;
 
 extern CurrentOffset mcCurOffset;

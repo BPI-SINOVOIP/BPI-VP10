@@ -37,7 +37,7 @@ uint8 CRC8Table[256] = {
 };
 
 /****************************************************************************
-CRC16_CCITT_FALSE	硬件实现
+CRC16_CCITT_FALSE	Hardware implementation
 ****************************************************************************/
 unsigned short CRC_Check(unsigned char start_sector, unsigned char offset_sector)
 {
@@ -49,12 +49,12 @@ unsigned short CRC_Check(unsigned char start_sector, unsigned char offset_sector
 	set_csr(CRC_CR, 0x04);		//0-->0x0000  1-->0xffff
 	set_csr(CRC_CR, 0x08);		//1-->init success
 
-	write_csr(CRC_BEG, start_sector);	//起始扇区
-	write_csr(CRC_CNT, offset_sector);	//扇区偏移量	0-->1个扇区
+	write_csr(CRC_BEG, start_sector);	//Starting sector
+	write_csr(CRC_CNT, offset_sector);	//Sector offset	0-->1 sector
 
-	//1个空扇区-->0x41E8	 2个空扇区-->0x1634
-	//1个0xFF  -->0x5B2F	 0x00~0xFF-->0x3FBD
-	set_csr(CRC_CR, 0x02);		//自动计算使能
+	//1 empty sector-->0x41E8	 2 empty sectors-->0x1634
+	//1 sector of 0xFF  -->0x5B2F	 0x00~0xFF-->0x3FBD
+	set_csr(CRC_CR, 0x02);		//Enable automatic calculation
 	/***************************************************/
 
 	set_csr(CRC_CR, 0x01);
@@ -69,7 +69,7 @@ unsigned short CRC_Check(unsigned char start_sector, unsigned char offset_sector
 
 /*=================================================================================
     Function Name	:	CRC8_ITU
-    Description		:	CRC8/ CRC8 ITU标准
+    Description		:	CRC8/ CRC8 ITU standard
 	Parameter		:	di - Data buffer.
 						len - Data buffer length.
 						xorVal - CRC poly
@@ -77,8 +77,8 @@ unsigned short CRC_Check(unsigned char start_sector, unsigned char offset_sector
 =================================================================================*/
 uint8 CalCRC8(uint8 * pbuf, uint8 buflen, uint8 xorVal)
 {
-// 直接算的话计算时间较长，8us
-//	uint8 crc_poly = 0x07; //X^8+X^2+X^1+1 total 8 effective bits without X^8.
+// Direct calculation takes longer, 8us
+
 //	uint8 data_t = 0; // Start Value
 //
 //	while (len--)
@@ -94,7 +94,7 @@ uint8 CalCRC8(uint8 * pbuf, uint8 buflen, uint8 xorVal)
 //	}
 //	return (data_t ^ xorVal);
 	
-	// 查表快很多
+	// Table lookup is much faster
 	uint8 crc = 0x00;
 	uint8 i;
 	for (i = 0; i < buflen - 1; i++)
